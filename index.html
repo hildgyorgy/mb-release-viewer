@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MusicBrainz Release Viewer</title>
+
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+
+<body>
+<header class="top">
+  <div class="top-inner">
+    <div class="brand">MusicBrainz Release Viewer</div>
+    <div class="search">
+      <input id="mbid" type="text" placeholder="Paste a MusicBrainz release URL or MBID">
+      <button id="go" class="go-btn" title="Load from MusicBrainz"><img src="assets/icons/MB_go.png" alt="MusicBrainz" /></button>
+    </div>
+  </div>
+</header>
+  <div class="wrap">
+    <div id="out"></div>
+  </div>
+
+  <script src="assets/app.js" defer></script>
+</body>
+</html>
