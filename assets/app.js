@@ -1,7 +1,6 @@
 /* MB Release Viewer – Tracklist + Recordings
    - Track details: 3 columns (Performers | Creators | Work hierarchy)
    - Recordings tab: per-recording "technical / organizational" credits (2-col, tracklist-like)
-   - Cover sizing: cover becomes a square sized to the REAL pixel width of the 3 buttons row
 */
 
 // ------------------------------------------------------------
@@ -219,12 +218,6 @@ function parsePerformersFromRecording(recording) {
     byRole.get(role).set(artist.id, artist);
   }
 
-  const CREATOR_ROLE_ORDER = ["composer", "lyricist", "librettist", "writer", "arranger"];
-  const rank = (role) => {
-    const i = CREATOR_ROLE_ORDER.indexOf(String(role || "").toLowerCase());
-    return i === -1 ? 999 : i; // ismeretlen role-ok menjenek a végére
-  };
-
   return Array.from(byRole.entries())
     .map(([role, artistMap]) => ({
       role,
@@ -232,14 +225,9 @@ function parsePerformersFromRecording(recording) {
         (a.name || "").localeCompare(b.name || "")
       ),
     }))
-    .sort((a, b) => {
-      const ra = rank(a.role);
-      const rb = rank(b.role);
-      if (ra !== rb) return ra - rb;
-      // ha mindkettő "ismeretlen", maradjon stabil és értelmes: abc a role szerint
-      return String(a.role || "").localeCompare(String(b.role || ""));
-    });
+    .sort((a, b) => a.role.localeCompare(b.role));
 }
+
 function renderRoleList(items) {
   return `
     <div class="perf">
