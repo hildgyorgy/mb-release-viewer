@@ -239,7 +239,7 @@ function parsePerformersFromRecording(recording) {
       // ha mindkettő "ismeretlen", maradjon stabil és értelmes: abc a role szerint
       return String(a.role || "").localeCompare(String(b.role || ""));
     });
-
+}
 function renderRoleList(items) {
   return `
     <div class="perf">
