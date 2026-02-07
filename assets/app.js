@@ -304,6 +304,12 @@ function parseCreatorsFromWork(work) {
     byRole.get(role).set(artist.id, artist);
   }
 
+  const CREATOR_ROLE_ORDER = ["composer", "lyricist", "librettist", "writer", "arranger"];
+  const rank = (role) => {
+    const i = CREATOR_ROLE_ORDER.indexOf(String(role || "").toLowerCase());
+    return i === -1 ? 999 : i; // ismeretlen role-ok menjenek a végére
+  };
+
   return Array.from(byRole.entries())
     .map(([role, artistMap]) => ({
       role,
@@ -311,7 +317,13 @@ function parseCreatorsFromWork(work) {
         (a.name || "").localeCompare(b.name || "")
       ),
     }))
-    .sort((a, b) => a.role.localeCompare(b.role));
+    .sort((a, b) => {
+      const ra = rank(a.role);
+      const rb = rank(b.role);
+      if (ra !== rb) return ra - rb;
+      // ha mindkettő "ismeretlen", maradjon stabil és értelmes: abc a role szerint
+      return String(a.role || "").localeCompare(String(b.role || ""));
+    });
 }
 
 function renderCreators(work) {
