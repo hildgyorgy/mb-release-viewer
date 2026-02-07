@@ -571,6 +571,9 @@ function parseRecordingTechCredits(recording) {
   const rels = Array.isArray(recording?.relations) ? recording.relations : [];
   const rows = [];
 
+  // disambiguation ("recording comment" jelleg) – később notes-ként, legalul
+  const dis = String(recording?.disambiguation || "").trim();
+
   for (const r of rels) {
     const tt = r.target_type ?? r["target-type"];
     const typeRaw = String(r.type || "").trim();
@@ -585,20 +588,17 @@ function parseRecordingTechCredits(recording) {
     const date = relDateLabel(r);
     const dateTxt = date ? ` <span class="muted">${escHtml(date)}</span>` : "";
 
-    // role: type="recording"+attrs=["engineer"] => "recording engineer"
-    const role = formatRecordingRole(r);
-
-    // attrs: only show separately when NOT "recording" (to avoid "recording engineer (engineer)")
-const attrs = Array.isArray(r.attributes) ? r.attributes : [];
-const pr = prettyRelRole(typeRaw, attrs);
-const attrsTxt = pr.rest.length ? ` (${pr.rest.map(escHtml).join(", ")})` : "";
+    const attrs = Array.isArray(r.attributes) ? r.attributes : [];
+    const pr = prettyRelRole(typeRaw, attrs);
+    const roleLabel = pr.role; // <- EZ A LÉNYEG: ne a typeRaw menjen ki
+    const attrsTxt = pr.rest.length ? ` (${pr.rest.map(escHtml).join(", ")})` : "";
 
     if (tt === "artist") {
       const artist = r.artist || r.target || null;
       if (!artist?.id) continue;
 
       rows.push({
-        role: typeRaw,
+        role: roleLabel,
         value: `${mbArtistLink(artist)}${attrsTxt}${dateTxt}`,
       });
       continue;
@@ -609,7 +609,7 @@ const attrsTxt = pr.rest.length ? ` (${pr.rest.map(escHtml).join(", ")})` : "";
       if (!place?.id) continue;
 
       rows.push({
-        role: typeRaw,
+        role: roleLabel,
         value: `${mbPlaceLink(place)}${attrsTxt}${dateTxt}`,
       });
       continue;
@@ -620,14 +620,13 @@ const attrsTxt = pr.rest.length ? ` (${pr.rest.map(escHtml).join(", ")})` : "";
       if (!rec) continue;
 
       rows.push({
-        role: typeRaw,
+        role: roleLabel,
         value: `${mbRecordingLink(rec)}${attrsTxt}${dateTxt}`,
       });
       continue;
     }
 
     // url rels could exist, but you said links don't matter → skip quietly
-    // if (tt === "url") { ... }
   }
 
   // group by role
@@ -638,22 +637,39 @@ const attrsTxt = pr.rest.length ? ` (${pr.rest.map(escHtml).join(", ")})` : "";
     grouped.get(k).push(row.value);
   }
 
-  const roles = Array.from(grouped.keys()).sort((a, b) => a.localeCompare(b));
+  // notes: add AFTER grouping, so we can force it to the bottom
+  if (dis) {
+    grouped.set("notes", [dis]); // itt még PLAIN szöveg, rendernél escHtml-eljük
+  }
+
+  // roles sorted, but notes always last
+  const roles = Array.from(grouped.keys()).sort((a, b) => {
+    const al = String(a || "").toLowerCase();
+    const bl = String(b || "").toLowerCase();
+    if (al === "notes") return 1;
+    if (bl === "notes") return -1;
+    return al.localeCompare(bl);
+  });
+
   return roles.map((role) => ({
     role,
     values: uniq(grouped.get(role)),
   }));
 }
-
 function renderRecordingTechGrid(items) {
   if (!items.length) return `<div class="muted">N/A</div>`;
 
-  // tracklist-like: slightly indented, role left / person right
-  // inline styles on purpose (so you don't have to touch CSS now)
   const rows = items
     .map((it) => {
       const role = escHtml(it.role);
-      const value = it.values.join("<br>");
+
+      // notes érték: muted + escHtml, és ne fehér
+      const isNotes = String(it.role || "").toLowerCase() === "notes";
+
+      const value = isNotes
+        ? `<span class="muted">${it.values.map((v) => escHtml(String(v))).join("<br>")}</span>`
+        : it.values.join("<br>");
+
       return `
         <div style="display:contents">
           <div class="muted" style="padding:2px 0;">${role}</div>
