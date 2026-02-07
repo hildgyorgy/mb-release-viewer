@@ -1,7 +1,6 @@
 /* MB Release Viewer – Tracklist + Recordings
    - Track details: 3 columns (Performers | Creators | Work hierarchy)
    - Recordings tab: per-recording "technical / organizational" credits (2-col, tracklist-like)
-   - Cover sizing: cover becomes a square sized to the REAL pixel width of the 3 buttons row
 */
 
 // ------------------------------------------------------------
