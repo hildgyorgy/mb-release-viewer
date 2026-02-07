@@ -519,6 +519,44 @@ const EXCLUDE_ARTIST_REL_TYPES = new Set([
   "librettist",
 ]);
 
+function prettyRelRole(typeRaw, attrs) {
+  const type = String(typeRaw || "").trim();
+  const typeLc = type.toLowerCase();
+
+  const a = Array.isArray(attrs) ? attrs.map(String) : [];
+  const aLc = a.map(x => x.toLowerCase());
+
+  // engineer specializations
+  if (typeLc === "engineer") {
+    if (aLc.includes("recording")) {
+      return { role: "recording engineer", rest: a.filter(x => x.toLowerCase() !== "recording") };
+    }
+    if (aLc.includes("mix")) {
+      return { role: "mixing engineer", rest: a.filter(x => x.toLowerCase() !== "mix") };
+    }
+    if (aLc.includes("mastering")) {
+      return { role: "mastering engineer", rest: a.filter(x => x.toLowerCase() !== "mastering") };
+    }
+  }
+
+  // producer specializations
+  if (typeLc === "producer") {
+    if (aLc.includes("executive")) {
+      return { role: "executive producer", rest: a.filter(x => x.toLowerCase() !== "executive") };
+    }
+    if (aLc.includes("co")) {
+      return { role: "co-producer", rest: a.filter(x => x.toLowerCase() !== "co") };
+    }
+  }
+
+  // fallback: if there is exactly one attribute, prepend it (nice for many 2-word roles)
+  if (a.length === 1) {
+    return { role: `${a[0]} ${type}`.trim(), rest: [] };
+  }
+
+  return { role: type, rest: a };
+}
+
 function parseRecordingTechCredits(recording) {
   const rels = Array.isArray(recording?.relations) ? recording.relations : [];
   const rows = [];
@@ -541,20 +579,16 @@ function parseRecordingTechCredits(recording) {
     const role = formatRecordingRole(r);
 
     // attrs: only show separately when NOT "recording" (to avoid "recording engineer (engineer)")
-    const attrs = Array.isArray(r.attributes) ? r.attributes : [];
-    const attrsTxt =
-      typeLc === "recording"
-        ? ""
-        : attrs.length
-        ? ` (${attrs.map(escHtml).join(", ")})`
-        : "";
+const attrs = Array.isArray(r.attributes) ? r.attributes : [];
+const pr = prettyRelRole(typeRaw, attrs);
+const attrsTxt = pr.rest.length ? ` (${pr.rest.map(escHtml).join(", ")})` : "";
 
     if (tt === "artist") {
       const artist = r.artist || r.target || null;
       if (!artist?.id) continue;
 
       rows.push({
-        role,
+        role: typeRaw,
         value: `${mbArtistLink(artist)}${attrsTxt}${dateTxt}`,
       });
       continue;
@@ -565,7 +599,7 @@ function parseRecordingTechCredits(recording) {
       if (!place?.id) continue;
 
       rows.push({
-        role,
+        role: typeRaw,
         value: `${mbPlaceLink(place)}${attrsTxt}${dateTxt}`,
       });
       continue;
@@ -576,7 +610,7 @@ function parseRecordingTechCredits(recording) {
       if (!rec) continue;
 
       rows.push({
-        role,
+        role: typeRaw,
         value: `${mbRecordingLink(rec)}${attrsTxt}${dateTxt}`,
       });
       continue;
