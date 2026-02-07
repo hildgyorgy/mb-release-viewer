@@ -568,6 +568,13 @@ function prettyRelRole(typeRaw, attrs) {
 }
 
 function parseRecordingTechCredits(recording) {
+const dis = (recording?.disambiguation || "").trim();
+if (dis) {
+  rows.push({
+    role: "notes",
+    value: escHtml(dis),
+  });
+}
   const rels = Array.isArray(recording?.relations) ? recording.relations : [];
   const rows = [];
 
