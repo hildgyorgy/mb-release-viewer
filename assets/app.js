@@ -828,7 +828,7 @@ async function loadRelease(mbid) {
 // ------------------------------------------------------------
 // 6) Rendering + UI binding
 // ------------------------------------------------------------
-function renderHeader({ title, cover, mbLink, artist, date, country, label, catno, barcode }) {
+function renderHeader({ title, cover, mbLink, artist, date, country, label, catno, barcode, releaseNotes }) {
   return `
     <div class="row">
       <div class="cover">
@@ -859,6 +859,11 @@ function renderHeader({ title, cover, mbLink, artist, date, country, label, catn
             <div><span class="meta-k">Label:</span> ${label ? escHtml(label) : "<span class='muted'>(n/a)</span>"}</div>
             <div><span class="meta-k">Cat. no.:</span> ${catno ? escHtml(catno) : "<span class='muted'>(n/a)</span>"}</div>
             <div><span class="meta-k">Barcode:</span> ${barcode ? escHtml(barcode) : "<span class='muted'>(n/a)</span>"}</div>
+            
+            ${releaseNotes
+    		  ? `<div><span class="meta-k">Notes:</span> <span class="muted">${escHtml(releaseNotes)}</span></div>`
+    		  : ""
+  			}
           </div>
         </div>
       </div>
@@ -1029,6 +1034,7 @@ function renderAll({ rel, cover }) {
   const label = labelInfo?.label?.name || "";
   const catno = labelInfo?.["catalog-number"] || "";
   const barcode = rel.barcode || "";
+  const releaseNotes = String(rel.disambiguation || "").trim();
 
   const annotation = (rel.annotation || "").trim();
   const mbLink = `https://musicbrainz.org/release/${rel.id}`;
@@ -1049,7 +1055,7 @@ function renderAll({ rel, cover }) {
 
   const out = $("#out");
   out.innerHTML = `
-    ${renderHeader({ title, cover, mbLink, artist, date, country, label, catno, barcode })}
+    ${renderHeader({ title, cover, mbLink, artist, date, country, label, catno, barcode, releaseNotes })}
     <div class="views">
       ${renderTracksView(tracks, annotation)}
       ${renderRecordingsViewShell()}
