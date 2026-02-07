@@ -287,8 +287,7 @@ function getPrimaryWorkIdFromRecording(recording) {
 
 function parseCreatorsFromWork(work) {
   const rels = work?.relations || [];
-  const creatorTypes = new Set(["composer", "lyricist", "librettist"]);
-
+  const creatorTypes = new Set(["composer", "lyricist", "librettist", "arranger", "writer"]);
   const byRole = new Map();
 
   for (const r of rels) {
