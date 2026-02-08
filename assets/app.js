@@ -585,8 +585,9 @@ function parseRecordingTechCredits(recording) {
     const typeLc = typeRaw.toLowerCase();
     if (tt === "artist" && EXCLUDE_ARTIST_REL_TYPES.has(typeLc)) continue;
 
-    const date = relDateLabel(r);
-    const dateTxt = date ? ` <span class="muted">${escHtml(date)}</span>` : "";
+const showDate = tt === "place";   // csak place relációknál
+const date = showDate ? relDateLabel(r) : "";
+const dateTxt = date ? ` <span class="muted">${escHtml(date)}</span>` : "";
 
     const attrs = Array.isArray(r.attributes) ? r.attributes : [];
     const pr = prettyRelRole(typeRaw, attrs);
