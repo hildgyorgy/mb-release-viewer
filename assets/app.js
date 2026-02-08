@@ -695,72 +695,83 @@ function renderRecordingTechGrid(items) {
   `;
 }
 
-// Built from the current release tracks (set in renderAll)
-let __tracksForRecordings = [];
+// Built from the current release media (set in renderAll)
+let __mediaForRecordings = [];
 
 async function buildRecordingsView() {
   const view = $(`section.view[data-view="recordings"]`);
   if (!view) return;
 
-  // unique recording IDs in track order
-  const seen = new Set();
-  const ordered = [];
-  for (const t of __tracksForRecordings) {
-    const id = t?.rec?.id;
-    if (!id || seen.has(id)) continue;
-    seen.add(id);
-    ordered.push(id);
-  }
+  const media = Array.isArray(__mediaForRecordings) ? __mediaForRecordings : [];
 
-  // build table like tracklist (thin separators via td border-top)
   let html = `
     <div class="tracks">
       <table>
         <tbody>
   `;
 
-  for (let idx = 0; idx < ordered.length; idx++) {
-    const recId = ordered[idx];
-    let rec = null;
+  for (const m of media) {
+    // --- medium header row ---
+html += `
+  <tr class="medium-row">
+    <td class="medium-cell" colspan="3">CD ${escHtml(m.index)}</td>
+  </tr>
+`;
 
-    try {
-      rec = await loadRecording(recId);
-    } catch {
-      rec = null;
+    // unique recording IDs within this medium, keeping order
+    const seen = new Set();
+    const orderedRecIds = [];
+
+    for (const t of (m.tracks || [])) {
+      const id = t?.rec?.id;
+      if (!id || seen.has(id)) continue;
+      seen.add(id);
+      orderedRecIds.push(id);
     }
 
-    const title = rec?.title || "(untitled recording)";
+    // render each recording
+    for (let idx = 0; idx < orderedRecIds.length; idx++) {
+      const recId = orderedRecIds[idx];
+      let rec = null;
 
-    // track-style header row: [num] [title] [len(empty)]
-    html += `
-      <tr>
-        <td class="num">${idx + 1}</td>
-        <td class="title">${escHtml(title)}</td>
-        <td class="len"></td>
-      </tr>
-    `;
+      try {
+        rec = await loadRecording(recId);
+      } catch {
+        rec = null;
+      }
 
-    if (!rec) {
+      const title = rec?.title || "(untitled recording)";
+
+      html += `
+        <tr>
+          <td class="num">${idx + 1}</td>
+          <td class="title">${escHtml(title)}</td>
+          <td class="len"></td>
+        </tr>
+      `;
+
+      if (!rec) {
+        html += `
+          <tr>
+            <td></td>
+            <td colspan="2">
+              <div class="muted" style="margin-left:10px; padding: 10px 10px 12px;">(could not load recording)</div>
+            </td>
+          </tr>
+        `;
+        continue;
+      }
+
+      const items = parseRecordingTechCredits(rec);
+      const grid = renderRecordingTechGrid(items);
+
       html += `
         <tr>
           <td></td>
-          <td colspan="2">
-            <div class="muted" style="margin-left:10px; padding: 10px 10px 12px;">(could not load recording)</div>
-          </td>
+          <td colspan="2">${grid}</td>
         </tr>
       `;
-      continue;
     }
-
-    const items = parseRecordingTechCredits(rec);
-    const grid = renderRecordingTechGrid(items);
-
-    html += `
-      <tr>
-        <td></td>
-        <td colspan="2">${grid}</td>
-      </tr>
-    `;
   }
 
   html += `
@@ -1092,9 +1103,9 @@ const mediaWithTracks = media.map((m, mi) => {
   };
 });
 
-// for recordings view (flat list, in release order)
-__tracksForRecordings = flatTracks;
-  recordingsBuilt = false;
+// for recordings view (medium-aware)
+__mediaForRecordings = mediaWithTracks; // <-- ez nálad már megvan a CD headeres tracklist miatt
+recordingsBuilt = false;
 
   const out = $("#out");
   out.innerHTML = `
