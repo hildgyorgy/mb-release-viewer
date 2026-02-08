@@ -4,11 +4,37 @@
 */
 
 /* ------------------------------------------------------------
-   0) Variables + base
+   THEME VARIABLES
+   Light = default
 ------------------------------------------------------------ */
 :root{
   --wrap: 980px;
 
+  /* Light background system */
+  --bg: #f4f6fb;
+  --panel: #ffffff;
+  --panel-2: #eef1f8;
+
+  --border: #d6dbea;
+  --border-2: #c8cfe3;
+
+  --meta: #5b647f;
+
+  --text: #1b1e28;
+  --link: #2f5ee8;
+  --muted: rgba(27,30,40,.65);
+
+  --tabs-gap: 8px;
+  --tab-pad-y: 7px;
+  --tab-pad-x: 9px;
+
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+/* ------------------------------------------------------------
+   Dark theme (explicit opt-in)
+------------------------------------------------------------ */
+:root[data-theme="dark"]{
   --bg: #0b0c10;
   --panel: #141823;
   --panel-2: #0f1220;
@@ -21,12 +47,6 @@
   --text: #e9eef5;
   --link: #8ab4ff;
   --muted: rgba(233,238,245,.70);
-
-  --tabs-gap: 8px;
-  --tab-pad-y: 7px;
-  --tab-pad-x: 9px;
-
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
 }
 
 *, *::before, *::after{

@@ -1238,6 +1238,22 @@ async function go() {
   }
 }
 
+// ------------------------------------------------------------
+// Theme init (system preference)
+// ------------------------------------------------------------
+(function initThemeFromSystem(){
+  // ha később user toggle lesz, és ő már döntött, ezt nem bántjuk
+  if (document.documentElement.dataset.theme) return;
+
+  const prefersDark =
+    window.matchMedia &&
+    window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+  if (prefersDark) {
+    document.documentElement.dataset.theme = "dark";
+  }
+})();
+
 document.addEventListener("DOMContentLoaded", () => {
   $("#go")?.addEventListener("click", go);
   $("#mbid")?.addEventListener("keydown", (e) => {
