@@ -515,12 +515,6 @@ async function renderTrackDetails(recording, work) {
 // 4.5) Recordings tab (technical / organizational credits)
 // ------------------------------------------------------------
 
-/**
- * We exclude "performer" + "creator" + "work-ish" from the Recordings list:
- * - instrument / vocal
- * - composer / lyricist / librettist
- * - work relations (target_type = work) are ignored entirely here
- */
 const EXCLUDE_ARTIST_REL_TYPES = new Set([
   "instrument",
   "vocal",
@@ -534,32 +528,29 @@ function prettyRelRole(typeRaw, attrs) {
   const typeLc = type.toLowerCase();
 
   const a = Array.isArray(attrs) ? attrs.map(String) : [];
-  const aLc = a.map(x => x.toLowerCase());
+  const aLc = a.map((x) => x.toLowerCase());
 
-  // engineer specializations
   if (typeLc === "engineer") {
     if (aLc.includes("recording")) {
-      return { role: "recording engineer", rest: a.filter(x => x.toLowerCase() !== "recording") };
+      return { role: "recording engineer", rest: a.filter((x) => x.toLowerCase() !== "recording") };
     }
     if (aLc.includes("mix")) {
-      return { role: "mixing engineer", rest: a.filter(x => x.toLowerCase() !== "mix") };
+      return { role: "mixing engineer", rest: a.filter((x) => x.toLowerCase() !== "mix") };
     }
     if (aLc.includes("mastering")) {
-      return { role: "mastering engineer", rest: a.filter(x => x.toLowerCase() !== "mastering") };
+      return { role: "mastering engineer", rest: a.filter((x) => x.toLowerCase() !== "mastering") };
     }
   }
 
-  // producer specializations
   if (typeLc === "producer") {
     if (aLc.includes("executive")) {
-      return { role: "executive producer", rest: a.filter(x => x.toLowerCase() !== "executive") };
+      return { role: "executive producer", rest: a.filter((x) => x.toLowerCase() !== "executive") };
     }
     if (aLc.includes("co")) {
-      return { role: "co-producer", rest: a.filter(x => x.toLowerCase() !== "co") };
+      return { role: "co-producer", rest: a.filter((x) => x.toLowerCase() !== "co") };
     }
   }
 
-  // fallback: if there is exactly one attribute, prepend it (nice for many 2-word roles)
   if (a.length === 1) {
     return { role: `${a[0]} ${type}`.trim(), rest: [] };
   }
@@ -570,8 +561,6 @@ function prettyRelRole(typeRaw, attrs) {
 function parseRecordingTechCredits(recording) {
   const rels = Array.isArray(recording?.relations) ? recording.relations : [];
   const rows = [];
-
-  // disambiguation ("recording comment" jelleg) – később notes-ként, legalul
   const dis = String(recording?.disambiguation || "").trim();
 
   for (const r of rels) {
@@ -579,29 +568,25 @@ function parseRecordingTechCredits(recording) {
     const typeRaw = String(r.type || "").trim();
     if (!typeRaw) continue;
 
-    // ignore work rels here
     if (tt === "work") continue;
 
     const typeLc = typeRaw.toLowerCase();
     if (tt === "artist" && EXCLUDE_ARTIST_REL_TYPES.has(typeLc)) continue;
 
-const showDate = tt === "place";   // csak place relációknál
-const date = showDate ? relDateLabel(r) : "";
-const dateTxt = date ? ` <span class="muted">${escHtml(date)}</span>` : "";
+    const showDate = tt === "place";
+    const date = showDate ? relDateLabel(r) : "";
+    const dateTxt = date ? ` <span class="muted">${escHtml(date)}</span>` : "";
 
     const attrs = Array.isArray(r.attributes) ? r.attributes : [];
     const pr = prettyRelRole(typeRaw, attrs);
-    const roleLabel = pr.role; // <- EZ A LÉNYEG: ne a typeRaw menjen ki
+    const roleLabel = pr.role;
     const attrsTxt = pr.rest.length ? ` (${pr.rest.map(escHtml).join(", ")})` : "";
 
     if (tt === "artist") {
       const artist = r.artist || r.target || null;
       if (!artist?.id) continue;
 
-      rows.push({
-        role: roleLabel,
-        value: `${mbArtistLink(artist)}${attrsTxt}${dateTxt}`,
-      });
+      rows.push({ role: roleLabel, value: `${mbArtistLink(artist)}${attrsTxt}${dateTxt}` });
       continue;
     }
 
@@ -609,10 +594,7 @@ const dateTxt = date ? ` <span class="muted">${escHtml(date)}</span>` : "";
       const place = r.place || r.target || null;
       if (!place?.id) continue;
 
-      rows.push({
-        role: roleLabel,
-        value: `${mbPlaceLink(place)}${attrsTxt}${dateTxt}`,
-      });
+      rows.push({ role: roleLabel, value: `${mbPlaceLink(place)}${attrsTxt}${dateTxt}` });
       continue;
     }
 
@@ -620,17 +602,11 @@ const dateTxt = date ? ` <span class="muted">${escHtml(date)}</span>` : "";
       const rec = r.recording || r.target || null;
       if (!rec) continue;
 
-      rows.push({
-        role: roleLabel,
-        value: `${mbRecordingLink(rec)}${attrsTxt}${dateTxt}`,
-      });
+      rows.push({ role: roleLabel, value: `${mbRecordingLink(rec)}${attrsTxt}${dateTxt}` });
       continue;
     }
-
-    // url rels could exist, but you said links don't matter → skip quietly
   }
 
-  // group by role
   const grouped = new Map();
   for (const row of rows) {
     const k = row.role;
@@ -638,12 +614,8 @@ const dateTxt = date ? ` <span class="muted">${escHtml(date)}</span>` : "";
     grouped.get(k).push(row.value);
   }
 
-  // notes: add AFTER grouping, so we can force it to the bottom
-  if (dis) {
-    grouped.set("notes", [dis]); // itt még PLAIN szöveg, rendernél escHtml-eljük
-  }
+  if (dis) grouped.set("notes", [dis]);
 
-  // roles sorted, but notes always last
   const roles = Array.from(grouped.keys()).sort((a, b) => {
     const al = String(a || "").toLowerCase();
     const bl = String(b || "").toLowerCase();
@@ -652,19 +624,15 @@ const dateTxt = date ? ` <span class="muted">${escHtml(date)}</span>` : "";
     return al.localeCompare(bl);
   });
 
-  return roles.map((role) => ({
-    role,
-    values: uniq(grouped.get(role)),
-  }));
+  return roles.map((role) => ({ role, values: uniq(grouped.get(role)) }));
 }
+
 function renderRecordingTechGrid(items) {
   if (!items.length) return `<div class="muted">N/A</div>`;
 
   const rows = items
     .map((it) => {
       const role = escHtml(it.role);
-
-      // notes érték: muted + escHtml, és ne fehér
       const isNotes = String(it.role || "").toLowerCase() === "notes";
 
       const value = isNotes
@@ -699,11 +667,144 @@ function renderRecordingTechGrid(items) {
 // Built from the current release media (set in renderAll)
 let __mediaForRecordings = [];
 
+function itemsToRoleMap(items) {
+  const map = new Map();
+  for (const it of (items || [])) {
+    const role = String(it.role || "").trim();
+    if (!role) continue;
+    if (role.toLowerCase() === "notes") continue; // notes-t nem tesszük a common metszetbe
+    const vals = (it.values || []).filter(Boolean).map(String);
+    map.set(role, new Set(vals));
+  }
+  return map;
+}
+
+function intersectRoleMaps(roleMaps) {
+  const common = new Map();
+  if (!roleMaps.length) return common;
+
+  for (const [role, set] of roleMaps[0].entries()) {
+    common.set(role, new Set(set));
+  }
+
+  for (let i = 1; i < roleMaps.length; i++) {
+    const cur = roleMaps[i];
+
+    for (const [role, commonSet] of common.entries()) {
+      const curSet = cur.get(role);
+      if (!curSet) {
+        common.delete(role);
+        continue;
+      }
+
+      for (const v of Array.from(commonSet)) {
+        if (!curSet.has(v)) commonSet.delete(v);
+      }
+      if (commonSet.size === 0) common.delete(role);
+    }
+  }
+
+  return common;
+}
+
+function subtractCommon(items, commonMap, commonNotes = "") {
+  // items: [{role, values:[...]}]
+  // commonMap: Map(role -> Set(commonValues))
+  // commonNotes: if non-empty AND an item's notes matches it, drop notes from diff
+  const out = [];
+  const commonNotesNorm = String(commonNotes || "").trim();
+
+  for (const it of (items || [])) {
+    const role = String(it.role || "").trim();
+    if (!role) continue;
+
+    // notes: only keep if it differs from the common notes
+    if (role.toLowerCase() === "notes") {
+      const txt = String(it.values?.[0] || "").trim();
+      if (!commonNotesNorm || txt !== commonNotesNorm) out.push(it);
+      continue;
+    }
+
+    const commonSet = commonMap.get(role);
+    if (!commonSet) {
+      out.push(it);
+      continue;
+    }
+
+    const diffVals = (it.values || []).filter((v) => !commonSet.has(String(v)));
+    if (diffVals.length) out.push({ role, values: diffVals });
+  }
+  return out;
+}
+
+function getCommonNotesFromItemsList(itemsList) {
+  let common = null;
+
+  for (const items of (itemsList || [])) {
+    const notesItem = (items || []).find(
+      (it) => String(it.role || "").toLowerCase() === "notes"
+    );
+
+    const txt = String(notesItem?.values?.[0] || "").trim();
+    if (!txt) return "";
+
+    if (common === null) common = txt;
+    else if (common !== txt) return "";
+  }
+
+  return common || "";
+}
+
 async function buildRecordingsView() {
   const view = $(`section.view[data-view="recordings"]`);
   if (!view) return;
 
   const media = Array.isArray(__mediaForRecordings) ? __mediaForRecordings : [];
+
+  const seenGlobal = new Set();
+  const albumRecIds = [];
+
+  for (const m of media) {
+    for (const t of (m.tracks || [])) {
+      const id = t?.rec?.id;
+      if (!id || seenGlobal.has(id)) continue;
+      seenGlobal.add(id);
+      albumRecIds.push(id);
+    }
+  }
+
+  const recData = new Map();
+  const recItems = new Map();
+  const roleMaps = [];
+  const itemsListForCommon = [];
+
+  for (const recId of albumRecIds) {
+    let rec = null;
+    try {
+      rec = await loadRecording(recId);
+    } catch {
+      rec = null;
+    }
+    recData.set(recId, rec);
+
+    if (!rec) continue;
+    const items = parseRecordingTechCredits(rec);
+    recItems.set(recId, items);
+    roleMaps.push(itemsToRoleMap(items));
+    itemsListForCommon.push(items);
+  }
+
+  const commonMap = intersectRoleMaps(roleMaps);
+
+  const commonItems = Array.from(commonMap.entries())
+    .map(([role, set]) => ({
+      role,
+      values: Array.from(set).sort((a, b) => String(a).localeCompare(String(b))),
+    }))
+    .sort((a, b) => String(a.role).localeCompare(String(b.role)));
+
+  const commonNotes = getCommonNotesFromItemsList(itemsListForCommon);
+  if (commonNotes) commonItems.push({ role: "notes", values: [commonNotes] });
 
   let html = `
     <div class="tracks">
@@ -711,15 +812,27 @@ async function buildRecordingsView() {
         <tbody>
   `;
 
-  for (const m of media) {
-    // --- medium header row ---
-html += `
-  <tr class="medium-row">
-    <td class="medium-cell" colspan="3">CD ${escHtml(m.index)}</td>
-  </tr>
-`;
+  if (commonItems.length) {
+    html += `
+      <tr>
+        <td class="num"></td>
+        <td class="title">${escHtml("Common credits/notes")}</td>
+        <td class="len"></td>
+      </tr>
+      <tr>
+        <td></td>
+        <td colspan="2">${renderRecordingTechGrid(commonItems)}</td>
+      </tr>
+    `;
+  }
 
-    // unique recording IDs within this medium, keeping order
+  for (const m of media) {
+    html += `
+      <tr class="medium-row">
+        <td class="medium-cell" colspan="3">CD ${escHtml(m.index)}</td>
+      </tr>
+    `;
+
     const seen = new Set();
     const orderedRecIds = [];
 
@@ -730,17 +843,9 @@ html += `
       orderedRecIds.push(id);
     }
 
-    // render each recording
     for (let idx = 0; idx < orderedRecIds.length; idx++) {
       const recId = orderedRecIds[idx];
-      let rec = null;
-
-      try {
-        rec = await loadRecording(recId);
-      } catch {
-        rec = null;
-      }
-
+      const rec = recData.get(recId) ?? null;
       const title = rec?.title || "(untitled recording)";
 
       html += `
@@ -763,8 +868,12 @@ html += `
         continue;
       }
 
-      const items = parseRecordingTechCredits(rec);
-      const grid = renderRecordingTechGrid(items);
+      const items = recItems.get(recId) || [];
+      const diffItems = subtractCommon(items, commonMap, commonNotes);
+
+      const grid = diffItems.length
+        ? renderRecordingTechGrid(diffItems)
+        : `<div class="muted" style="margin-left:10px; padding: 10px 10px 12px;">--</div>`;
 
       html += `
         <tr>
@@ -798,7 +907,6 @@ async function loadRecording(recId) {
   if (!recId) return null;
   if (recordingCache.has(recId)) return recordingCache.get(recId);
 
-  // IMPORTANT: we include more rels for the Recordings tab
   const rec = await fetchJSON(
     `https://musicbrainz.org/ws/2/recording/${recId}?fmt=json&inc=` +
       `artist-rels+work-rels+place-rels+recording-rels+url-rels`
@@ -871,11 +979,7 @@ function renderHeader({ title, cover, mbLink, artist, date, country, label, catn
             <div><span class="meta-k">Label:</span> ${label ? escHtml(label) : "<span class='muted'>(n/a)</span>"}</div>
             <div><span class="meta-k">Cat. no.:</span> ${catno ? escHtml(catno) : "<span class='muted'>(n/a)</span>"}</div>
             <div><span class="meta-k">Barcode:</span> ${barcode ? escHtml(barcode) : "<span class='muted'>(n/a)</span>"}</div>
-            
-            ${releaseNotes
-    		  ? `<div><span class="meta-k">Notes:</span> <span class="muted">${escHtml(releaseNotes)}</span></div>`
-    		  : ""
-  			}
+            ${releaseNotes ? `<div><span class="meta-k">Notes:</span> <span class="muted">${escHtml(releaseNotes)}</span></div>` : ""}
           </div>
         </div>
       </div>
@@ -888,7 +992,6 @@ function renderTracksView(mediaWithTracks, annotation) {
     const fmt = String(m.format || "").toLowerCase();
     const base = fmt.includes("cd") ? "CD" : "Disc";
     let s = `${base} ${m.index}`;
-    // optional but still minimal: show format/title if useful
     const extra = [];
     if (m.format && !fmt.includes("cd")) extra.push(m.format);
     if (m.title) extra.push(m.title);
@@ -943,21 +1046,12 @@ function renderTracksView(mediaWithTracks, annotation) {
         </table>
       </div>
 
-      ${
-        annotation
-          ? `
-        <div class="annotation">
-          <div class="body">${escHtml(annotation)}</div>
-        </div>
-      `
-          : ""
-      }
+      ${annotation ? `<div class="annotation"><div class="body">${escHtml(annotation)}</div></div>` : ""}
     </section>
   `;
 }
 
 function renderRecordingsViewShell() {
-  // no heading (as requested)
   return `
     <section class="view" data-view="recordings" hidden>
       <div class="muted">Loading…</div>
@@ -965,7 +1059,6 @@ function renderRecordingsViewShell() {
   `;
 }
 
-// ---- Track details open/close ----
 function closeDetails(detailsRow, trackRow) {
   const wrap = $(".details-wrap", detailsRow);
   if (!wrap) return;
@@ -1008,7 +1101,6 @@ function bindTrackToggles(outEl, tracks) {
     if (!wrap || !inner) return;
 
     const isOpen = details.classList.contains("is-open");
-
     if (isOpen) {
       closeDetails(details, tr);
       return;
@@ -1032,10 +1124,7 @@ function bindTrackToggles(outEl, tracks) {
       const rels = Array.isArray(recording?.relations) ? recording.relations : [];
       const hasWork = rels.some((r) => (r.target_type ?? r["target-type"]) === "work");
       const hasArtist = rels.some((r) => (r.target_type ?? r["target-type"]) === "artist");
-
-      if (!hasWork || !hasArtist) {
-        recording = await loadRecording(recId);
-      }
+      if (!hasWork || !hasArtist) recording = await loadRecording(recId);
     } catch {
       inner.innerHTML = `<div class="muted">Could not load recording credits.</div>`;
       requestAnimationFrame(() => (wrap.style.maxHeight = wrap.scrollHeight + "px"));
@@ -1057,9 +1146,7 @@ function bindTrackToggles(outEl, tracks) {
     }
 
     inner.innerHTML = await renderTrackDetails(recording, work);
-    requestAnimationFrame(() => {
-      wrap.style.maxHeight = wrap.scrollHeight + "px";
-    });
+    requestAnimationFrame(() => (wrap.style.maxHeight = wrap.scrollHeight + "px"));
   });
 }
 
@@ -1078,35 +1165,33 @@ function renderAll({ rel, cover }) {
   const annotation = (rel.annotation || "").trim();
   const mbLink = `https://musicbrainz.org/release/${rel.id}`;
 
+  const media = rel.media || [];
+  const flatTracks = [];
 
-const media = rel.media || [];
-const flatTracks = [];
+  const mediaWithTracks = media.map((m, mi) => {
+    const mt = (m.tracks || []).map((t) => {
+      const obj = {
+        pos: t.position,
+        title: t.title,
+        len: fmtMs(t.length),
+        rec: t.recording,
+        _i: flatTracks.length,
+      };
+      flatTracks.push(obj);
+      return obj;
+    });
 
-const mediaWithTracks = media.map((m, mi) => {
-  const mt = (m.tracks || []).map((t) => {
-    const obj = {
-      pos: t.position,
-      title: t.title,
-      len: fmtMs(t.length),
-      rec: t.recording,
-      _i: flatTracks.length, // global index for toggles
+    return {
+      index: mi + 1,
+      format: m.format || "",
+      title: m.title || "",
+      trackCount: mt.length,
+      tracks: mt,
     };
-    flatTracks.push(obj);
-    return obj;
   });
 
-  return {
-    index: mi + 1,
-    format: m.format || "",
-    title: m.title || "",
-    trackCount: mt.length,
-    tracks: mt,
-  };
-});
-
-// for recordings view (medium-aware)
-__mediaForRecordings = mediaWithTracks; // <-- ez nálad már megvan a CD headeres tracklist miatt
-recordingsBuilt = false;
+  __mediaForRecordings = mediaWithTracks;
+  recordingsBuilt = false;
 
   const out = $("#out");
   out.innerHTML = `
@@ -1117,16 +1202,13 @@ recordingsBuilt = false;
     </div>
   `;
 
-  // bind UI
   bindTabsOnce();
   setActiveView("tracks");
   bindTrackToggles(out, flatTracks);
 
-  // cover sizing lock
   bindCoverSizerOnce();
   lockCoverSquareToTabs(out);
 
-  // re-lock once the cover image finishes loading (prevents the "jump")
   const img = $("#coverImg", out);
   if (img) {
     const relock = () => lockCoverSquareToTabs(out);
