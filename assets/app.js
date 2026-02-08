@@ -871,26 +871,50 @@ function renderHeader({ title, cover, mbLink, artist, date, country, label, catn
   `;
 }
 
-function renderTracksView(mediaWithTracks, annotation) {
-  let html = `
-    <div class="tracks-view">
-      ${annotation ? `<div class="annotation muted">${escHtml(annotation)}</div>` : ""}
-  `;
+function renderTracksView(tracks, annotation) {
+  return `
+    <section class="view" data-view="tracks">
+      <div class="tracks">
+        <table>
+          <tbody>
+            ${tracks
+              .map((t, idx) => {
+                const recId = t.rec?.id || "";
+                return `
+                  <tr class="track" data-i="${idx}" data-rec="${recId}">
+                    <td class="num">${t.pos ?? ""}</td>
+                    <td class="title">${escHtml(t.title || "")}</td>
+                    <td class="len">${escHtml(t.len || "")}</td>
+                  </tr>
 
-  mediaWithTracks.forEach((m) => {
-    html += `
-      <div class="medium-header">
-        CD ${m.index}${m.format ? ` · ${escHtml(m.format)}` : ""}
+                  <tr class="details" data-i="${idx}">
+                    <td></td>
+                    <td colspan="2">
+                      <div class="details-wrap">
+                        <div class="details-inner">
+                          <div class="muted">Loading…</div>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                `;
+              })
+              .join("")}
+          </tbody>
+        </table>
       </div>
-    `;
 
-    m.tracks.forEach((t, i) => {
-      html += renderTrackRow(t, i);
-    });
-  });
-
-  html += `</div>`;
-  return html;
+      ${
+        annotation
+          ? `
+        <div class="annotation">
+          <div class="body">${escHtml(annotation)}</div>
+        </div>
+      `
+          : ""
+      }
+    </section>
+  `;
 }
 
 function renderRecordingsViewShell() {
@@ -1016,17 +1040,14 @@ function renderAll({ rel, cover }) {
   const mbLink = `https://musicbrainz.org/release/${rel.id}`;
 
   const media = rel.media || [];
-const mediaWithTracks = (rel.media || []).map((m, mi) => ({
-  index: mi + 1,
-  format: m.format || "",
-  trackCount: (m.tracks || []).length,
-  tracks: (m.tracks || []).map((t) => ({
-    pos: t.position,
-    title: t.title,
-    len: fmtMs(t.length),
-    rec: t.recording,
-  })),
-}));
+  const tracks = media.flatMap((m) =>
+    (m.tracks || []).map((t) => ({
+      pos: t.position,
+      title: t.title,
+      len: fmtMs(t.length),
+      rec: t.recording,
+    }))
+  );
 
   // for recordings view
   __tracksForRecordings = tracks;
@@ -1036,7 +1057,7 @@ const mediaWithTracks = (rel.media || []).map((m, mi) => ({
   out.innerHTML = `
     ${renderHeader({ title, cover, mbLink, artist, date, country, label, catno, barcode, releaseNotes })}
     <div class="views">
-      ${renderTracksView(mediaWithTracks, annotation)}
+      ${renderTracksView(tracks, annotation)}
       ${renderRecordingsViewShell()}
     </div>
   `;
