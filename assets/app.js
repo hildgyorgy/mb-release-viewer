@@ -871,33 +871,60 @@ function renderHeader({ title, cover, mbLink, artist, date, country, label, catn
   `;
 }
 
-function renderTracksView(tracks, annotation) {
+function renderTracksView(mediaWithTracks, annotation) {
+  const mediumLabel = (m) => {
+    const fmt = String(m.format || "").toLowerCase();
+    const base = fmt.includes("cd") ? "CD" : "Disc";
+    let s = `${base} ${m.index}`;
+    // optional but still minimal: show format/title if useful
+    const extra = [];
+    if (m.format && !fmt.includes("cd")) extra.push(m.format);
+    if (m.title) extra.push(m.title);
+    if (extra.length) s += ` · ${extra.map(escHtml).join(" · ")}`;
+    return s;
+  };
+
   return `
     <section class="view" data-view="tracks">
       <div class="tracks">
         <table>
           <tbody>
-            ${tracks
-              .map((t, idx) => {
-                const recId = t.rec?.id || "";
-                return `
-                  <tr class="track" data-i="${idx}" data-rec="${recId}">
-                    <td class="num">${t.pos ?? ""}</td>
-                    <td class="title">${escHtml(t.title || "")}</td>
-                    <td class="len">${escHtml(t.len || "")}</td>
-                  </tr>
-
-                  <tr class="details" data-i="${idx}">
-                    <td></td>
-                    <td colspan="2">
-                      <div class="details-wrap">
-                        <div class="details-inner">
-                          <div class="muted">Loading…</div>
-                        </div>
-                      </div>
+            ${mediaWithTracks
+              .map((m) => {
+                const head = `
+                  <tr class="medium-row">
+                    <td colspan="3" class="medium-cell">
+                      <span class="muted" style="font-size:12px; letter-spacing:0.08em;">${mediumLabel(m)}</span>
                     </td>
                   </tr>
                 `;
+
+                const rows = m.tracks
+                  .map((t) => {
+                    const idx = t._i;
+                    const recId = t.rec?.id || "";
+                    return `
+                      <tr class="track" data-i="${idx}" data-rec="${recId}">
+                        <td class="num">${t.pos ?? ""}</td>
+                        <td class="title">${escHtml(t.title || "")}</td>
+                        <td class="len">${escHtml(t.len || "")}</td>
+                      </tr>
+
+                      <tr class="details" data-i="${idx}">
+                        <td></td>
+                        <td colspan="2">
+                          <div class="details-wrap">
+                            <div class="details-inner">
+                              <div class="muted">Loading…</div>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    `;
+                  })
+                  .join("");
+
+                return head + rows;
               })
               .join("")}
           </tbody>
@@ -1039,25 +1066,41 @@ function renderAll({ rel, cover }) {
   const annotation = (rel.annotation || "").trim();
   const mbLink = `https://musicbrainz.org/release/${rel.id}`;
 
-  const media = rel.media || [];
-  const tracks = media.flatMap((m) =>
-    (m.tracks || []).map((t) => ({
+
+const media = rel.media || [];
+const flatTracks = [];
+
+const mediaWithTracks = media.map((m, mi) => {
+  const mt = (m.tracks || []).map((t) => {
+    const obj = {
       pos: t.position,
       title: t.title,
       len: fmtMs(t.length),
       rec: t.recording,
-    }))
-  );
+      _i: flatTracks.length, // global index for toggles
+    };
+    flatTracks.push(obj);
+    return obj;
+  });
 
-  // for recordings view
-  __tracksForRecordings = tracks;
+  return {
+    index: mi + 1,
+    format: m.format || "",
+    title: m.title || "",
+    trackCount: mt.length,
+    tracks: mt,
+  };
+});
+
+// for recordings view (flat list, in release order)
+__tracksForRecordings = flatTracks;
   recordingsBuilt = false;
 
   const out = $("#out");
   out.innerHTML = `
     ${renderHeader({ title, cover, mbLink, artist, date, country, label, catno, barcode, releaseNotes })}
     <div class="views">
-      ${renderTracksView(tracks, annotation)}
+      ${renderTracksView(mediaWithTracks, annotation)}
       ${renderRecordingsViewShell()}
     </div>
   `;
@@ -1065,7 +1108,7 @@ function renderAll({ rel, cover }) {
   // bind UI
   bindTabsOnce();
   setActiveView("tracks");
-  bindTrackToggles(out, tracks);
+  bindTrackToggles(out, flatTracks);
 
   // cover sizing lock
   bindCoverSizerOnce();

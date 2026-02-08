@@ -15,6 +15,8 @@
 
   --border: #242a3a;
   --border-2: #2b3247;
+  
+  --meta: #9aa4c7;
 
   --text: #e9eef5;
   --link: #8ab4ff;
@@ -297,7 +299,7 @@ h1{
 
 .meta-k{
   font-weight: 400;
-  color: #9aa4c7;
+  color: var(--meta);
 }
 
 /* ------------------------------------------------------------
@@ -533,11 +535,9 @@ tr.track.is-open + tr.details .perf{
   text-overflow: ellipsis;    /* ha nagyon keskeny a kijelző, ne essen szét */
 }
 
-.medium-header {
-  margin: 1.4rem 0 0.4rem;
-  padding-top: 0.6rem;
+.medium-row .medium-cell{
+  padding-top: 10px;
+  padding-bottom: 10px;
   border-top: 1px solid var(--border);
-  font-size: 0.75rem;
-  letter-spacing: 0.08em;
-  color: var(--muted);
+  color: var(--meta);
 }
