@@ -27,7 +27,6 @@
   
   --topbar: rgba(255,255,255,.80); /* próbáld: .60–.85 */
   --topbar-blur: 10px;            /* próbáld: 6–14 */
-}
 
   font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
 }
@@ -51,13 +50,12 @@
   
   --topbar: rgba(10,34,68,.90);   /* próbáld: .35–.70 */
   --topbar-blur: 10px;
-
-  .cover-box:hover{
-    box-shadow:
-      0 18px 36px rgba(0,0,0,0.55),
-      0 0 34px rgba(120, 170, 255, 0.45);
-    outline-color: rgba(120, 170, 255, 0.22);
   }
+:root[data-theme="dark"] .cover-box:hover{
+  box-shadow:
+    0 18px 36px rgba(0,0,0,0.55),
+    0 0 34px rgba(120, 170, 255, 0.45);
+  outline-color: rgba(120, 170, 255, 0.22);
 }
 
 *, *::before, *::after{
@@ -291,7 +289,7 @@ h1{
 
 .lb img{
   max-width: min(900px, calc(100vw - 48px));
-  max-height: calc(100vh - 48px));
+  max-height: calc(100vh - 48px);
   width: auto;
   height: auto;
   border-radius: 10px;
