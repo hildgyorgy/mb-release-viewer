@@ -48,7 +48,7 @@
   --link: #8ab4ff;
   --muted: rgba(233,238,245,.70);
   
-  --topbar: rgba(10,34,68,.90);   /* próbáld: .35–.70 */
+  --topbar: rgba(11,12,16,.70);   /* próbáld: .35–.70 */
   --topbar-blur: 10px;
   }
 :root[data-theme="dark"] .cover-box:hover{
