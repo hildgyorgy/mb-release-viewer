@@ -260,6 +260,59 @@ function bindTabsOnce() {
 }
 
 /* ============================================================
+   Cover lightbox (single image) helper
+   ============================================================ */
+function ensureLightboxOnce() {
+  let lb = document.getElementById("lb");
+  if (lb) return lb;
+
+  lb = document.createElement("div");
+  lb.id = "lb";
+  lb.className = "lb";
+  lb.innerHTML = `<img id="lbImg" alt="">`;
+  document.body.appendChild(lb);
+
+  // click outside image closes
+  lb.addEventListener("click", (e) => {
+    if (e.target === lb) closeLightbox();
+  });
+
+  // ESC closes
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeLightbox();
+  });
+
+  return lb;
+}
+
+function openLightbox(src, alt = "") {
+  if (!src) return;
+  const lb = ensureLightboxOnce();
+  const img = document.getElementById("lbImg");
+  img.src = src;
+  img.alt = alt || "";
+  lb.classList.add("is-open");
+  document.body.style.overflow = "hidden";
+}
+
+function closeLightbox() {
+  const lb = document.getElementById("lb");
+  if (!lb) return;
+  lb.classList.remove("is-open");
+  document.body.style.overflow = "";
+}
+
+function bindCoverLightboxOnce(root = document) {
+  const img = $("#coverImg", root);
+  if (!img || img.dataset.lbBound === "1") return;
+  img.dataset.lbBound = "1";
+
+  img.addEventListener("click", () => {
+    openLightbox(img.src, img.alt || "Cover");
+  });
+}
+
+/* ============================================================
    5) MusicBrainz link helpers (HTML linkek)
    ============================================================ */
 function mbArtistLink(artist) {
@@ -1098,14 +1151,12 @@ function renderTracksView(mediaWithTracks, annotation) {
             ${mediaWithTracks
               .map((m) => {
                 const head = `
-                  <tr class="medium-row">
-                    <td colspan="3" class="medium-cell">
-                      <span class="muted" style="font-size:12px; letter-spacing:0.08em;">
-                        ${escHtml(mediumLabel(m, mediaCount))}
-                      </span>
-                    </td>
-                  </tr>
-                `;
+				  <tr class="medium-row">
+				    <td colspan="3" class="medium-cell">
+				      ${escHtml(mediumLabel(m, mediaCount))}
+				    </td>
+				  </tr>
+				`;
 
                 const rows = m.tracks
                   .map((t) => {
@@ -1303,6 +1354,7 @@ function renderAll({ rel, cover }) {
   bindTabsOnce();
   setActiveView("tracks");
   bindTrackToggles(out, flatTracks);
+    bindCoverLightboxOnce(out);
 
   // cover + theme gomb pozicionálás
   bindCoverSizerOnce();

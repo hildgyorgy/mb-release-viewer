@@ -44,6 +44,13 @@
   --text: #e9eef5;
   --link: #8ab4ff;
   --muted: rgba(233,238,245,.70);
+
+  .cover-box:hover{
+    box-shadow:
+      0 18px 36px rgba(0,0,0,0.55),
+      0 0 34px rgba(120, 170, 255, 0.45);
+    outline-color: rgba(120, 170, 255, 0.22);
+  }
 }
 
 *, *::before, *::after{
@@ -226,6 +233,74 @@ h1{
   margin-top: 20px;
   width: fit-content;
   max-width: 100%;
+}
+
+/* ------------------------------------------------------------
+   Cover hover: lift + shadow (light) + glow (dark)
+------------------------------------------------------------ */
+.cover-box{
+  cursor: zoom-in;
+  transition: transform 180ms ease, box-shadow 220ms ease, outline-color 220ms ease;
+  box-shadow: none;               /* nem kell a 0 0 0 */
+  outline: 1px solid transparent; /* hogy animálható legyen */
+  outline-offset: 3px;
+  will-change: transform, box-shadow;
+}
+
+.cover-box:hover{
+  transform: translateY(-4px);
+  box-shadow: 0 18px 28px rgba(0,0,0,.33);
+}
+
+
+/* ------------------------------------------------------------
+   Cover lightbox
+------------------------------------------------------------ */
+.lb{
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+
+  display: grid;
+  place-items: center;
+  padding: 24px;
+
+  background: rgba(0,0,0,.72);
+  backdrop-filter: blur(6px);
+
+  /* a trükk: nem display-t váltunk */
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+
+  transition: opacity 300ms ease, visibility 0s linear 300ms;
+}
+
+.lb.is-open{
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+
+  transition: opacity 350ms ease, visibility 0s;
+}
+
+/* a kép is “érkezzen meg” kicsit */
+.lb img{
+  max-width: min(900px, calc(100vw - 48px));
+  max-height: calc(100vh - 48px));
+  width: auto;
+  height: auto;
+  border-radius: 10px;
+  box-shadow: 0 18px 60px rgba(0,0,0,.45);
+
+  transform: scale(.9);
+  opacity: 0;
+  transition: transform 500ms ease, opacity 500ms ease;
+}
+
+.lb.is-open img{
+  transform: scale(1);
+  opacity: 1;
 }
 
 /* ------------------------------------------------------------
@@ -579,10 +654,13 @@ tr.track.is-open + tr.details .perf{
   text-overflow: ellipsis;
 }
 
+/* Medium (CD / Vinyl / Digital media) header */
 .medium-row .medium-cell{
   padding-top: 10px;
   padding-bottom: 10px;
-  border-top: 0px solid var(--border);
+  border-top: 0;
+  font-size: 12px;
+  letter-spacing: 0.08em;
   color: var(--meta);
   font-weight: 600;
 }
