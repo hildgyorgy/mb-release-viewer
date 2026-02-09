@@ -3,15 +3,15 @@
    - Recordings tab: per-recording "technical / organizational" credits (2-col, tracklist-like)
 */
 
-// ------------------------------------------------------------
-// 0) Tiny DOM helpers
-// ------------------------------------------------------------
+/* ============================================================
+   0) Tiny DOM helpers
+   ============================================================ */
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
-// ------------------------------------------------------------
-// 1) Small formatting helpers
-// ------------------------------------------------------------
+/* ============================================================
+   1) Small utilities (formatting, escaping, dedupe)
+   ============================================================ */
 function extractMBID(value) {
   const m = String(value || "")
     .trim()
@@ -52,22 +52,178 @@ function relDateLabel(r) {
   return "";
 }
 
-// MB recording relationships often come like:
-// type="recording" + attributes=["engineer"] => should display "recording engineer"
-function formatRecordingRole(r) {
-  const type = String(r?.type || "").trim().toLowerCase();
-  const attrs = Array.isArray(r?.attributes) ? r.attributes : [];
-  const cleanAttrs = attrs.map((a) => String(a || "").trim()).filter(Boolean);
+/**
+ * Medium label policy:
+ * - Digital media: NO "Disc 1" prefix (ever)
+ * - Vinyl: only show "Disc N" if release has multiple media
+ * - CD: "CD N"
+ * - Other formats: "Disc N" only if multiple media; otherwise just format (or "Disc" fallback)
+ * - Medium title appended as " · Title"
+ */
+function mediumLabel(m, totalMediaCount) {
+  const fmtRaw = String(m?.format || "").trim();
+  const fmt = fmtRaw.toLowerCase();
+  const title = String(m?.title || "").trim();
 
-  if (type === "recording" && cleanAttrs.length) {
-    return `recording ${cleanAttrs.join(", ")}`;
+  const isDigital = fmt.includes("digital");
+  const isVinyl = fmt.includes("vinyl");
+  const isCD = fmt.includes("cd");
+
+  const extra = [];
+  if (title) extra.push(title);
+
+  const joinExtra = (base) => (extra.length ? `${base} · ${extra.join(" · ")}` : base);
+
+  // DIGITAL → no numbering
+  if (isDigital) {
+    return joinExtra(fmtRaw || "Digital media");
   }
-  return type;
+
+  // VINYL → numbering only if multiple media
+  if (isVinyl) {
+    if (totalMediaCount > 1) return joinExtra(`Disc ${m.index} · ${fmtRaw || "Vinyl"}`);
+    return joinExtra(fmtRaw || "Vinyl");
+  }
+
+  // CD → classic numbering
+  if (isCD) {
+    return joinExtra(`CD ${m.index}`);
+  }
+
+  // OTHER
+  if (totalMediaCount > 1) {
+    return joinExtra(`Disc ${m.index}${fmtRaw ? ` · ${fmtRaw}` : ""}`.trim());
+  }
+  return joinExtra(fmtRaw || "Disc");
 }
 
-// ------------------------------------------------------------
-// 2) Tabs (Tracklist / Recordings)
-// ------------------------------------------------------------
+/* ============================================================
+   2) Theme system (light/dark) + icons
+   ============================================================ */
+const THEME_STORAGE_KEY = "mb_theme";
+
+const ICON_MOON = `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+     fill="none" stroke="currentColor" stroke-width="2"
+     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path>
+</svg>`;
+
+const ICON_SUN = `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+     fill="none" stroke="currentColor" stroke-width="2"
+     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <circle cx="12" cy="12" r="4"></circle>
+  <path d="M12 2v2"></path>
+  <path d="M12 20v2"></path>
+  <path d="M4.93 4.93l1.41 1.41"></path>
+  <path d="M17.66 17.66l1.41 1.41"></path>
+  <path d="M2 12h2"></path>
+  <path d="M20 12h2"></path>
+  <path d="M6.34 17.66l-1.41 1.41"></path>
+  <path d="M19.07 4.93l-1.41 1.41"></path>
+</svg>`;
+
+function getPreferredTheme() {
+  const saved = localStorage.getItem(THEME_STORAGE_KEY);
+  if (saved === "light" || saved === "dark") return saved;
+
+  const prefersDark =
+    window.matchMedia &&
+    window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+  return prefersDark ? "dark" : "light";
+}
+
+function applyTheme(theme) {
+  const t = theme === "dark" ? "dark" : "light";
+  document.documentElement.dataset.theme = t;
+  localStorage.setItem(THEME_STORAGE_KEY, t);
+
+  const btn = document.getElementById("themeToggle");
+  if (btn) {
+    btn.innerHTML = t === "dark" ? ICON_SUN : ICON_MOON; // dark-ban nap, light-ban hold
+    btn.title = t === "dark" ? "Switch to light mode" : "Switch to dark mode";
+    btn.setAttribute("aria-label", btn.title);
+  }
+}
+
+function toggleTheme() {
+  const cur = document.documentElement.dataset.theme || "light";
+  applyTheme(cur === "dark" ? "light" : "dark");
+}
+
+function bindThemeToggleOnce(root = document) {
+  const btn = $("#themeToggle", root);
+  if (!btn || btn.dataset.bound === "1") return;
+  btn.dataset.bound = "1";
+  btn.addEventListener("click", toggleTheme);
+}
+
+/* ============================================================
+   3) Layout helpers (cover-lock + theme button positioning)
+   ============================================================ */
+let coverSizerBound = false;
+
+function lockCoverSquareToTabs(root = document) {
+  const cover = $(".cover", root);
+  const box = $(".cover-box", root);
+  const navRow = $(".cover-nav-row", root);
+  const tabs = $("#tabs", root);
+  if (!cover || !box || !navRow || !tabs) return;
+
+  const w = Math.ceil(tabs.getBoundingClientRect().width);
+  cover.style.width = w + "px";
+  navRow.style.width = w + "px";
+  box.style.width = w + "px";
+  box.style.height = w + "px";
+}
+
+function positionThemeToggle(root = document) {
+  const row = $(".row", root);
+  const main = $(".main", root);
+  const tabs = $("#tabs", root);
+  const btn = $("#themeToggle", root);
+  if (!row || !main || !tabs || !btn) return;
+
+  const rowRect = row.getBoundingClientRect();
+  const mainRect = main.getBoundingClientRect();
+  const tabsRect = tabs.getBoundingClientRect();
+
+  const bw = btn.offsetWidth || 38;
+  const bh = btn.offsetHeight || 38;
+
+  // a gomb közepe essen a cover/tabs és a meta blokk határvonalára (+ finom offset)
+  const x = (mainRect.left - rowRect.left) - bw / 2 + 15;
+
+  // a tabs sor középvonalára igazítjuk
+  const y = (tabsRect.top - rowRect.top) + (tabsRect.height - bh) / 2;
+
+  btn.style.left = `${Math.round(x)}px`;
+  btn.style.top = `${Math.round(y)}px`;
+}
+
+function bindCoverSizerOnce() {
+  if (coverSizerBound) return;
+  coverSizerBound = true;
+
+  const rerun = () => {
+    const out = $("#out");
+    if (!out) return;
+    lockCoverSquareToTabs(out);
+    positionThemeToggle(out);
+  };
+
+  window.addEventListener("resize", rerun);
+
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(rerun);
+  }
+}
+
+/* ============================================================
+   4) Tabs / view switching
+   ============================================================ */
 function setActiveView(viewName) {
   $$(".view").forEach((sec) => {
     sec.hidden = sec.dataset.view !== viewName;
@@ -92,8 +248,7 @@ function bindTabsOnce() {
     if (!btn) return;
 
     const view = btn.dataset.view;
-    // the MB link also has .tab class but no data-view → ignore it
-    if (!view) return;
+    if (!view) return; // MB link: nincs data-view
 
     setActiveView(view);
 
@@ -104,48 +259,9 @@ function bindTabsOnce() {
   });
 }
 
-// ------------------------------------------------------------
-// 2.5) Cover sizing lock (prevents "image-load jump")
-// ------------------------------------------------------------
-let coverSizerBound = false;
-
-function lockCoverSquareToTabs(root = document) {
-  const cover = $(".cover", root);
-  const box = $(".cover-box", root);
-  const navRow = $(".cover-nav-row", root);
-  const tabs = $("#tabs", root);
-  if (!cover || !box || !navRow || !tabs) return;
-
-  const w = Math.ceil(tabs.getBoundingClientRect().width);
-
-  cover.style.width = w + "px";
-  navRow.style.width = w + "px";
-  box.style.width = w + "px";
-  box.style.height = w + "px";
-}
-
-function bindCoverSizerOnce() {
-  if (coverSizerBound) return;
-  coverSizerBound = true;
-
-  window.addEventListener("resize", () => {
-    const out = $("#out");
-    if (!out) return;
-    lockCoverSquareToTabs(out);
-  });
-
-  if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(() => {
-      const out = $("#out");
-      if (!out) return;
-      lockCoverSquareToTabs(out);
-    });
-  }
-}
-
-// ------------------------------------------------------------
-// 3) Credits parsing (performers + creators) + Work hierarchy
-// ------------------------------------------------------------
+/* ============================================================
+   5) MusicBrainz link helpers (HTML linkek)
+   ============================================================ */
 function mbArtistLink(artist) {
   if (!artist?.id) return "";
   const name = artist.name || artist["name"] || "(unknown)";
@@ -173,11 +289,9 @@ function mbRecordingLink(rec) {
   return `<a href="https://musicbrainz.org/recording/${rec.id}" target="_blank" rel="noreferrer">${title}</a>`;
 }
 
-/**
- * Performers from recording relations:
- * - instrument
- * - vocal (+ vocal-ish attributes)
- */
+/* ============================================================
+   6) Track details (Performers / Creators / Work hierarchy)
+   ============================================================ */
 function parsePerformersFromRecording(recording) {
   const rels = recording?.relations || [];
 
@@ -266,9 +380,6 @@ function renderPerformers(recording) {
   return renderRoleList(items);
 }
 
-/**
- * Recording -> (primary) Work (first work relation)
- */
 function getPrimaryWorkIdFromRecording(recording) {
   const rels = recording?.relations || [];
 
@@ -306,7 +417,7 @@ function parseCreatorsFromWork(work) {
   const CREATOR_ROLE_ORDER = ["composer", "lyricist", "librettist", "writer", "arranger"];
   const rank = (role) => {
     const i = CREATOR_ROLE_ORDER.indexOf(String(role || "").toLowerCase());
-    return i === -1 ? 999 : i; // ismeretlen role-ok menjenek a végére
+    return i === -1 ? 999 : i;
   };
 
   return Array.from(byRole.entries())
@@ -320,7 +431,6 @@ function parseCreatorsFromWork(work) {
       const ra = rank(a.role);
       const rb = rank(b.role);
       if (ra !== rb) return ra - rb;
-      // ha mindkettő "ismeretlen", maradjon stabil és értelmes: abc a role szerint
       return String(a.role || "").localeCompare(String(b.role || ""));
     });
 }
@@ -357,9 +467,6 @@ function renderCreators(work) {
   return renderRoleList(items);
 }
 
-/**
- * Work hierarchy ("part of") — no track-title parsing.
- */
 function getParentWorkIdFromWork(work) {
   const rels = Array.isArray(work?.relations) ? work.relations : [];
 
@@ -436,9 +543,8 @@ async function getWorkHierarchyLines(leafWork) {
 
   const display = [];
   for (let i = 0; i < full.length; i++) {
-    if (i === 0) {
-      display.push(full[i].title);
-    } else {
+    if (i === 0) display.push(full[i].title);
+    else {
       const raw = full[i].title;
       const parentRaw = full[i - 1].title;
       const parentDisp = display[i - 1];
@@ -511,10 +617,9 @@ async function renderTrackDetails(recording, work) {
   `;
 }
 
-// ------------------------------------------------------------
-// 4.5) Recordings tab (technical / organizational credits)
-// ------------------------------------------------------------
-
+/* ============================================================
+   7) Recordings tab (technical / organizational credits)
+   ============================================================ */
 const EXCLUDE_ARTIST_REL_TYPES = new Set([
   "instrument",
   "vocal",
@@ -585,7 +690,6 @@ function parseRecordingTechCredits(recording) {
     if (tt === "artist") {
       const artist = r.artist || r.target || null;
       if (!artist?.id) continue;
-
       rows.push({ role: roleLabel, value: `${mbArtistLink(artist)}${attrsTxt}${dateTxt}` });
       continue;
     }
@@ -593,7 +697,6 @@ function parseRecordingTechCredits(recording) {
     if (tt === "place") {
       const place = r.place || r.target || null;
       if (!place?.id) continue;
-
       rows.push({ role: roleLabel, value: `${mbPlaceLink(place)}${attrsTxt}${dateTxt}` });
       continue;
     }
@@ -601,7 +704,6 @@ function parseRecordingTechCredits(recording) {
     if (tt === "recording") {
       const rec = r.recording || r.target || null;
       if (!rec) continue;
-
       rows.push({ role: roleLabel, value: `${mbRecordingLink(rec)}${attrsTxt}${dateTxt}` });
       continue;
     }
@@ -672,7 +774,7 @@ function itemsToRoleMap(items) {
   for (const it of (items || [])) {
     const role = String(it.role || "").trim();
     if (!role) continue;
-    if (role.toLowerCase() === "notes") continue; // notes-t nem tesszük a common metszetbe
+    if (role.toLowerCase() === "notes") continue;
     const vals = (it.values || []).filter(Boolean).map(String);
     map.set(role, new Set(vals));
   }
@@ -690,7 +792,7 @@ function intersectRoleMaps(roleMaps) {
   for (let i = 1; i < roleMaps.length; i++) {
     const cur = roleMaps[i];
 
-    for (const [role, commonSet] of common.entries()) {
+    for (const [role, commonSet] of Array.from(common.entries())) {
       const curSet = cur.get(role);
       if (!curSet) {
         common.delete(role);
@@ -707,10 +809,22 @@ function intersectRoleMaps(roleMaps) {
   return common;
 }
 
+function getCommonNotesFromItemsList(itemsList) {
+  let common = null;
+
+  for (const items of (itemsList || [])) {
+    const notesItem = (items || []).find((it) => String(it.role || "").toLowerCase() === "notes");
+    const txt = String(notesItem?.values?.[0] || "").trim();
+
+    if (!txt) return "";
+    if (common === null) common = txt;
+    else if (common !== txt) return "";
+  }
+
+  return common || "";
+}
+
 function subtractCommon(items, commonMap, commonNotes = "") {
-  // items: [{role, values:[...]}]
-  // commonMap: Map(role -> Set(commonValues))
-  // commonNotes: if non-empty AND an item's notes matches it, drop notes from diff
   const out = [];
   const commonNotesNorm = String(commonNotes || "").trim();
 
@@ -718,7 +832,6 @@ function subtractCommon(items, commonMap, commonNotes = "") {
     const role = String(it.role || "").trim();
     if (!role) continue;
 
-    // notes: only keep if it differs from the common notes
     if (role.toLowerCase() === "notes") {
       const txt = String(it.values?.[0] || "").trim();
       if (!commonNotesNorm || txt !== commonNotesNorm) out.push(it);
@@ -734,25 +847,8 @@ function subtractCommon(items, commonMap, commonNotes = "") {
     const diffVals = (it.values || []).filter((v) => !commonSet.has(String(v)));
     if (diffVals.length) out.push({ role, values: diffVals });
   }
+
   return out;
-}
-
-function getCommonNotesFromItemsList(itemsList) {
-  let common = null;
-
-  for (const items of (itemsList || [])) {
-    const notesItem = (items || []).find(
-      (it) => String(it.role || "").toLowerCase() === "notes"
-    );
-
-    const txt = String(notesItem?.values?.[0] || "").trim();
-    if (!txt) return "";
-
-    if (common === null) common = txt;
-    else if (common !== txt) return "";
-  }
-
-  return common || "";
 }
 
 async function buildRecordingsView() {
@@ -760,10 +856,11 @@ async function buildRecordingsView() {
   if (!view) return;
 
   const media = Array.isArray(__mediaForRecordings) ? __mediaForRecordings : [];
+  const mediaCount = media.length;
 
+  // album-szintű unique recording ID-k
   const seenGlobal = new Set();
   const albumRecIds = [];
-
   for (const m of media) {
     for (const t of (m.tracks || [])) {
       const id = t?.rec?.id;
@@ -795,7 +892,6 @@ async function buildRecordingsView() {
   }
 
   const commonMap = intersectRoleMaps(roleMaps);
-
   const commonItems = Array.from(commonMap.entries())
     .map(([role, set]) => ({
       role,
@@ -829,13 +925,12 @@ async function buildRecordingsView() {
   for (const m of media) {
     html += `
       <tr class="medium-row">
-        <td class="medium-cell" colspan="3">CD ${escHtml(m.index)}</td>
+        <td class="medium-cell" colspan="3">${escHtml(mediumLabel(m, mediaCount))}</td>
       </tr>
     `;
 
     const seen = new Set();
     const orderedRecIds = [];
-
     for (const t of (m.tracks || [])) {
       const id = t?.rec?.id;
       if (!id || seen.has(id)) continue;
@@ -893,9 +988,9 @@ async function buildRecordingsView() {
   view.innerHTML = html;
 }
 
-// ------------------------------------------------------------
-// 5) MusicBrainz API + caches
-// ------------------------------------------------------------
+/* ============================================================
+   8) MusicBrainz API + caches
+   ============================================================ */
 async function fetchJSON(url) {
   const r = await fetch(url, { headers: { Accept: "application/json" } });
   if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
@@ -945,10 +1040,12 @@ async function loadRelease(mbid) {
   return { rel, cover };
 }
 
-// ------------------------------------------------------------
-// 6) Rendering + UI binding
-// ------------------------------------------------------------
-function renderHeader({ title, cover, mbLink, artist, date, country, label, catno, barcode, releaseNotes }) {
+/* ============================================================
+   9) Rendering + UI binding
+   ============================================================ */
+function renderHeader({
+  title, cover, mbLink, artist, date, country, label, catno, barcode, releaseNotes
+}) {
   return `
     <div class="row">
       <div class="cover">
@@ -964,6 +1061,9 @@ function renderHeader({ title, cover, mbLink, artist, date, country, label, catn
           </div>
         </div>
       </div>
+
+      <!-- Theme gomb: a navon kívül, a határvonalra pozicionálva -->
+      <button class="theme-fab" id="themeToggle" type="button"></button>
 
       <div class="main">
         <h1>${escHtml(title)}</h1>
@@ -988,16 +1088,7 @@ function renderHeader({ title, cover, mbLink, artist, date, country, label, catn
 }
 
 function renderTracksView(mediaWithTracks, annotation) {
-  const mediumLabel = (m) => {
-    const fmt = String(m.format || "").toLowerCase();
-    const base = fmt.includes("cd") ? "CD" : "Disc";
-    let s = `${base} ${m.index}`;
-    const extra = [];
-    if (m.format && !fmt.includes("cd")) extra.push(m.format);
-    if (m.title) extra.push(m.title);
-    if (extra.length) s += ` · ${extra.map(escHtml).join(" · ")}`;
-    return s;
-  };
+  const mediaCount = mediaWithTracks.length;
 
   return `
     <section class="view" data-view="tracks">
@@ -1009,7 +1100,9 @@ function renderTracksView(mediaWithTracks, annotation) {
                 const head = `
                   <tr class="medium-row">
                     <td colspan="3" class="medium-cell">
-                      <span class="muted" style="font-size:12px; letter-spacing:0.08em;">${mediumLabel(m)}</span>
+                      <span class="muted" style="font-size:12px; letter-spacing:0.08em;">
+                        ${escHtml(mediumLabel(m, mediaCount))}
+                      </span>
                     </td>
                   </tr>
                 `;
@@ -1202,24 +1295,34 @@ function renderAll({ rel, cover }) {
     </div>
   `;
 
+  // Theme init + bind + icon
+  applyTheme(getPreferredTheme());
+  bindThemeToggleOnce(out);
+
+  // UI bind
   bindTabsOnce();
   setActiveView("tracks");
   bindTrackToggles(out, flatTracks);
 
+  // cover + theme gomb pozicionálás
   bindCoverSizerOnce();
   lockCoverSquareToTabs(out);
+  positionThemeToggle(out);
 
   const img = $("#coverImg", out);
   if (img) {
-    const relock = () => lockCoverSquareToTabs(out);
+    const relock = () => {
+      lockCoverSquareToTabs(out);
+      positionThemeToggle(out);
+    };
     img.addEventListener("load", relock, { once: true });
     if (img.complete) relock();
   }
 }
 
-// ------------------------------------------------------------
-// 7) App entry
-// ------------------------------------------------------------
+/* ============================================================
+   10) App entry
+   ============================================================ */
 async function go() {
   const mbid = extractMBID($("#mbid")?.value);
   if (!mbid) {
@@ -1238,23 +1341,10 @@ async function go() {
   }
 }
 
-// ------------------------------------------------------------
-// Theme init (system preference)
-// ------------------------------------------------------------
-(function initThemeFromSystem(){
-  // ha később user toggle lesz, és ő már döntött, ezt nem bántjuk
-  if (document.documentElement.dataset.theme) return;
-
-  const prefersDark =
-    window.matchMedia &&
-    window.matchMedia("(prefers-color-scheme: dark)").matches;
-
-  if (prefersDark) {
-    document.documentElement.dataset.theme = "dark";
-  }
-})();
-
 document.addEventListener("DOMContentLoaded", () => {
+  // már az elején állítsuk be a témát (akkor is, ha még nem rendereltünk)
+  applyTheme(getPreferredTheme());
+
   $("#go")?.addEventListener("click", go);
   $("#mbid")?.addEventListener("keydown", (e) => {
     if (e.key === "Enter") go();

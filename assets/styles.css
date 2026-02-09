@@ -38,7 +38,7 @@
 
   --border: #242a3a;
   --border-2: #2b3247;
-  
+
   --meta: #9aa4c7;
 
   --text: #e9eef5;
@@ -79,7 +79,7 @@ a:hover{ text-decoration: underline; }
   z-index: 10;
   width: 100%;
 
-  background: var(--bg);
+  background: transparent;
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border);
 }
@@ -91,7 +91,7 @@ a:hover{ text-decoration: underline; }
 
   display: flex;
   align-items: center;
-  gap: 38px;
+  gap: 30px;
 }
 
 .top .brand{
@@ -185,6 +185,7 @@ button:hover{ filter: brightness(1.08); }
   display:flex;
   gap:30px;
   align-items:flex-start;
+  position: relative; /* fontos: a theme-fab abszolút pozicionálása ehhez képest */
 }
 
 .main{ flex: 1; min-width: 0; }
@@ -223,7 +224,7 @@ h1{
 
 .cover-nav-row{
   margin-top: 20px;
-  width: fit-content;        /* hug the buttons row */
+  width: fit-content;
   max-width: 100%;
 }
 
@@ -236,7 +237,6 @@ h1{
   flex-wrap: wrap;
 }
 
-/* “tab” button look */
 .tab{
   padding: var(--tab-pad-y) var(--tab-pad-x);
   border-radius: 999px;
@@ -254,12 +254,11 @@ h1{
   color: var(--bg);
 }
 
-/* Cover tabs: MUST hug content (no width:100%) */
 .cover-tabs{
   display: flex;
   gap: var(--tabs-gap);
   align-items: center;
-  width: fit-content;        /* hug content so cover can hug this */
+  width: fit-content;
   max-width: 100%;
 }
 
@@ -269,7 +268,6 @@ h1{
   text-align: center;
 }
 
-/* MusicBrainz link: exactly the same “tab” metrics */
 .mb-link{
   flex: 0 0 auto;
   width: auto;
@@ -290,6 +288,38 @@ h1{
   white-space: nowrap;
 }
 .mb-link:hover{ filter: brightness(1.08); }
+
+/* ------------------------------------------------------------
+   4.5) Theme toggle button (floating at the cover/meta boundary)
+------------------------------------------------------------ */
+.theme-fab{
+  position: absolute;
+  z-index: 5;
+
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 999px;
+
+  border: 0px solid var(--border-2);
+  background: var(--panel-2);
+  color: var(--text);
+
+  display: grid;
+  place-items: center;
+
+  cursor: pointer;
+  transition: transform 80ms ease, filter 120ms ease;
+}
+
+.theme-fab:hover{ filter: brightness(1.08); }
+.theme-fab:active{ transform: scale(0.98); }
+
+.theme-fab svg{
+  width: 16px;
+  height: 16px;
+  display: block;
+}
 
 /* ------------------------------------------------------------
    5) Meta block
@@ -358,7 +388,6 @@ tr.track{ cursor: pointer; }
 tr.track:hover td{ background: rgba(255,255,255,0.05); }
 tr.track.is-open td{ background: rgba(255,255,255,0.04); }
 
-/* details rows should not add extra borders/padding */
 tr.details td{
   padding-top: 0;
   padding-bottom: 0;
@@ -380,10 +409,9 @@ tr.details.is-open .details-wrap{
   opacity: 1;
 }
 
-/* three-column details layout */
 .detail-cols{
   display: grid;
-  grid-template-columns: 1.3fr 0.9fr 1.4fr;
+  grid-template-columns: 1.05fr 0.9fr 1.45fr;
   gap: 12px;
   align-items: start;
 }
@@ -429,7 +457,7 @@ tr.track.is-open + tr.details .perf{
 }
 
 /* ------------------------------------------------------------
-   9) Cards (Credits view)
+   9) Cards (Credits view) – (maradhat, ha máshol használod)
 ------------------------------------------------------------ */
 .card{
   background: var(--panel);
@@ -495,10 +523,12 @@ tr.track.is-open + tr.details .perf{
 
   .row{ flex-direction: column; }
 
-  /* on mobile let cover take full width nicely */
   .cover{ width: 100%; }
   .cover-nav-row,
   .cover-tabs{ width: 100%; justify-content: center; }
+
+  /* mobilon a theme-fab maradhat a tabs közelében, a JS úgyis újrapozicionál */
+  .theme-fab{ z-index: 6; }
 
   td.num{ width: 34px; }
   td.len{ width: 56px; }
@@ -519,15 +549,14 @@ tr.track.is-open + tr.details .perf{
 .rc-val{ font-size: 13px; line-height: 1.35; }
 
 .footer{
-  /* a header alá üljön szépen */
   margin-top: 10px;
-  padding: 0;                 /* a paddinget a .top-inner adja */
-  font-size: 12px;            /* kisebb betű */
+  padding: 0;
+  font-size: 12px;
   line-height: 1.25;
 }
 
 .footer a{
-  color: inherit;             /* ne legyen "link-kék", maradjon szöveg */
+  color: inherit;
   text-decoration: none;
 }
 
@@ -535,21 +564,19 @@ tr.track.is-open + tr.details .perf{
   text-decoration: underline;
 }
 
-/* a footerben ugyanaz a rács, mint fent: brand oszlop + search oszlop */
 .footer-inner{
   display: grid;
-  grid-template-columns: auto 1fr; /* ugyanaz az arány mint a headerben */
+  grid-template-columns: auto 1fr;
   column-gap: 16px;
   align-items: start;
 }
 
-/* a szöveg maradjon a brand alatti (bal) oszlopban */
 .footer-text{
   grid-column: 1;
-  opacity: 0.85;              /* finomabb */
-  white-space: nowrap;        /* ettől “pont akkora” marad, nem törik le */
+  opacity: 0.85;
+  white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;    /* ha nagyon keskeny a kijelző, ne essen szét */
+  text-overflow: ellipsis;
 }
 
 .medium-row .medium-cell{
