@@ -273,9 +273,10 @@ function ensureLightboxOnce() {
   document.body.appendChild(lb);
 
   // click outside image closes
-  lb.addEventListener("click", (e) => {
-    if (e.target === lb) closeLightbox();
-  });
+lb.addEventListener("click", (e) => {
+  // háttérre kattintás vagy a képre kattintás is bezár
+  if (e.target === lb || e.target.id === "lbImg") closeLightbox();
+});
 
   // ESC closes
   document.addEventListener("keydown", (e) => {
@@ -287,11 +288,21 @@ function ensureLightboxOnce() {
 
 function openLightbox(src, alt = "") {
   if (!src) return;
+
   const lb = ensureLightboxOnce();
   const img = document.getElementById("lbImg");
+
   img.src = src;
   img.alt = alt || "";
-  lb.classList.add("is-open");
+
+  // 1) biztosan legyen "zárt" state-ben
+  lb.classList.remove("is-open");
+
+  // 2) következő frame-ben nyitjuk -> animáció garantált elsőre is
+  requestAnimationFrame(() => {
+    lb.classList.add("is-open");
+  });
+
   document.body.style.overflow = "hidden";
 }
 
