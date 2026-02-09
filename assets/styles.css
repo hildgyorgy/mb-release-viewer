@@ -25,7 +25,7 @@
   --tab-pad-y: 7px;
   --tab-pad-x: 10px;
   
-  --topbar: rgba(255,255,255,.95); /* próbáld: .60–.85 */
+  --topbar: rgba(255,255,255,.80); /* próbáld: .60–.85 */
   --topbar-blur: 10px;            /* próbáld: 6–14 */
 }
 
