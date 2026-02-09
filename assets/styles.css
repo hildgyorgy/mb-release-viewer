@@ -24,6 +24,10 @@
   --tabs-gap: 10px;
   --tab-pad-y: 7px;
   --tab-pad-x: 10px;
+  
+  --topbar: rgba(255,255,255,.95); /* próbáld: .60–.85 */
+  --topbar-blur: 10px;            /* próbáld: 6–14 */
+}
 
   font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
 }
@@ -44,6 +48,9 @@
   --text: #e9eef5;
   --link: #8ab4ff;
   --muted: rgba(233,238,245,.70);
+  
+  --topbar: rgba(10,34,68,.90);   /* próbáld: .35–.70 */
+  --topbar-blur: 10px;
 
   .cover-box:hover{
     box-shadow:
@@ -86,8 +93,9 @@ a:hover{ text-decoration: underline; }
   z-index: 10;
   width: 100%;
 
-  background: transparent;
-  backdrop-filter: blur(10px);
+  background: var(--topbar);
+  backdrop-filter: blur(var(--topbar-blur));
+  -webkit-backdrop-filter: blur(var(--topbar-blur));
   border-bottom: 1px solid var(--border);
 }
 
