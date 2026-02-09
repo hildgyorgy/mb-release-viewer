@@ -1,7 +1,4 @@
-/* MB Release Viewer – cleaned CSS (cover width hugs nav)
-   - Tabs: hug content (text + equal L/R padding), variable widths
-   - Cover: square, width follows the combined width of the 3 buttons (+ gaps)
-*/
+/* MB Release Viewer – */
 
 /* ------------------------------------------------------------
    THEME VARIABLES
@@ -11,22 +8,22 @@
   --wrap: 980px;
 
   /* Light background system */
-  --bg: #f4f6fb;
+  --bg: #ffffff;
   --panel: #ffffff;
-  --panel-2: #eef1f8;
+  --panel-2: #f4f6fb;
 
-  --border: #d6dbea;
-  --border-2: #c8cfe3;
+  --border: #0a2244;
+  --border-2: #0a2244;
 
-  --meta: #5b647f;
+  --meta: #0a2244;
 
-  --text: #1b1e28;
+  --text: #0a2244;
   --link: #2f5ee8;
   --muted: rgba(27,30,40,.65);
 
-  --tabs-gap: 8px;
+  --tabs-gap: 10px;
   --tab-pad-y: 7px;
-  --tab-pad-x: 9px;
+  --tab-pad-x: 10px;
 
   font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
 }
@@ -82,7 +79,7 @@ a:hover{ text-decoration: underline; }
   z-index: 10;
   width: 100%;
 
-  /* background: rgba(15, 18, 32, 0.72); */
+  background: var(--bg);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border);
 }
@@ -101,7 +98,8 @@ a:hover{ text-decoration: underline; }
   font-weight: 600;
   opacity: 0.8;
   white-space: nowrap;
-  font-size: 20px;
+  font-size: 21px;
+  color: var(--text);
 }
 
 .top .search{
@@ -199,22 +197,20 @@ h1{
 
 /* ------------------------------------------------------------
    3) Cover + cover navigation
-   IMPORTANT: cover width is NOT fixed.
-   It shrink-wraps to the nav width.
+   Cover width is NOT fixed. It shrink-wraps to the nav width.
 ------------------------------------------------------------ */
 .cover{
   flex: 0 0 auto;
-  display: inline-block;     /* shrink-wrap */
+  display: inline-block;
   max-width: 100%;
 }
 
-/* Square cover that follows the cover container width */
 .cover-box{
   width: 100%;
   aspect-ratio: 1 / 1;
   border-radius: 12px;
-  background: var(--panel-2);
-  border: 1px solid var(--border);
+  background: transparent;
+  border: 0px solid var(--border);
   overflow: hidden;
 }
 
@@ -244,7 +240,7 @@ h1{
 .tab{
   padding: var(--tab-pad-y) var(--tab-pad-x);
   border-radius: 999px;
-  border: 1px solid var(--border-2);
+  border: 0px solid var(--border-2);
   background: var(--panel-2);
   color: var(--text);
   cursor: pointer;
@@ -254,7 +250,8 @@ h1{
 .tab:hover{ filter: brightness(1.08); }
 
 .tab.is-active{
-  background: #1a2140;
+  background: var(--meta);
+  color: var(--bg);
 }
 
 /* Cover tabs: MUST hug content (no width:100%) */
@@ -280,7 +277,7 @@ h1{
   padding: var(--tab-pad-y) var(--tab-pad-x);
   line-height: 1;
   border-radius: 999px;
-  border: 1px solid var(--border-2);
+  border: 0px solid var(--border-2);
   background: var(--panel-2);
   color: var(--text);
 
@@ -318,7 +315,7 @@ h1{
 .meta-list > div{ margin-bottom: 2px; }
 
 .meta-k{
-  font-weight: 400;
+  font-weight: 600;
   color: var(--meta);
 }
 
@@ -386,7 +383,7 @@ tr.details.is-open .details-wrap{
 /* three-column details layout */
 .detail-cols{
   display: grid;
-  grid-template-columns: 0.9fr 0.9fr 1.6fr;
+  grid-template-columns: 1.3fr 0.9fr 1.4fr;
   gap: 12px;
   align-items: start;
 }
@@ -558,6 +555,7 @@ tr.track.is-open + tr.details .perf{
 .medium-row .medium-cell{
   padding-top: 10px;
   padding-bottom: 10px;
-  border-top: 1px solid var(--border);
+  border-top: 0px solid var(--border);
   color: var(--meta);
+  font-weight: 600;
 }
