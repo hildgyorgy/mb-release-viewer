@@ -639,6 +639,9 @@ tr.track.is-open + tr.details .perf{
 .rc-role{ font-size: 13px; }
 .rc-val{ font-size: 13px; line-height: 1.35; }
 
+/* ------------------------------------------------------------
+   12) Footer
+------------------------------------------------------------ */
 .footer{
   margin-top: 10px;
   padding: 0;
@@ -655,6 +658,7 @@ tr.track.is-open + tr.details .perf{
   text-decoration: underline;
 }
 
+/* ugyanaz a grid-logika, mint a headernél */
 .footer-inner{
   display: grid;
   grid-template-columns: auto 1fr;
@@ -662,12 +666,28 @@ tr.track.is-open + tr.details .perf{
   align-items: start;
 }
 
+/* bal oldali szövegblokk */
 .footer-text{
   grid-column: 1;
+  display: grid;
+  row-gap: 2px;
+
   opacity: 0.85;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* verzió: halkabb, technikai jelleg */
+.footer-text .version{
+  opacity: 0.6;
+  font-size: 11px;
+}
+
+/* jogi / adatforrás infó */
+.footer-text .credits{
+  opacity: 0.55;
+  font-size: 11px;
 }
 
 /* Medium (CD / Vinyl / Digital media) header */

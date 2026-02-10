@@ -1,7 +1,9 @@
-/* MB Release Viewer – Tracklist + Recordings
-   - Track details: 3 columns (Performers | Creators | Work hierarchy)
-   - Recordings tab: per-recording "technical / organizational" credits (2-col, tracklist-like)
-*/
+/*!
+ * MB Release Viewer
+ * Version: 0.9.0
+ * © 2026 György Hild
+ * https://github.com/hildgyorgy/mb-release-viewer
+ */
 
 /* ============================================================
    0) Tiny DOM helpers
