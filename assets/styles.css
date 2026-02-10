@@ -596,9 +596,9 @@ tr.track.is-open + tr.details .perf{
 
 .annotation .body{
   white-space: pre-wrap;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.45;
-  opacity: .92;
+  opacity: .90;
   padding-top: 10px; 
 }
 
@@ -644,7 +644,7 @@ tr.track.is-open + tr.details .perf{
    12) Footer
 ------------------------------------------------------------ */
 .footer{
-  margin-top: 24px;
+  margin-top: 34px;
   padding: 0;
   font-size: 12px;
   line-height: 1.25;
