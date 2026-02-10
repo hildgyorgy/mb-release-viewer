@@ -1408,7 +1408,6 @@ async function go() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  // már az elején állítsuk be a témát (akkor is, ha még nem rendereltünk)
   applyTheme(getPreferredTheme());
 
   $("#go")?.addEventListener("click", go);
@@ -1417,19 +1416,20 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   const input = document.getElementById("mbid");
-  if (input) {
-    // gépelés / paste → még nem "betöltött"
-    input.addEventListener("input", () => {
-      input.classList.remove("is-loaded");
-    });
-      // --- autoload from URL (?mbid=... or full MB release URL) ---
+  if (!input) return;
+
+  // gépelés / paste → még nem "betöltött"
+  input.addEventListener("input", () => {
+    input.classList.remove("is-loaded");
+  });
+
+  // --- autoload from URL (?mbid=... or full MB release URL) ---
   const qs = new URLSearchParams(window.location.search);
   const q = (qs.get("mbid") || "").trim();
 
   if (q) {
     input.value = q;
-    input.classList.remove("is-loaded"); // "beillesztett, de még nem betöltött" állapot
-    go(); // automatikus betöltés
-  }
+    input.classList.remove("is-loaded");
+    go();
   }
 });
