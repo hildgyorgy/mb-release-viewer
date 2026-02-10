@@ -7,7 +7,6 @@
 :root{
   --wrap: 980px;
 
-  /* Light background system */
   --bg: #ffffff;
   --panel: #ffffff;
   --panel-2: #f4f6fb;
@@ -20,19 +19,23 @@
   --text: #0a2244;
   --link: #2f5ee8;
   --muted: rgba(27,30,40,.65);
+  
+  --topbar: rgba(255,255,255,.80);
+  --topbar-blur: 10px;
 
   --tabs-gap: 10px;
   --tab-pad-y: 7px;
   --tab-pad-x: 10px;
   
-  --topbar: rgba(255,255,255,.80); /* próbáld: .60–.85 */
-  --topbar-blur: 10px;            /* próbáld: 6–14 */
-
+  --col-num: 42px;   /* td.num width */
+  --col-len: 70px;   /* td.len width */
+  --cell-pad-x: 8px; /* td padding oldal */
+  
   font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
 }
 
 /* ------------------------------------------------------------
-   Dark theme (explicit opt-in)
+   Dark = explicit opt-in
 ------------------------------------------------------------ */
 :root[data-theme="dark"]{
   --bg: #0b0c10;
@@ -48,8 +51,7 @@
   --link: #8ab4ff;
   --muted: rgba(233,238,245,.70);
   
-  --topbar: rgba(11,12,16,.70);   /* próbáld: .35–.70 */
-  --topbar-blur: 10px;
+  --topbar: rgba(11,12,16,.70);
   }
 :root[data-theme="dark"] .cover-box:hover{
   box-shadow:
@@ -589,8 +591,10 @@ tr.track.is-open + tr.details .perf{
    10) Annotation (Tracklist view only)
 ------------------------------------------------------------ */
 .annotation{
-  margin-top: 0px;
-  padding: 10px 8px 0;
+  margin-top: 24px;
+  padding-top: 12px;
+  padding-left: calc(var(--col-num) + var(--cell-pad-x));
+  padding-right: calc(var(--col-len) + var(--cell-pad-x));
   border-top: 1px solid var(--border);
 }
 
