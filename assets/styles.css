@@ -23,7 +23,7 @@
   --topbar: rgba(255,255,255,.80);
   --topbar-blur: 10px;
   
-  --tr-hover: rgba(255,255,255,0.04);
+  --tr-hover: rgba(0,0,0,0.04);
 
   --tabs-gap: 10px;
   --tab-pad-y: 7px;
@@ -54,7 +54,7 @@
   --muted: rgba(233,238,245,.70);
   
   --topbar: rgba(11,12,16,.70);
-  --tr-hover: rgba(0,0,0,0.04);
+  --tr-hover: rgba(255,255,255,0.04);
   }
 :root[data-theme="dark"] .cover-box:hover{
   box-shadow:
@@ -651,7 +651,7 @@ tr.track.is-open + tr.details .perf{
    12) Footer
 ------------------------------------------------------------ */
 .footer{
-  margin-top: 100px;
+  margin-top: 75px;
   padding: 0;
   font-size: 12px;
   line-height: 1.25;
