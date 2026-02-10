@@ -478,11 +478,12 @@ td.len{
 
 td.title{ word-break: break-word; }
 
-tr:hover td{ background: var(--tr-hover); }
-
 tr.track{ cursor: pointer; }
 tr.track:hover td{ background: var(--tr-hover); }
 tr.track.is-open td{ background: var(--tr-hover); }
+
+tr.medium-row td{ user-select: none; }
+tr.medium-row{ cursor: default; }
 
 tr.details td{
   padding-top: 0;
