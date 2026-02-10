@@ -644,7 +644,7 @@ tr.track.is-open + tr.details .perf{
    12) Footer
 ------------------------------------------------------------ */
 .footer{
-  margin-top: 34px;
+  margin-top: 50px;
   padding: 0;
   font-size: 12px;
   line-height: 1.25;
@@ -662,9 +662,9 @@ tr.track.is-open + tr.details .perf{
 .footer-inner{
   max-width: var(--wrap);
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0;
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: 1fr auto ;
   column-gap: 16px;
   align-items: start;
 }
