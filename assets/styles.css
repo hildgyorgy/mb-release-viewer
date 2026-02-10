@@ -589,9 +589,9 @@ tr.track.is-open + tr.details .perf{
    10) Annotation (Tracklist view only)
 ------------------------------------------------------------ */
 .annotation{
-  margin-top: 24px;
-  padding-top: 12px;
-  border-top: 1px solid #b9c0d0;
+  margin-top: 0px;
+  padding: 10px 8px 0;
+  border-top: 1px solid var(--border);
 }
 
 .annotation .body{
@@ -599,6 +599,7 @@ tr.track.is-open + tr.details .perf{
   font-size: 14px;
   line-height: 1.45;
   opacity: .92;
+  padding-top: 10px; 
 }
 
 /* ------------------------------------------------------------
