@@ -23,7 +23,7 @@
   --topbar: rgba(255,255,255,.80);
   --topbar-blur: 10px;
   
-  --tr-hover: rgba(0,0,0,0.04);
+  --tr-hover: rgba(0,0,0,0.03);
 
   --tabs-gap: 10px;
   --tab-pad-y: 7px;
@@ -54,7 +54,7 @@
   --muted: rgba(233,238,245,.70);
   
   --topbar: rgba(11,12,16,.70);
-  --tr-hover: rgba(255,255,255,0.04);
+  --tr-hover: rgba(255,255,255,0.03);
   }
 :root[data-theme="dark"] .cover-box:hover{
   box-shadow:
