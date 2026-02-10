@@ -591,8 +591,8 @@ tr.track.is-open + tr.details .perf{
    10) Annotation (Tracklist view only)
 ------------------------------------------------------------ */
 .annotation{
-  margin-top: 24px;
-  padding-top: 12px;
+  margin-top: 0;
+  padding-top: 10px;
   padding-left: calc(var(--col-num) + var(--cell-pad-x));
   padding-right: calc(var(--col-len) + var(--cell-pad-x));
   border-top: 1px solid var(--border);
@@ -669,7 +669,7 @@ tr.track.is-open + tr.details .perf{
   padding: 0;
   display: grid;
   grid-template-columns: 1fr auto ;
-  column-gap: 16px;
+  column-gap: 0;
   align-items: start;
 }
 
@@ -698,18 +698,6 @@ tr.track.is-open + tr.details .perf{
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-/* verzió: halkabb, technikai jelleg */
-.footer-text .version{
-  opacity: 0.6;
-  font-size: 11px;
-}
-
-/* jogi / adatforrás infó */
-.footer-text .credits{
-  opacity: 0.55;
-  font-size: 11px;
 }
 
 /* Medium (CD / Vinyl / Digital media) header */
