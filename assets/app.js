@@ -1399,6 +1399,9 @@ async function go() {
   try {
     const data = await loadRelease(mbid);
     renderAll(data);
+    
+    const input = document.getElementById("mbid");
+    input.classList.add("is-loaded");
   } catch (e) {
     $("#out").innerHTML = `<div class="err">Hiba: ${escHtml(e.message)}</div>`;
   }
@@ -1412,4 +1415,12 @@ document.addEventListener("DOMContentLoaded", () => {
   $("#mbid")?.addEventListener("keydown", (e) => {
     if (e.key === "Enter") go();
   });
+
+  const input = document.getElementById("mbid");
+  if (input) {
+    // gépelés / paste → még nem "betöltött"
+    input.addEventListener("input", () => {
+      input.classList.remove("is-loaded");
+    });
+  }
 });

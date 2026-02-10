@@ -128,22 +128,36 @@ input{
   border-radius: 12px;
   border: 0;
   background: transparent;
-  color: var(--link);
+  
+  color: var(--text);
+  caret-color: var(--link);
+  
   outline: none;
   box-shadow: none;
+  
   transition: color 120ms ease, caret-color 120ms ease;
-  caret-color: var(--muted);
+}
+
+/* placeholder külön */
+input::placeholder{
+  color: var(--muted);
+  opacity: 1; /* Safari miatt */
 }
 
 input:hover{
-  color: #ffffff;
-  caret-color: #ffffff;
+  color: var(--text);
 }
 
 input:focus,
 input:focus-visible{
+  color: var(--text);
+  caret-color: var(--link);
   outline: none;
   box-shadow: none;
+}
+
+input.is-loaded{
+  color: var(--link);
 }
 
 button{
