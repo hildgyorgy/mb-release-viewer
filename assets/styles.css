@@ -643,7 +643,7 @@ tr.track.is-open + tr.details .perf{
    12) Footer
 ------------------------------------------------------------ */
 .footer{
-  margin-top: 10px;
+  margin-top: 20px;
   padding: 0;
   font-size: 12px;
   line-height: 1.25;
