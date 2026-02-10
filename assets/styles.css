@@ -644,7 +644,7 @@ tr.track.is-open + tr.details .perf{
    12) Footer
 ------------------------------------------------------------ */
 .footer{
-  margin-top: 20px;
+  margin-top: 24px;
   padding: 0;
   font-size: 12px;
   line-height: 1.25;
@@ -659,15 +659,32 @@ tr.track.is-open + tr.details .perf{
   text-decoration: underline;
 }
 
-/* ugyanaz a grid-logika, mint a headernél */
 .footer-inner{
+  max-width: var(--wrap);
+  margin: 0 auto;
+  padding: 0 24px;
   display: grid;
   grid-template-columns: auto 1fr;
   column-gap: 16px;
   align-items: start;
 }
 
-/* bal oldali szövegblokk */
+.footer-left{
+  min-width: 0;
+}
+
+.footer-right{
+  text-align: right;
+  opacity: 0.85;
+  justify-self: end;
+}
+
+.footer-line{
+  white-space: nowrap;   /* maradjon két sor, ne törjön random */
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .footer-text{
   grid-column: 1;
   display: grid;
