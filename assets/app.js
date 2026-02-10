@@ -1422,5 +1422,14 @@ document.addEventListener("DOMContentLoaded", () => {
     input.addEventListener("input", () => {
       input.classList.remove("is-loaded");
     });
+      // --- autoload from URL (?mbid=... or full MB release URL) ---
+  const qs = new URLSearchParams(window.location.search);
+  const q = (qs.get("mbid") || "").trim();
+
+  if (q) {
+    input.value = q;
+    input.classList.remove("is-loaded"); // "beillesztett, de még nem betöltött" állapot
+    go(); // automatikus betöltés
+  }
   }
 });
