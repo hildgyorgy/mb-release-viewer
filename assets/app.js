@@ -336,6 +336,21 @@ function mbArtistLink(artist) {
   )}</a>`;
 }
 
+function artistCreditToLinks(ac) {
+  if (!Array.isArray(ac) || !ac.length) return "";
+  return ac
+    .map((x) => {
+      // MB artist-credit elem: { name, joinphrase, artist: { id, name } }
+      const a = x?.artist || null;
+      const name = x?.name || a?.name || "(unknown)";
+      const link = a?.id
+        ? `<a href="https://musicbrainz.org/artist/${a.id}" target="_blank" rel="noreferrer">${escHtml(name)}</a>`
+        : escHtml(name);
+      return link + (x?.joinphrase || "");
+    })
+    .join("");
+}
+
 function mbWorkUrl(work) {
   if (!work?.id) return "";
   return `https://musicbrainz.org/work/${work.id}`;
@@ -430,20 +445,37 @@ function renderRoleList(items) {
 function renderPerformers(recording) {
   const items = parsePerformersFromRecording(recording);
 
-  if (!items.length) {
+  // 1) ha van BÁRMILYEN instrument/vocal performer -> csak azt mutatjuk
+  if (items.length) return renderRoleList(items);
+
+  // 2) nincs performer rel -> fallback: recording artist-credit (offer: "performer")
+  const ac = recording?.["artist-credit"];
+  const acHtml = artistCreditToLinks(ac);
+
+  if (acHtml) {
     return `
       <div class="perf">
         <div class="grid">
           <div>
             <div class="inst">performer</div>
-            <div class="artists"><span class="muted">N/A</span></div>
+            <div class="artists">${acHtml}</div>
           </div>
         </div>
       </div>
     `;
   }
 
-  return renderRoleList(items);
+  // 3) nincs performer és nincs recording artist-credit -> N/A (no release fallback)
+  return `
+    <div class="perf">
+      <div class="grid">
+        <div>
+          <div class="inst">performer</div>
+          <div class="artists"><span class="muted">N/A</span></div>
+        </div>
+      </div>
+    </div>
+  `;
 }
 
 function getPrimaryWorkIdFromRecording(recording) {
@@ -1070,7 +1102,7 @@ async function loadRecording(recId) {
 
   const rec = await fetchJSON(
     `https://musicbrainz.org/ws/2/recording/${recId}?fmt=json&inc=` +
-      `artist-rels+work-rels+place-rels+recording-rels+url-rels`
+      `artist-credits+artist-rels+work-rels+place-rels+recording-rels+url-rels`
   );
   recordingCache.set(recId, rec);
   return rec;
