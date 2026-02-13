@@ -1155,41 +1155,72 @@ function buildReleaseSearchQuery(input) {
   const tok = (t) => `"${esc(t)}"`;
   const tokens = rawTokens.map(tok);
 
-  // 1 token -> Spotlight broad
+  // Helper: "artist-ish" fields for Release index:
+  // artist      = combined credited artist name (with joinphrases)
+  // artistname  = name of any release artists
+  // creditname  = credited name on this release
+  // release     = release title
+  // (fields per MB Search Server docs)
+  // https://musicbrainz.org/doc/Search_Server
+  const A = (t) => `(artistname:${t}^80 OR creditname:${t}^60 OR artist:${t}^40)`;
+  const R = (t) => `(release:${t}^10 OR releaseaccent:${t}^10)`;
+
+  // 1 token -> ARTIST-FIRST Spotlight (still allows release fallback, but weak)
   if (tokens.length === 1) {
     const t = tokens[0];
-    return `(release:${t} OR artist:${t})`;
+    return `(
+      ${A(t)}^6
+      OR ${R(t)}^1
+    )`.replace(/\s+/g, " ").trim();
   }
 
   const phrase = `"${esc(rawTokens.join(" "))}"`;
 
-  // 2 tokens -> treat as "likely artist name", DO NOT split across artist/release
+  // 2 tokens -> treat as likely ARTIST NAME, do NOT require release match
   if (tokens.length === 2) {
     const [t1, t2] = tokens;
 
+    const phraseArtist =
+      `(artistname:${phrase}^120 OR creditname:${phrase}^100 OR artist:${phrase}^80)`;
+
+    const artistAND =
+      `((artistname:${t1} AND artistname:${t2})^70 OR (artist:${t1} AND artist:${t2})^50 OR (creditname:${t1} AND creditname:${t2})^60)`;
+
+    const phraseRelease =
+      `(release:${phrase}^20 OR releaseaccent:${phrase}^20)`;
+
+    const releaseAND =
+      `((release:${t1} AND release:${t2})^12 OR (releaseaccent:${t1} AND releaseaccent:${t2})^12)`;
+
+    // very weak broad fallback
+    const broad =
+      `(${A(t1)} AND ${A(t2)})^8 OR (${R(t1)} AND ${R(t2)})^2`;
+
     return `(
-      artist:${phrase}^18
-      OR (artist:${t1} AND artist:${t2})^12
-      OR release:${phrase}^6
-      OR (release:${t1} AND release:${t2})^4
-      OR ((artist:${t1} OR release:${t1}) AND (artist:${t2} OR release:${t2}))^2
+      ${phraseArtist}
+      OR ${artistAND}
+      OR ${phraseRelease}
+      OR ${releaseAND}
+      OR ${broad}
     )`.replace(/\s+/g, " ").trim();
   }
 
-  // 3+ tokens -> broad AND across tokens, plus a *mild* split heuristic
+  // 3+ tokens -> broad AND across tokens, plus mild "artist... + last token as release" heuristic
   const broad = tokens
-    .map(t => `(artist:${t} OR release:${t})`)
+    .map(t => `(${A(t)} OR ${R(t)})`)
     .join(" AND ");
 
-  const phraseArtist = `artist:${phrase}^10`;
-  const phraseRelease = `release:${phrase}^6`;
+  const phraseArtist =
+    `(artistname:${phrase}^60 OR creditname:${phrase}^50 OR artist:${phrase}^40)`;
+  const phraseRelease =
+    `(release:${phrase}^25 OR releaseaccent:${phrase}^25)`;
 
   const last = tokens[tokens.length - 1];
   const firstPart = tokens.slice(0, -1);
 
-  const artistPart = firstPart.map(t => `artist:${t}`).join(" AND ");
+  const artistPart = firstPart.map(t => A(t)).join(" AND ");
   const structured = artistPart
-    ? `(${artistPart} AND release:${last})^4`
+    ? `(${artistPart} AND ${R(last)})^18`
     : "";
 
   return `(
@@ -1585,7 +1616,7 @@ async function go() {
   if (resEl) resEl.innerHTML = `<div class="result"><span class="muted">Searching…</span></div>`;
 
   try {
-    const items = await searchReleases(q, 18);
+    const items = await searchReleases(q, 50);
     renderSearchResults(items);
   } catch {
     if (resEl) resEl.innerHTML = `<div class="result"><span class="muted">Search error</span></div>`;
@@ -1626,7 +1657,7 @@ function bindOmniOnce() {
     resEl.innerHTML = `<div class="result"><span class="muted">Searching…</span></div>`;
 
     try {
-      const items = await searchReleases(val, 18);
+      const items = await searchReleases(val, 50);
       renderSearchResults(items);
     } catch {
       resEl.innerHTML = `<div class="result"><span class="muted">Search error</span></div>`;
