@@ -1,4 +1,4 @@
-/* MB Release Viewer – */
+/* MB Release Viewer – cleaned + consistent (v0.9.5 UI polish) */
 
 /* ------------------------------------------------------------
    THEME VARIABLES
@@ -11,7 +11,6 @@
   --panel: #ffffff;
   --panel-2: #f4f6fb;
 
-  /*--border: #0a2244; */
   --border: rgba(10, 34, 68,.2);
   --border-2: #0a2244;
 
@@ -20,20 +19,20 @@
   --text: #0a2244;
   --link: #2f5ee8;
   --muted: rgba(27,30,40,.65);
-  
+
   --topbar: rgba(255,255,255,.80);
   --topbar-blur: 10px;
-  
+
   --tr-hover: rgba(0,0,0,0.03);
 
   --tabs-gap: 10px;
   --tab-pad-y: 7px;
   --tab-pad-x: 10px;
-  
-  --col-num: 42px;   /* td.num width */
-  --col-len: 70px;   /* td.len width */
-  --cell-pad-x: 8px; /* td padding oldal */
-  
+
+  --col-num: 42px;
+  --col-len: 70px;
+  --cell-pad-x: 8px;
+
   font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
 }
 
@@ -53,10 +52,11 @@
   --text: #e9eef5;
   --link: #8ab4ff;
   --muted: rgba(233,238,245,.70);
-  
+
   --topbar: rgba(11,12,16,.70);
   --tr-hover: rgba(255,255,255,0.03);
-  }
+}
+
 :root[data-theme="dark"] .cover-box:hover{
   box-shadow:
     0 18px 36px rgba(0,0,0,0.55),
@@ -64,9 +64,7 @@
   outline-color: rgba(120, 170, 255, 0.22);
 }
 
-*, *::before, *::after{
-  box-sizing: border-box;
-}
+*, *::before, *::after{ box-sizing: border-box; }
 
 body{
   margin: 0;
@@ -89,28 +87,32 @@ a:hover{ text-decoration: underline; }
 [hidden]{ display:none !important; }
 
 /* ------------------------------------------------------------
-   1) Header (sticky search bar)
+   1) Header (sticky omni search)
 ------------------------------------------------------------ */
 .top{
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: 1000;
   width: 100%;
 
   background: var(--topbar);
   backdrop-filter: blur(var(--topbar-blur));
   -webkit-backdrop-filter: blur(var(--topbar-blur));
   border-bottom: 1px solid var(--border);
+
+  overflow: visible; /* dropdown ne vágódjon */
 }
 
 .top-inner{
   max-width: var(--wrap);
   margin: 0 auto;
-  padding: 15px 5px;
+  padding: 15px 0px;
 
   display: flex;
   align-items: center;
   gap: 30px;
+
+  overflow: visible; /* dropdown ne vágódjon */
 }
 
 .top .brand{
@@ -121,61 +123,61 @@ a:hover{ text-decoration: underline; }
   color: var(--text);
 }
 
+/* The search block is the positioning context for dropdown */
 .top .search{
   flex: 1;
   display: flex;
+  align-items: center;
   gap: 8px;
+
+  position: relative;
+  overflow: visible;
+  
+  max-width: none;
 }
 
-/* Inputs */
-input{
+.search-field {
+  position: relative;
+  flex: 1;
+}
+
+/* Omni input */
+#omni{
   width: 100%;
-  padding: 12px 0px;
+  padding: 12px 12px;
   border-radius: 12px;
-  border: 0;
+  border: 1px solid var(--border);
   background: transparent;
-  
+
   color: var(--text);
   caret-color: var(--link);
-  
+
   outline: none;
   box-shadow: none;
-  
-  transition: color 120ms ease, caret-color 120ms ease;
+
+  transition: color 120ms ease, caret-color 120ms ease, border-color 120ms ease;
 }
 
-/* placeholder külön */
-input::placeholder{
+/* placeholder */
+#omni::placeholder{
   color: var(--muted);
-  opacity: 1; /* Safari miatt */
+  opacity: 1;
 }
 
-input:hover{
-  color: var(--text);
-}
+#omni:hover{ color: var(--text); }
 
-input:focus,
-input:focus-visible{
+#omni:focus,
+#omni:focus-visible{
+  border-color: var(--border-2);
   color: var(--text);
   caret-color: var(--link);
   outline: none;
   box-shadow: none;
 }
 
-input.is-loaded{
-  color: var(--link);
-}
+#omni.is-loaded{ color: var(--link); }
 
-button{
-  padding: 12px 16px;
-  border-radius: 18px;
-  border: 1px solid var(--border-2);
-  background: #1a2140;
-  color: var(--text);
-  cursor: pointer;
-}
-button:hover{ filter: brightness(1.08); }
-
+/* Go button */
 .go-btn{
   width: 44px;
   height: 44px;
@@ -183,11 +185,12 @@ button:hover{ filter: brightness(1.08); }
   border-radius: 0;
   border: none;
   background: transparent;
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
 
+  cursor: pointer;
   transition: filter 120ms ease, transform 80ms ease;
 }
 
@@ -198,73 +201,50 @@ button:hover{ filter: brightness(1.08); }
   transition: transform 120ms ease, filter 120ms ease;
 }
 
-.go-btn:hover{
-  filter: brightness(1.15);
-}
+.go-btn:hover{ filter: brightness(1.15); }
+.go-btn:hover img{ transform: scale(1.06); filter: brightness(1.08); }
+.go-btn:active{ transform: scale(0.98); }
 
-.go-btn:hover img{
-  transform: scale(1.06);
-  filter: brightness(1.08);
-}
-
-.go-btn:active{
-  transform: scale(0.98);
-}
-
-/* --- Search header states --- */
-:root{
-  --search-max: 320px;
-}
-
-body.search-open .searchbar .results{ display:block; }
-body.search-open .searchbar{ max-height: var(--search-max); }
-.searchbar{ max-height: 52px; overflow: hidden; transition: max-height .18s ease; }
-
-.searchrow{
-  display:flex;
-  gap:10px;
-  align-items:center;
-}
-
-.q{
-  flex:1;
-  padding:10px 12px;
-  border:1px solid var(--border-2);
-  background: var(--panel);
-  color: var(--text);
-  font-size:14px;
-}
-
-.qgo{
-  padding:10px 12px;
-  border:1px solid var(--border-2);
-  background: var(--panel-2);
-  color: var(--text);
-  cursor:pointer;
-}
-
+/* Dropdown results (MUST be inside .search in HTML) */
 .results{
-  margin-top:10px;
-  border:1px solid var(--border-2);
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 100%;
+
+  z-index: 50;
+
+  max-height: 320px;
+  overflow: auto;
+
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,.12);
   background: var(--panel);
-  max-height: 210px;
-  overflow:auto;
+  box-shadow: 0 12px 32px rgba(0,0,0,.15);
+
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .result{
-  padding:10px 12px;
-  border-top:1px solid var(--border-2);
-  cursor:pointer;
-  line-height:1.25;
+  padding: 10px 12px;
+  cursor: pointer;
+  border-top: 1px solid var(--border);
+  line-height: 1.25;
 }
-.result:first-child{ border-top:none; }
+
+.result:first-child{ border-top: none; }
+
+.result .sub{
+  font-size: 12px;
+  opacity: .75;
+  margin-top: 2px;
+}
+
 .result.is-active{
   background: var(--tr-hover);
-}
-.result .sub{
-  opacity:.75;
-  font-size:12px;
-  margin-top:4px;
+  outline: 2px solid rgba(0,0,0,.10);
+  outline-offset: -2px;
 }
 
 /* ------------------------------------------------------------
@@ -274,7 +254,7 @@ body.search-open .searchbar{ max-height: var(--search-max); }
   display:flex;
   gap:30px;
   align-items:flex-start;
-  position: relative; /* fontos: a theme-fab abszolút pozicionálása ehhez képest */
+  position: relative;
 }
 
 .main{ flex: 1; min-width: 0; }
@@ -287,7 +267,6 @@ h1{
 
 /* ------------------------------------------------------------
    3) Cover + cover navigation
-   Cover width is NOT fixed. It shrink-wraps to the nav width.
 ------------------------------------------------------------ */
 .cover{
   flex: 0 0 auto;
@@ -302,6 +281,13 @@ h1{
   background: transparent;
   border: 0px solid var(--border);
   overflow: hidden;
+
+  cursor: zoom-in;
+  transition: transform 180ms ease, box-shadow 220ms ease, outline-color 220ms ease;
+  box-shadow: none;
+  outline: 1px solid transparent;
+  outline-offset: 3px;
+  will-change: transform, box-shadow;
 }
 
 .cover-box img{
@@ -311,29 +297,16 @@ h1{
   display: block;
 }
 
-.cover-nav-row{
-  margin-top: 20px;
-  width: fit-content;
-  max-width: 100%;
-}
-
-/* ------------------------------------------------------------
-   Cover hover: lift + shadow (light) + glow (dark)
------------------------------------------------------------- */
-.cover-box{
-  cursor: zoom-in;
-  transition: transform 180ms ease, box-shadow 220ms ease, outline-color 220ms ease;
-  box-shadow: none;               /* nem kell a 0 0 0 */
-  outline: 1px solid transparent; /* hogy animálható legyen */
-  outline-offset: 3px;
-  will-change: transform, box-shadow;
-}
-
 .cover-box:hover{
   transform: translateY(-4px);
   box-shadow: 0 18px 28px rgba(0,0,0,.33);
 }
 
+.cover-nav-row{
+  margin-top: 20px;
+  width: fit-content;
+  max-width: 100%;
+}
 
 /* ------------------------------------------------------------
    Cover lightbox
@@ -443,7 +416,7 @@ h1{
 .mb-link:hover{ filter: brightness(1.08); }
 
 /* ------------------------------------------------------------
-   4.5) Theme toggle button (floating at the cover/meta boundary)
+   4.5) Theme toggle button
 ------------------------------------------------------------ */
 .theme-fab{
   position: absolute;
@@ -464,15 +437,9 @@ h1{
   cursor: pointer;
   transition: transform 80ms ease, filter 120ms ease;
 }
-
 .theme-fab:hover{ filter: brightness(1.08); }
 .theme-fab:active{ transform: scale(0.98); }
-
-.theme-fab svg{
-  width: 16px;
-  height: 16px;
-  display: block;
-}
+.theme-fab svg{ width: 16px; height: 16px; display: block; }
 
 /* ------------------------------------------------------------
    5) Meta block
@@ -494,7 +461,6 @@ h1{
   line-height: 1.4;
   opacity: 0.75;
 }
-
 .meta-list > div{ margin-bottom: 2px; }
 
 .meta-k{
@@ -548,6 +514,17 @@ tr.details td{
   border-top: none;
 }
 
+/* Medium header */
+.medium-row .medium-cell{
+  padding-top: 10px;
+  padding-bottom: 10px;
+  border-top: 0;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--meta);
+  font-weight: 600;
+}
+
 /* ------------------------------------------------------------
    7) Track details (smooth open/close)
 ------------------------------------------------------------ */
@@ -559,9 +536,7 @@ tr.details td{
   will-change: max-height, opacity;
 }
 
-tr.details.is-open .details-wrap{
-  opacity: 1;
-}
+tr.details.is-open .details-wrap{ opacity: 1; }
 
 .detail-cols{
   display: grid;
@@ -570,9 +545,7 @@ tr.details.is-open .details-wrap{
   align-items: start;
 }
 
-.detail-col{
-  min-width: 0;
-}
+.detail-col{ min-width: 0; }
 
 /* ------------------------------------------------------------
    8) Performer/Creator blocks
@@ -611,45 +584,7 @@ tr.track.is-open + tr.details .perf{
 }
 
 /* ------------------------------------------------------------
-   9) Cards (Credits view) – (maradhat, ha máshol használod)
------------------------------------------------------------- */
-.card{
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 16px;
-}
-
-.view .card{ background:#111626; }
-.view h2{ margin-top: 0; }
-
-.stack{ margin-top: 12px; }
-.stack:first-of-type{ margin-top: 10px; }
-
-.card-title{
-  margin-bottom: 8px;
-}
-
-.kv{ margin: 2px 0; }
-.kv .k{ color:#9aa4c7; font-weight: 400; }
-
-.link-group{ margin: 8px 0; }
-.link-group-title{ margin-bottom: 6px; }
-
-.pill{
-  display:inline-flex;
-  gap:8px;
-  align-items:center;
-  padding:6px 10px;
-  border-radius:999px;
-  border:1px solid var(--border-2);
-  background:#101426;
-  font-size:12px;
-  margin-right:8px;
-}
-
-/* ------------------------------------------------------------
-   10) Annotation (Tracklist view only)
+   10) Annotation
 ------------------------------------------------------------ */
 .annotation{
   margin-top: 0;
@@ -664,7 +599,7 @@ tr.track.is-open + tr.details .perf{
   font-size: 13px;
   line-height: 1.45;
   opacity: .90;
-  padding-top: 8px; 
+  padding-top: 8px;
 }
 
 /* ------------------------------------------------------------
@@ -678,32 +613,23 @@ tr.track.is-open + tr.details .perf{
     align-items: stretch;
   }
 
+  .top .search{
+    max-width: 100%;
+  }
+
   .row{ flex-direction: column; }
 
   .cover{ width: 100%; }
   .cover-nav-row,
   .cover-tabs{ width: 100%; justify-content: center; }
 
-  /* mobilon a theme-fab maradhat a tabs közelében, a JS úgyis újrapozicionál */
   .theme-fab{ z-index: 6; }
 
   td.num{ width: 34px; }
   td.len{ width: 56px; }
 
-  .detail-cols{ flex-direction: column; }
+  .detail-cols{ grid-template-columns: 1fr; }
 }
-
-/* Recordings (2-col "role → value" table) */
-.rc-table{
-  display: grid;
-  grid-template-columns: 220px 1fr;
-  column-gap: 16px;
-  row-gap: 6px;
-  margin-top: 10px;
-}
-
-.rc-role{ font-size: 13px; }
-.rc-val{ font-size: 13px; line-height: 1.35; }
 
 /* ------------------------------------------------------------
    12) Footer
@@ -715,27 +641,16 @@ tr.track.is-open + tr.details .perf{
   line-height: 1.25;
 }
 
-.footer a{
-  color: inherit;
-  text-decoration: none;
-}
-
-.footer a:hover{
-  text-decoration: underline;
-}
+.footer a{ color: inherit; text-decoration: none; }
+.footer a:hover{ text-decoration: underline; }
 
 .footer-inner{
   max-width: var(--wrap);
   margin: 0 auto;
   padding: 0;
   display: grid;
-  grid-template-columns: 1fr auto ;
-  column-gap: 0;
+  grid-template-columns: 1fr auto;
   align-items: start;
-}
-
-.footer-left{
-  min-width: 0;
 }
 
 .footer-right{
@@ -743,71 +658,3 @@ tr.track.is-open + tr.details .perf{
   opacity: 0.85;
   justify-self: end;
 }
-
-.footer-line{
-  white-space: nowrap;   /* maradjon két sor, ne törjön random */
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.footer-text{
-  grid-column: 1;
-  display: grid;
-  row-gap: 2px;
-
-  opacity: 0.85;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Medium (CD / Vinyl / Digital media) header */
-.medium-row .medium-cell{
-  padding-top: 10px;
-  padding-bottom: 10px;
-  border-top: 0;
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  color: var(--meta);
-  font-weight: 600;
-}
-
-/* Header magasabb, mert van alatta kereső */
-.searchbar { margin-top: 10px; position: relative; }
-
-.searchrow { display: flex; gap: 10px; align-items: center; }
-
-.q {
-  flex: 1;
-  min-width: 280px;
-}
-
-.qgo { flex: 0 0 auto; }
-
-.top .search {
-  position: relative;
-  max-width: 520px;
-  width: 100%;
-}
-
-.results {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  right: 0;
-
-  z-index: 50;
-  max-height: 320px;
-  overflow: auto;
-
-  border-radius: 12px;
-  border: 1px solid rgba(0,0,0,.12);
-  background: var(--panel);
-  box-shadow: 0 12px 32px rgba(0,0,0,.15);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-.result { padding: 10px 12px; cursor: pointer; }
-.result .sub { font-size: 12px; opacity: .75; margin-top: 2px; }
-.result.is-active { outline: 2px solid rgba(0,0,0,.15); }
