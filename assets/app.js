@@ -1138,89 +1138,98 @@ async function loadRelease(mbid) {
    8.5) Release search (omnibox)
    ============================================================ */
 
-/**
- * Heuristic "everything search":
- *  - split tokens (words)
- *  - require every token to appear in (artist OR release OR releasegroup)
- * This solves: "Jethro Benefit" → artist:Jethro AND release:Benefit (in practice via OR-per-token + AND across tokens)
- */
 function buildReleaseSearchQuery(input) {
-  const q = String(input || "").trim();
-  if (!q) return "";
-
-  const rawTokens = q.split(/\s+/).map(t => t.trim()).filter(Boolean);
-  if (!rawTokens.length) return "";
+  const q0 = String(input || "").trim();
+  if (!q0) return "";
 
   const esc = (s) => String(s).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
   const tok = (t) => `"${esc(t)}"`;
+
+  // ------------------------------------------------------------
+  // 0) Optional comma syntax: "artist, release"
+  // ------------------------------------------------------------
+  // First comma splits: left = artist-ish, right = release-ish
+  // Example: "ABBA, Waterloo" -> artist:"ABBA" AND release:"Waterloo"
+  // Keeps Spotlight mode when no comma is present.
+  const commaIdx = q0.indexOf(",");
+  if (commaIdx !== -1) {
+    const leftRaw = q0.slice(0, commaIdx).trim();      // artist side
+    const rightRaw = q0.slice(commaIdx + 1).trim();    // release side (rest)
+
+    // If user typed only "Artist," then behave like artist-only Spotlight
+    if (!rightRaw) {
+      const t = tok(leftRaw);
+      return `(artist:${t} OR release:${t})`;
+    }
+
+    // If user typed ", Title" (rare), treat as release-only Spotlight
+    if (!leftRaw) {
+      const t = tok(rightRaw);
+      return `(release:${t} OR artist:${t})`;
+    }
+
+    const artistPhrase = `"${esc(leftRaw)}"`;
+    const releasePhrase = `"${esc(rightRaw)}"`;
+
+    const artistTokens = leftRaw.split(/\s+/).map(s => s.trim()).filter(Boolean).map(tok);
+    const releaseTokens = rightRaw.split(/\s+/).map(s => s.trim()).filter(Boolean).map(tok);
+
+    const artistAND = artistTokens.map(t => `artist:${t}`).join(" AND ");
+    const releaseAND = releaseTokens.map(t => `release:${t}`).join(" AND ");
+
+    // Strong structured hits + a few softer fallbacks
+    return `(
+      (artist:${artistPhrase} AND release:${releasePhrase})^30
+      OR ((${artistAND}) AND (${releaseAND}))^22
+      OR (artist:${artistPhrase})^8
+      OR (release:${releasePhrase})^6
+      OR ((${artistTokens.map(t => `(artist:${t} OR release:${t})`).join(" AND ")}) AND (${releaseTokens.map(t => `(artist:${t} OR release:${t})`).join(" AND ")}))^2
+    )`.replace(/\s+/g, " ").trim();
+  }
+
+  // ------------------------------------------------------------
+  // 1) Spotlight mode (no comma): your original logic
+  // ------------------------------------------------------------
+  const rawTokens = q0.split(/\s+/).map(t => t.trim()).filter(Boolean);
+  if (!rawTokens.length) return "";
+
   const tokens = rawTokens.map(tok);
 
-  // Helper: "artist-ish" fields for Release index:
-  // artist      = combined credited artist name (with joinphrases)
-  // artistname  = name of any release artists
-  // creditname  = credited name on this release
-  // release     = release title
-  // (fields per MB Search Server docs)
-  // https://musicbrainz.org/doc/Search_Server
-  const A = (t) => `(artistname:${t}^80 OR creditname:${t}^60 OR artist:${t}^40)`;
-  const R = (t) => `(release:${t}^10 OR releaseaccent:${t}^10)`;
-
-  // 1 token -> ARTIST-FIRST Spotlight (still allows release fallback, but weak)
+  // 1 token -> Spotlight broad
   if (tokens.length === 1) {
     const t = tokens[0];
-    return `(
-      ${A(t)}^6
-      OR ${R(t)}^1
-    )`.replace(/\s+/g, " ").trim();
+    return `(release:${t} OR artist:${t})`;
   }
 
   const phrase = `"${esc(rawTokens.join(" "))}"`;
 
-  // 2 tokens -> treat as likely ARTIST NAME, do NOT require release match
+  // 2 tokens -> treat as "likely artist name", DO NOT split across artist/release
   if (tokens.length === 2) {
     const [t1, t2] = tokens;
 
-    const phraseArtist =
-      `(artistname:${phrase}^120 OR creditname:${phrase}^100 OR artist:${phrase}^80)`;
-
-    const artistAND =
-      `((artistname:${t1} AND artistname:${t2})^70 OR (artist:${t1} AND artist:${t2})^50 OR (creditname:${t1} AND creditname:${t2})^60)`;
-
-    const phraseRelease =
-      `(release:${phrase}^20 OR releaseaccent:${phrase}^20)`;
-
-    const releaseAND =
-      `((release:${t1} AND release:${t2})^12 OR (releaseaccent:${t1} AND releaseaccent:${t2})^12)`;
-
-    // very weak broad fallback
-    const broad =
-      `(${A(t1)} AND ${A(t2)})^8 OR (${R(t1)} AND ${R(t2)})^2`;
-
     return `(
-      ${phraseArtist}
-      OR ${artistAND}
-      OR ${phraseRelease}
-      OR ${releaseAND}
-      OR ${broad}
+      artist:${phrase}^18
+      OR (artist:${t1} AND artist:${t2})^12
+      OR release:${phrase}^6
+      OR (release:${t1} AND release:${t2})^4
+      OR ((artist:${t1} OR release:${t1}) AND (artist:${t2} OR release:${t2}))^2
     )`.replace(/\s+/g, " ").trim();
   }
 
-  // 3+ tokens -> broad AND across tokens, plus mild "artist... + last token as release" heuristic
+  // 3+ tokens -> broad AND across tokens, plus a *mild* split heuristic
   const broad = tokens
-    .map(t => `(${A(t)} OR ${R(t)})`)
+    .map(t => `(artist:${t} OR release:${t})`)
     .join(" AND ");
 
-  const phraseArtist =
-    `(artistname:${phrase}^60 OR creditname:${phrase}^50 OR artist:${phrase}^40)`;
-  const phraseRelease =
-    `(release:${phrase}^25 OR releaseaccent:${phrase}^25)`;
+  const phraseArtist = `artist:${phrase}^10`;
+  const phraseRelease = `release:${phrase}^6`;
 
   const last = tokens[tokens.length - 1];
   const firstPart = tokens.slice(0, -1);
 
-  const artistPart = firstPart.map(t => A(t)).join(" AND ");
+  const artistPart = firstPart.map(t => `artist:${t}`).join(" AND ");
   const structured = artistPart
-    ? `(${artistPart} AND ${R(last)})^18`
+    ? `(${artistPart} AND release:${last})^4`
     : "";
 
   return `(

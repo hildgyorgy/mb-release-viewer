@@ -784,28 +784,30 @@ tr.track.is-open + tr.details .perf{
 
 .qgo { flex: 0 0 auto; }
 
+.top .search {
+  position: relative;
+  max-width: 520px;
+  width: 100%;
+}
+
 .results {
   position: absolute;
+  top: calc(100% + 6px);
   left: 0;
   right: 0;
-  top: calc(100% + 8px);
+
   z-index: 50;
   max-height: 320px;
   overflow: auto;
+
   border-radius: 12px;
   border: 1px solid rgba(0,0,0,.12);
-  background: var(--panel, #fff);
+  background: var(--panel);
+  box-shadow: 0 12px 32px rgba(0,0,0,.15);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .result { padding: 10px 12px; cursor: pointer; }
 .result .sub { font-size: 12px; opacity: .75; margin-top: 2px; }
 .result.is-active { outline: 2px solid rgba(0,0,0,.15); }
-
-/* dropdown ne vágódjon le és legyen mindig a tetején */
-#searchbar { position: relative; overflow: visible; z-index: 9999; }
-#results { z-index: 10000; }
-
-/* a teljes felső header sáv is engedje ki a dropdownot */
-header, .header, .topbar, .masthead, .site-header {
-  overflow: visible !important;
-}

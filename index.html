@@ -13,14 +13,17 @@
 <header class="top">
   <div class="top-inner">
     <div class="brand">MusicBrainz Release Viewer</div>
+
     <div class="search">
       <input id="omni" type="text" autocomplete="off" spellcheck="false"
         placeholder="Paste a MusicBrainz release URL / MBID, or search releases…" />
       <button id="go" class="go-btn" title="Load from MusicBrainz">
         <img src="assets/icons/MB_go.png" alt="MusicBrainz" />
       </button>
+
+      <div class="results" id="results" hidden></div>
     </div>
-    <div class="results" id="results" hidden></div>
+
   </div>
 </header>
   <div class="wrap">
