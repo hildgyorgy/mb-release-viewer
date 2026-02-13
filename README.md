@@ -1,104 +1,42 @@
-# MusicBrainz Release Viewer (experimental)
+# MusicBrainz Release Viewer
 
-A lightweight, read-only web viewer for exploring MusicBrainz releases with a focus on
-**recordings, works, performers, composers, and recording-level technical credits**.
+A lightweight, read-only web viewer for exploring **MusicBrainz releases**.
 
-The project is experimental and intended as a **UI / data-exploration prototype**, not as a replacement for MusicBrainz itself.
-
-Live demo:  
 👉 https://hildgyorgy.github.io/mb-release-viewer/
 
 ---
 
-## What this viewer tries to do
+## What it is
 
-MusicBrainz contains extremely rich data, but some relationships are hard to read
-when you want to **understand a release as music**, not as database entities.
+An alternative way to read a release:
 
-This viewer experiments with a different presentation:
+- Track-centric layout  
+- Clear separation of performers, creators and technical credits  
+- Explicit work hierarchy (based only on MB relations)
 
-### 1. Track-centric reading
-- Tracklist as the main entry point
-- Per-track expandable details
-- Clear separation of:
-  - **Performers** (recording → artist, instruments / vocals)
-  - **Creators** (work → composer / lyricist / librettist)
-  - **Work hierarchy** (work → part-of relations)
-
-### 2. Recording-level technical credits
-A separate **Recordings** view collects *non-musical* relationships per recording, such as:
-- producer
-- recording / mastering engineer
-- recording location
-- recording dates
-- and other organizational / technical relations
-
-These are intentionally separated from performers and composers.
-
-### 3. Work hierarchy without title heuristics
-Work hierarchy is built **only** from MusicBrainz work-to-work relations  
-(`parts / part of`), without parsing track titles.
+Standalone.  
+No editing.  
+No data storage.  
+No backend.
 
 ---
 
-## What this viewer does NOT try to do
+## How to use
 
-- No editing or submission to MusicBrainz
-- No Discogs-style shopping / streaming links
-- No account system
-- No attempt to show *all* MB relationships
+- Paste a MusicBrainz release URL or MBID  
+- Or search the database directly  
 
-This is intentionally a **narrow, opinionated view**.
-
----
-
-## Data sources
-
-All data is fetched live from the official MusicBrainz APIs:
-
-- MusicBrainz Web Service v2
-- Cover Art Archive (optional)
-
-No data is stored, tracked, or modified.
+Optional structured search:
+Artist, Album (comma separeted)
 
 ---
 
-## Technical notes
+## Tech
 
-- Plain HTML / CSS / vanilla JavaScript
-- No frameworks
-- No backend
-- GitHub Pages hosting
-- Read-only API usage
-
-The code is intentionally kept simple and hackable.
+Plain HTML / CSS / vanilla JavaScript  
+MusicBrainz Web Service v2 + Cover Art Archive  
+GitHub Pages hosting  
 
 ---
 
-## Status
-
-Experimental / work in progress.
-
-The structure, terminology, and layout are still evolving.
-Feedback from the MusicBrainz community is very welcome.
-
----
-
-## Feedback & discussion
-
-If you have suggestions, corrections, or strong opinions about:
-- role separation (performer vs creator vs technical roles)
-- work hierarchy presentation
-- missing or misinterpreted relationships
-
-please comment on the MusicBrainz forum thread.
-
----
-
-## Author
-
-György Hild  
-Architect / university lecturer  
-MusicBrainz user experimenting with alternative UI ideas
-
-This project is non-commercial and created purely out of curiosity.
+v0.9.5 — experimental, evolving.
