@@ -1,6 +1,6 @@
 /*!
  * MB Release Viewer
- * Version: 0.9.0
+ * Version: 0.9.5
  * © 2026 György Hild
  * https://github.com/hildgyorgy/mb-release-viewer
  */
@@ -12,7 +12,7 @@ const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
 /* ============================================================
-   1) Small utilities (formatting, escaping, dedupe)
+   1) Small utilities (formatting, escaping, debounce, dedupe)
    ============================================================ */
 function extractMBID(value) {
   const m = String(value || "")
@@ -43,6 +43,14 @@ function escHtml(str) {
 
 function uniq(arr) {
   return Array.from(new Set((arr || []).filter(Boolean)));
+}
+
+function debounce(fn, wait = 250) {
+  let t = null;
+  return (...args) => {
+    clearTimeout(t);
+    t = setTimeout(() => fn(...args), wait);
+  };
 }
 
 function relDateLabel(r) {
@@ -76,27 +84,74 @@ function mediumLabel(m, totalMediaCount) {
 
   const joinExtra = (base) => (extra.length ? `${base} · ${extra.join(" · ")}` : base);
 
-  // DIGITAL → no numbering
-  if (isDigital) {
-    return joinExtra(fmtRaw || "Digital media");
-  }
-
-  // VINYL → numbering only if multiple media
+  if (isDigital) return joinExtra(fmtRaw || "Digital media");
   if (isVinyl) {
     if (totalMediaCount > 1) return joinExtra(`Disc ${m.index} · ${fmtRaw || "Vinyl"}`);
     return joinExtra(fmtRaw || "Vinyl");
   }
+  if (isCD) return joinExtra(`CD ${m.index}`);
 
-  // CD → classic numbering
-  if (isCD) {
-    return joinExtra(`CD ${m.index}`);
-  }
-
-  // OTHER
-  if (totalMediaCount > 1) {
-    return joinExtra(`Disc ${m.index}${fmtRaw ? ` · ${fmtRaw}` : ""}`.trim());
-  }
+  if (totalMediaCount > 1) return joinExtra(`Disc ${m.index}${fmtRaw ? ` · ${fmtRaw}` : ""}`.trim());
   return joinExtra(fmtRaw || "Disc");
+}
+
+/* ============================================================
+   1.5) Omnibox Search UI state
+   ============================================================ */
+let __searchOpen = false;
+let __searchItems = [];
+let __searchActive = 0;
+
+function openSearch() {
+  __searchOpen = true;
+  const res = document.getElementById("results");
+  if (res) res.hidden = false;
+}
+
+function closeSearch() {
+  __searchOpen = false;
+  const res = document.getElementById("results");
+  if (res) res.hidden = true;
+}
+
+function renderSearchResults(items) {
+  const res = document.getElementById("results");
+  if (!res) return;
+
+  __searchItems = Array.isArray(items) ? items : [];
+  __searchActive = 0;
+
+  if (!__searchItems.length) {
+    res.innerHTML = `<div class="result"><span class="muted">No results</span></div>`;
+    return;
+  }
+
+  res.innerHTML = __searchItems
+    .map(
+      (it, i) => `
+      <div class="result ${i === 0 ? "is-active" : ""}" data-i="${i}">
+        <div>${escHtml(it.title)}</div>
+        <div class="sub">${escHtml(it.sub || "")}</div>
+      </div>
+    `
+    )
+    .join("");
+}
+
+function setActiveResult(i) {
+  const res = document.getElementById("results");
+  if (!res) return;
+  const n = __searchItems.length;
+  if (!n) return;
+
+  __searchActive = Math.max(0, Math.min(i, n - 1));
+
+  Array.from(res.querySelectorAll(".result")).forEach((el) => {
+    el.classList.toggle("is-active", Number(el.dataset.i) === __searchActive);
+  });
+
+  const activeEl = res.querySelector(`.result[data-i="${__searchActive}"]`);
+  if (activeEl) activeEl.scrollIntoView({ block: "nearest" });
 }
 
 /* ============================================================
@@ -144,7 +199,7 @@ function applyTheme(theme) {
 
   const btn = document.getElementById("themeToggle");
   if (btn) {
-    btn.innerHTML = t === "dark" ? ICON_SUN : ICON_MOON; // dark-ban nap, light-ban hold
+    btn.innerHTML = t === "dark" ? ICON_SUN : ICON_MOON;
     btn.title = t === "dark" ? "Switch to light mode" : "Switch to dark mode";
     btn.setAttribute("aria-label", btn.title);
   }
@@ -195,10 +250,7 @@ function positionThemeToggle(root = document) {
   const bw = btn.offsetWidth || 38;
   const bh = btn.offsetHeight || 38;
 
-  // a gomb közepe essen a cover/tabs és a meta blokk határvonalára (+ finom offset)
   const x = (mainRect.left - rowRect.left) - bw / 2 + 15;
-
-  // a tabs sor középvonalára igazítjuk
   const y = (tabsRect.top - rowRect.top) + (tabsRect.height - bh) / 2;
 
   btn.style.left = `${Math.round(x)}px`;
@@ -241,7 +293,6 @@ let recordingsBuilt = false;
 function bindTabsOnce() {
   const tabs = $("#tabs");
   if (!tabs) return;
-
   if (tabs.dataset.bound === "1") return;
   tabs.dataset.bound = "1";
 
@@ -250,7 +301,7 @@ function bindTabsOnce() {
     if (!btn) return;
 
     const view = btn.dataset.view;
-    if (!view) return; // MB link: nincs data-view
+    if (!view) return;
 
     setActiveView(view);
 
@@ -274,13 +325,10 @@ function ensureLightboxOnce() {
   lb.innerHTML = `<img id="lbImg" alt="">`;
   document.body.appendChild(lb);
 
-  // click outside image closes
-lb.addEventListener("click", (e) => {
-  // háttérre kattintás vagy a képre kattintás is bezár
-  if (e.target === lb || e.target.id === "lbImg") closeLightbox();
-});
+  lb.addEventListener("click", (e) => {
+    if (e.target === lb || e.target.id === "lbImg") closeLightbox();
+  });
 
-  // ESC closes
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") closeLightbox();
   });
@@ -297,13 +345,8 @@ function openLightbox(src, alt = "") {
   img.src = src;
   img.alt = alt || "";
 
-  // 1) biztosan legyen "zárt" state-ben
   lb.classList.remove("is-open");
-
-  // 2) következő frame-ben nyitjuk -> animáció garantált elsőre is
-  requestAnimationFrame(() => {
-    lb.classList.add("is-open");
-  });
+  requestAnimationFrame(() => lb.classList.add("is-open"));
 
   document.body.style.overflow = "hidden";
 }
@@ -319,14 +362,11 @@ function bindCoverLightboxOnce(root = document) {
   const img = $("#coverImg", root);
   if (!img || img.dataset.lbBound === "1") return;
   img.dataset.lbBound = "1";
-
-  img.addEventListener("click", () => {
-    openLightbox(img.src, img.alt || "Cover");
-  });
+  img.addEventListener("click", () => openLightbox(img.src, img.alt || "Cover"));
 }
 
 /* ============================================================
-   5) MusicBrainz link helpers (HTML linkek)
+   5) MusicBrainz link helpers (HTML links)
    ============================================================ */
 function mbArtistLink(artist) {
   if (!artist?.id) return "";
@@ -340,7 +380,6 @@ function artistCreditToLinks(ac) {
   if (!Array.isArray(ac) || !ac.length) return "";
   return ac
     .map((x) => {
-      // MB artist-credit elem: { name, joinphrase, artist: { id, name } }
       const a = x?.artist || null;
       const name = x?.name || a?.name || "(unknown)";
       const link = a?.id
@@ -375,12 +414,7 @@ function mbRecordingLink(rec) {
    ============================================================ */
 function parsePerformersFromRecording(recording) {
   const rels = recording?.relations || [];
-
-  const perf = rels.filter((r) => {
-    const tt = r.target_type ?? r["target-type"];
-    return tt === "artist";
-  });
-
+  const perf = rels.filter((r) => (r.target_type ?? r["target-type"]) === "artist");
   const byRole = new Map();
 
   for (const r of perf) {
@@ -394,15 +428,9 @@ function parsePerformersFromRecording(recording) {
     const isVocal =
       baseType === "vocal" ||
       attrs.some((a) =>
-        [
-          "vocals",
-          "soprano",
-          "mezzo-soprano",
-          "alto",
-          "tenor",
-          "baritone",
-          "bass",
-        ].includes(String(a).toLowerCase())
+        ["vocals", "soprano", "mezzo-soprano", "alto", "tenor", "baritone", "bass"].includes(
+          String(a).toLowerCase()
+        )
       );
 
     if (!isInstrument && !isVocal) continue;
@@ -416,9 +444,7 @@ function parsePerformersFromRecording(recording) {
   return Array.from(byRole.entries())
     .map(([role, artistMap]) => ({
       role,
-      artists: Array.from(artistMap.values()).sort((a, b) =>
-        (a.name || "").localeCompare(b.name || "")
-      ),
+      artists: Array.from(artistMap.values()).sort((a, b) => (a.name || "").localeCompare(b.name || "")),
     }))
     .sort((a, b) => a.role.localeCompare(b.role));
 }
@@ -444,14 +470,10 @@ function renderRoleList(items) {
 
 function renderPerformers(recording) {
   const items = parsePerformersFromRecording(recording);
-
-  // 1) ha van BÁRMILYEN instrument/vocal performer -> csak azt mutatjuk
   if (items.length) return renderRoleList(items);
 
-  // 2) nincs performer rel -> fallback: recording artist-credit (offer: "performer")
   const ac = recording?.["artist-credit"];
   const acHtml = artistCreditToLinks(ac);
-
   if (acHtml) {
     return `
       <div class="perf">
@@ -465,7 +487,6 @@ function renderPerformers(recording) {
     `;
   }
 
-  // 3) nincs performer és nincs recording artist-credit -> N/A (no release fallback)
   return `
     <div class="perf">
       <div class="grid">
@@ -480,16 +501,10 @@ function renderPerformers(recording) {
 
 function getPrimaryWorkIdFromRecording(recording) {
   const rels = recording?.relations || [];
-
-  const workRel = rels.find((r) => {
-    const tt = r.target_type ?? r["target-type"];
-    return tt === "work";
-  });
+  const workRel = rels.find((r) => (r.target_type ?? r["target-type"]) === "work");
   if (!workRel) return null;
-
   const w = workRel.work || workRel.target || null;
   if (!w) return null;
-
   return typeof w === "string" ? w : w.id || null;
 }
 
@@ -521,9 +536,7 @@ function parseCreatorsFromWork(work) {
   return Array.from(byRole.entries())
     .map(([role, artistMap]) => ({
       role,
-      artists: Array.from(artistMap.values()).sort((a, b) =>
-        (a.name || "").localeCompare(b.name || "")
-      ),
+      artists: Array.from(artistMap.values()).sort((a, b) => (a.name || "").localeCompare(b.name || "")),
     }))
     .sort((a, b) => {
       const ra = rank(a.role);
@@ -548,7 +561,6 @@ function renderCreators(work) {
   }
 
   const items = parseCreatorsFromWork(work);
-
   if (!items.length) {
     return `
       <div class="perf">
@@ -584,7 +596,6 @@ function getParentWorkIdFromWork(work) {
     });
 
   if (!parentRel) return null;
-
   const w = parentRel.work || parentRel.target || null;
   if (!w) return null;
 
@@ -718,13 +729,7 @@ async function renderTrackDetails(recording, work) {
 /* ============================================================
    7) Recordings tab (technical / organizational credits)
    ============================================================ */
-const EXCLUDE_ARTIST_REL_TYPES = new Set([
-  "instrument",
-  "vocal",
-  "composer",
-  "lyricist",
-  "librettist",
-]);
+const EXCLUDE_ARTIST_REL_TYPES = new Set(["instrument", "vocal", "composer", "lyricist", "librettist"]);
 
 function prettyRelRole(typeRaw, attrs) {
   const type = String(typeRaw || "").trim();
@@ -754,10 +759,7 @@ function prettyRelRole(typeRaw, attrs) {
     }
   }
 
-  if (a.length === 1) {
-    return { role: `${a[0]} ${type}`.trim(), rest: [] };
-  }
-
+  if (a.length === 1) return { role: `${a[0]} ${type}`.trim(), rest: [] };
   return { role: type, rest: a };
 }
 
@@ -864,12 +866,11 @@ function renderRecordingTechGrid(items) {
   `;
 }
 
-// Built from the current release media (set in renderAll)
 let __mediaForRecordings = [];
 
 function itemsToRoleMap(items) {
   const map = new Map();
-  for (const it of (items || [])) {
+  for (const it of items || []) {
     const role = String(it.role || "").trim();
     if (!role) continue;
     if (role.toLowerCase() === "notes") continue;
@@ -883,9 +884,7 @@ function intersectRoleMaps(roleMaps) {
   const common = new Map();
   if (!roleMaps.length) return common;
 
-  for (const [role, set] of roleMaps[0].entries()) {
-    common.set(role, new Set(set));
-  }
+  for (const [role, set] of roleMaps[0].entries()) common.set(role, new Set(set));
 
   for (let i = 1; i < roleMaps.length; i++) {
     const cur = roleMaps[i];
@@ -910,7 +909,7 @@ function intersectRoleMaps(roleMaps) {
 function getCommonNotesFromItemsList(itemsList) {
   let common = null;
 
-  for (const items of (itemsList || [])) {
+  for (const items of itemsList || []) {
     const notesItem = (items || []).find((it) => String(it.role || "").toLowerCase() === "notes");
     const txt = String(notesItem?.values?.[0] || "").trim();
 
@@ -926,7 +925,7 @@ function subtractCommon(items, commonMap, commonNotes = "") {
   const out = [];
   const commonNotesNorm = String(commonNotes || "").trim();
 
-  for (const it of (items || [])) {
+  for (const it of items || []) {
     const role = String(it.role || "").trim();
     if (!role) continue;
 
@@ -956,11 +955,10 @@ async function buildRecordingsView() {
   const media = Array.isArray(__mediaForRecordings) ? __mediaForRecordings : [];
   const mediaCount = media.length;
 
-  // album-szintű unique recording ID-k
   const seenGlobal = new Set();
   const albumRecIds = [];
   for (const m of media) {
-    for (const t of (m.tracks || [])) {
+    for (const t of m.tracks || []) {
       const id = t?.rec?.id;
       if (!id || seenGlobal.has(id)) continue;
       seenGlobal.add(id);
@@ -1029,7 +1027,7 @@ async function buildRecordingsView() {
 
     const seen = new Set();
     const orderedRecIds = [];
-    for (const t of (m.tracks || [])) {
+    for (const t of m.tracks || []) {
       const id = t?.rec?.id;
       if (!id || seen.has(id)) continue;
       seen.add(id);
@@ -1113,9 +1111,7 @@ async function loadWork(workId) {
   if (!workId) return null;
   if (workCache.has(workId)) return workCache.get(workId);
 
-  const w = await fetchJSON(
-    `https://musicbrainz.org/ws/2/work/${workId}?fmt=json&inc=artist-rels+work-rels`
-  );
+  const w = await fetchJSON(`https://musicbrainz.org/ws/2/work/${workId}?fmt=json&inc=artist-rels+work-rels`);
   workCache.set(workId, w);
   return w;
 }
@@ -1139,11 +1135,99 @@ async function loadRelease(mbid) {
 }
 
 /* ============================================================
+   8.5) Release search (omnibox)
+   ============================================================ */
+
+/**
+ * Heuristic "everything search":
+ *  - split tokens (words)
+ *  - require every token to appear in (artist OR release OR releasegroup)
+ * This solves: "Jethro Benefit" → artist:Jethro AND release:Benefit (in practice via OR-per-token + AND across tokens)
+ */
+function buildReleaseSearchQuery(q) {
+  const raw = String(q || "").trim();
+  if (!raw) return "";
+
+  // tokens: words, keep hyphens, remove extra punctuation
+  const tokens = raw
+    .replace(/[()]/g, " ")
+    .split(/\s+/)
+    .map((t) => t.trim())
+    .filter(Boolean);
+
+  if (!tokens.length) return "";
+
+  const tokenExpr = (t) => {
+    // quote if needed
+    const safe = /[^a-zA-Z0-9_-]/.test(t) ? `"${t.replaceAll('"', '\\"')}"` : t;
+    return `(artist:${safe} OR release:${safe} OR releasegroup:${safe})`;
+  };
+
+  // AND across tokens
+  return tokens.map(tokenExpr).join(" AND ");
+}
+
+function firstReleaseDateLike(hit) {
+  const d = String(hit?.date || "").trim();
+  if (d) return d;
+  // search results usually have date; keep fallback minimal
+  return "";
+}
+
+function summarizeSearchHit(hit) {
+  const mbid = hit?.id || "";
+  const titleRaw = String(hit?.title || "").trim();
+
+  const ac = hit?.["artist-credit"];
+  const artist = artistCreditToText(ac);
+
+  const date = firstReleaseDateLike(hit);
+  const year = date ? String(date).slice(0, 4) : "";
+
+  // "Format" in search endpoint: often hit.media?.[0]?.format, but not always present.
+  const format =
+    String(hit?.media?.[0]?.format || hit?.packaging || "").trim();
+
+  const country = String(hit?.country || "").trim();
+  const label = String(hit?.["label-info"]?.[0]?.label?.name || "").trim();
+
+  const head = `${artist || "Various Artists"} — ${titleRaw}${year ? ` (${year})` : ""}`.trim();
+
+  const parts = [];
+  if (date) parts.push(date);
+  if (country) parts.push(country);
+  if (label) parts.push(label);
+  if (format) parts.push(format);
+
+  return {
+    mbid,
+    title: head,
+    sub: parts.join(" · "),
+  };
+}
+
+async function searchReleases(q, limit = 12) {
+  const query = buildReleaseSearchQuery(q);
+  if (!query) return [];
+
+  const url =
+    `https://musicbrainz.org/ws/2/release/?fmt=json&limit=${encodeURIComponent(
+      String(limit)
+    )}&query=${encodeURIComponent(query)}`;
+
+  const data = await fetchJSON(url);
+  const hits = Array.isArray(data?.releases) ? data.releases : [];
+
+  return hits
+    .map(summarizeSearchHit)
+    .filter((x) => x.mbid && x.title)
+    .slice(0, limit);
+}
+
+/* ============================================================
    9) Rendering + UI binding
    ============================================================ */
-function renderHeader({
-  title, cover, mbLink, artist, date, country, label, catno, barcode, releaseNotes
-}) {
+function renderHeader({ title, cover, mbLink, artist, date, country, label, catno, barcode, releaseNotes }) {
   return `
     <div class="row">
       <div class="cover">
@@ -1160,7 +1244,6 @@ function renderHeader({
         </div>
       </div>
 
-      <!-- Theme gomb: a navon kívül, a határvonalra pozicionálva -->
       <button class="theme-fab" id="themeToggle" type="button"></button>
 
       <div class="main">
@@ -1383,6 +1466,8 @@ function renderAll({ rel, cover }) {
   recordingsBuilt = false;
 
   const out = $("#out");
+  if (!out) return;
+
   out.innerHTML = `
     ${renderHeader({ title, cover, mbLink, artist, date, country, label, catno, barcode, releaseNotes })}
     <div class="views">
@@ -1391,17 +1476,14 @@ function renderAll({ rel, cover }) {
     </div>
   `;
 
-  // Theme init + bind + icon
   applyTheme(getPreferredTheme());
   bindThemeToggleOnce(out);
 
-  // UI bind
   bindTabsOnce();
   setActiveView("tracks");
   bindTrackToggles(out, flatTracks);
-    bindCoverLightboxOnce(out);
+  bindCoverLightboxOnce(out);
 
-  // cover + theme gomb pozicionálás
   bindCoverSizerOnce();
   lockCoverSquareToTabs(out);
   positionThemeToggle(out);
@@ -1418,52 +1500,236 @@ function renderAll({ rel, cover }) {
 }
 
 /* ============================================================
-   10) App entry
+   10) App entry: omnibox + loader
    ============================================================ */
-async function go() {
-  const mbid = extractMBID($("#mbid")?.value);
-  if (!mbid) {
-    $("#out").innerHTML =
-      `<div class="err">Adj meg egy érvényes release MBID-t vagy egy MusicBrainz release URL-t.</div>`;
-    return;
-  }
+async function goByMbid(mbid) {
+  if (!mbid) return;
 
-  $("#out").innerHTML = `<div class="muted">Loading…</div>`;
+  closeSearch();
+
+  const out = $("#out");
+  if (out) out.innerHTML = `<div class="muted">Loading…</div>`;
 
   try {
     const data = await loadRelease(mbid);
     renderAll(data);
-    
-    const input = document.getElementById("mbid");
-    input.classList.add("is-loaded");
+
+    const omni = document.getElementById("omni");
+    if (omni) {
+      omni.value = mbid;
+      omni.classList.add("is-loaded");
+    }
+
+    // nice-to-have: update URL param (so you can bookmark)
+    try {
+      const u = new URL(window.location.href);
+      u.searchParams.set("mbid", mbid);
+      history.replaceState({}, "", u.toString());
+    } catch {}
   } catch (e) {
-    $("#out").innerHTML = `<div class="err">Hiba: ${escHtml(e.message)}</div>`;
+    if (out) out.innerHTML = `<div class="err">Hiba: ${escHtml(e.message)}</div>`;
   }
+}
+
+async function go() {
+  const omni = document.getElementById("omni");
+  const raw = String(omni?.value || "").trim();
+
+  const mbid = extractMBID(raw);
+
+  // 1) MBID/URL → load release
+  if (mbid) {
+    await goByMbid(mbid);
+    return;
+  }
+
+  // 2) otherwise → search
+  const q = raw;
+  if (q.length < 2) return;
+
+  openSearch();
+  const resEl = document.getElementById("results");
+  if (resEl) resEl.innerHTML = `<div class="result"><span class="muted">Searching…</span></div>`;
+
+  try {
+    const items = await searchReleases(q, 12);
+    renderSearchResults(items);
+  } catch {
+    if (resEl) resEl.innerHTML = `<div class="result"><span class="muted">Search error</span></div>`;
+  }
+}
+
+/**
+ * Single omnibox binder:
+ *  - paste MBID/URL → immediate load
+ *  - type text → debounced search results
+ *  - Enter → load selected result (or first), or load MBID/URL if present
+ */
+function bindOmniOnce() {
+  const omni = document.getElementById("omni");
+  const goBtn = document.getElementById("go");
+  const resEl = document.getElementById("results");
+  if (!omni || !goBtn || !resEl) return;
+
+  if (omni.dataset.bound === "1") return;
+  omni.dataset.bound = "1";
+
+  const runSearch = debounce(async () => {
+    const val = String(omni.value || "").trim();
+    const mbid = extractMBID(val);
+    if (mbid) {
+      // if it’s an MBID/URL, don’t show dropdown
+      closeSearch();
+      return;
+    }
+
+    if (val.length < 2) {
+      renderSearchResults([]);
+      openSearch();
+      return;
+    }
+
+    openSearch();
+    resEl.innerHTML = `<div class="result"><span class="muted">Searching…</span></div>`;
+
+    try {
+      const items = await searchReleases(val, 12);
+      renderSearchResults(items);
+    } catch {
+      resEl.innerHTML = `<div class="result"><span class="muted">Search error</span></div>`;
+    }
+  }, 250);
+
+  function pickActiveOrFirst() {
+    const it = __searchItems[__searchActive] || __searchItems[0] || null;
+    if (it?.mbid) return it.mbid;
+    return "";
+  }
+
+  omni.addEventListener("focus", () => {
+    const val = String(omni.value || "").trim();
+    const mbid = extractMBID(val);
+    if (mbid) return; // no dropdown
+    openSearch();
+    if (val.length >= 2) runSearch();
+    else renderSearchResults([]);
+  });
+
+  omni.addEventListener("input", () => {
+    omni.classList.remove("is-loaded");
+    runSearch();
+  });
+
+  omni.addEventListener("paste", () => {
+    // let paste complete, then decide
+    setTimeout(async () => {
+      const val = String(omni.value || "").trim();
+      const mbid = extractMBID(val);
+      if (mbid) {
+        await goByMbid(mbid);
+      } else {
+        runSearch();
+      }
+    }, 0);
+  });
+
+  omni.addEventListener("keydown", async (e) => {
+    // arrows/enter only if dropdown is open OR might need to open it
+    if (e.key === "ArrowDown") {
+      if (!__searchOpen) openSearch();
+      e.preventDefault();
+      setActiveResult(__searchActive + 1);
+      return;
+    }
+    if (e.key === "ArrowUp") {
+      if (!__searchOpen) openSearch();
+      e.preventDefault();
+      setActiveResult(__searchActive - 1);
+      return;
+    }
+    if (e.key === "Escape") {
+      e.preventDefault();
+      closeSearch();
+      return;
+    }
+    if (e.key === "Enter") {
+      e.preventDefault();
+
+      const val = String(omni.value || "").trim();
+      const mbid = extractMBID(val);
+
+      // MBID/URL wins
+      if (mbid) {
+        await goByMbid(mbid);
+        return;
+      }
+
+      // If we have items, open selected/first
+      const pick = pickActiveOrFirst();
+      if (pick) {
+        await goByMbid(pick);
+        return;
+      }
+
+      // Otherwise run a search
+      await go();
+    }
+  });
+
+  resEl.addEventListener("click", async (e) => {
+    const item = e.target.closest(".result");
+    if (!item) return;
+    const idx = Number(item.dataset.i);
+    if (Number.isFinite(idx)) setActiveResult(idx);
+
+    const it = __searchItems[idx];
+    if (it?.mbid) await goByMbid(it.mbid);
+  });
+
+  goBtn.addEventListener("click", async () => {
+    const val = String(omni.value || "").trim();
+    const mbid = extractMBID(val);
+    if (mbid) {
+      await goByMbid(mbid);
+      return;
+    }
+
+    // if dropdown has items, load active/first
+    const pick = pickActiveOrFirst();
+    if (pick) {
+      await goByMbid(pick);
+      return;
+    }
+
+    await go();
+  });
+
+  // click-outside closes
+  document.addEventListener("click", (e) => {
+    if (!__searchOpen) return;
+    // close only if click is outside the search area
+    const searchWrap = omni.closest(".search") || omni.parentElement;
+    if (searchWrap && searchWrap.contains(e.target)) return;
+    if (resEl.contains(e.target)) return;
+    closeSearch();
+  });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
   applyTheme(getPreferredTheme());
 
-  $("#go")?.addEventListener("click", go);
-  $("#mbid")?.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") go();
-  });
+  bindOmniOnce();
 
-  const input = document.getElementById("mbid");
-  if (!input) return;
+  // autoload from URL (?mbid=... or full MB release URL)
+  const omni = document.getElementById("omni");
+  if (!omni) return;
 
-  // gépelés / paste → még nem "betöltött"
-  input.addEventListener("input", () => {
-    input.classList.remove("is-loaded");
-  });
-
-  // --- autoload from URL (?mbid=... or full MB release URL) ---
   const qs = new URLSearchParams(window.location.search);
-  const q = (qs.get("mbid") || "").trim();
-
-  if (q) {
-    input.value = q;
-    input.classList.remove("is-loaded");
-    go();
+  const mbidParam = String(qs.get("mbid") || "").trim();
+  if (mbidParam) {
+    omni.value = mbidParam;
+    omni.classList.remove("is-loaded");
+    const mbid = extractMBID(mbidParam);
+    if (mbid) goByMbid(mbid);
   }
 });

@@ -210,6 +210,62 @@ button:hover{ filter: brightness(1.08); }
   transform: scale(0.98);
 }
 
+/* --- Search header states --- */
+:root{
+  --search-max: 320px;
+}
+
+body.search-open .searchbar .results{ display:block; }
+body.search-open .searchbar{ max-height: var(--search-max); }
+.searchbar{ max-height: 52px; overflow: hidden; transition: max-height .18s ease; }
+
+.searchrow{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+
+.q{
+  flex:1;
+  padding:10px 12px;
+  border:1px solid var(--border-2);
+  background: var(--panel);
+  color: var(--text);
+  font-size:14px;
+}
+
+.qgo{
+  padding:10px 12px;
+  border:1px solid var(--border-2);
+  background: var(--panel-2);
+  color: var(--text);
+  cursor:pointer;
+}
+
+.results{
+  margin-top:10px;
+  border:1px solid var(--border-2);
+  background: var(--panel);
+  max-height: 210px;
+  overflow:auto;
+}
+
+.result{
+  padding:10px 12px;
+  border-top:1px solid var(--border-2);
+  cursor:pointer;
+  line-height:1.25;
+}
+.result:first-child{ border-top:none; }
+.result.is-active{
+  background: var(--tr-hover);
+}
+.result .sub{
+  opacity:.75;
+  font-size:12px;
+  margin-top:4px;
+}
+
 /* ------------------------------------------------------------
    2) Layout blocks
 ------------------------------------------------------------ */
@@ -713,4 +769,42 @@ tr.track.is-open + tr.details .perf{
   letter-spacing: 0.08em;
   color: var(--meta);
   font-weight: 600;
+}
+
+/* Header magasabb, mert van alatta kereső */
+.searchbar { margin-top: 10px; position: relative; }
+
+.searchrow { display: flex; gap: 10px; align-items: center; }
+
+.q {
+  flex: 1;
+  min-width: 280px;
+}
+
+.qgo { flex: 0 0 auto; }
+
+.results {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 8px);
+  z-index: 50;
+  max-height: 320px;
+  overflow: auto;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,.12);
+  background: var(--panel, #fff);
+}
+
+.result { padding: 10px 12px; cursor: pointer; }
+.result .sub { font-size: 12px; opacity: .75; margin-top: 2px; }
+.result.is-active { outline: 2px solid rgba(0,0,0,.15); }
+
+/* dropdown ne vágódjon le és legyen mindig a tetején */
+#searchbar { position: relative; overflow: visible; z-index: 9999; }
+#results { z-index: 10000; }
+
+/* a teljes felső header sáv is engedje ki a dropdownot */
+header, .header, .topbar, .masthead, .site-header {
+  overflow: visible !important;
 }

@@ -14,9 +14,13 @@
   <div class="top-inner">
     <div class="brand">MusicBrainz Release Viewer</div>
     <div class="search">
-      <input id="mbid" type="text" placeholder="Paste a MusicBrainz release URL or MBID">
-      <button id="go" class="go-btn" title="Load from MusicBrainz"><img src="assets/icons/MB_go.png" alt="MusicBrainz" /></button>
+      <input id="omni" type="text" autocomplete="off" spellcheck="false"
+        placeholder="Paste a MusicBrainz release URL / MBID, or search releases…" />
+      <button id="go" class="go-btn" title="Load from MusicBrainz">
+        <img src="assets/icons/MB_go.png" alt="MusicBrainz" />
+      </button>
     </div>
+    <div class="results" id="results" hidden></div>
   </div>
 </header>
   <div class="wrap">
@@ -26,12 +30,12 @@
 <footer class="footer muted">
   <div class="footer-inner">
     <div class="footer-right">
-      <div>MB Release Viewer v0.9.0</div>
+      <div>MB Release Viewer v0.9.5</div>
       <div>Data: MusicBrainz contributors • CC BY-NC-SA 3.0</div>
     </div>
   </div>
 </footer>
 
-<script src="assets/app.js" defer></script>
+<script defer src="assets/app.js"></script>
 </body>
 </html>
