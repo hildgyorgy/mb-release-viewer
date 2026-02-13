@@ -1144,27 +1144,60 @@ async function loadRelease(mbid) {
  *  - require every token to appear in (artist OR release OR releasegroup)
  * This solves: "Jethro Benefit" → artist:Jethro AND release:Benefit (in practice via OR-per-token + AND across tokens)
  */
-function buildReleaseSearchQuery(q) {
-  const raw = String(q || "").trim();
-  if (!raw) return "";
+function buildReleaseSearchQuery(input) {
+  const q = String(input || "").trim();
+  if (!q) return "";
 
-  // tokens: words, keep hyphens, remove extra punctuation
-  const tokens = raw
-    .replace(/[()]/g, " ")
-    .split(/\s+/)
-    .map((t) => t.trim())
-    .filter(Boolean);
+  const rawTokens = q.split(/\s+/).map(t => t.trim()).filter(Boolean);
+  if (!rawTokens.length) return "";
 
-  if (!tokens.length) return "";
+  const esc = (s) => String(s).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+  const tok = (t) => `"${esc(t)}"`;
+  const tokens = rawTokens.map(tok);
 
-  const tokenExpr = (t) => {
-    // quote if needed
-    const safe = /[^a-zA-Z0-9_-]/.test(t) ? `"${t.replaceAll('"', '\\"')}"` : t;
-    return `(artist:${safe} OR release:${safe} OR releasegroup:${safe})`;
-  };
+  // 1 token -> Spotlight broad
+  if (tokens.length === 1) {
+    const t = tokens[0];
+    return `(release:${t} OR artist:${t})`;
+  }
 
-  // AND across tokens
-  return tokens.map(tokenExpr).join(" AND ");
+  const phrase = `"${esc(rawTokens.join(" "))}"`;
+
+  // 2 tokens -> treat as "likely artist name", DO NOT split across artist/release
+  if (tokens.length === 2) {
+    const [t1, t2] = tokens;
+
+    return `(
+      artist:${phrase}^18
+      OR (artist:${t1} AND artist:${t2})^12
+      OR release:${phrase}^6
+      OR (release:${t1} AND release:${t2})^4
+      OR ((artist:${t1} OR release:${t1}) AND (artist:${t2} OR release:${t2}))^2
+    )`.replace(/\s+/g, " ").trim();
+  }
+
+  // 3+ tokens -> broad AND across tokens, plus a *mild* split heuristic
+  const broad = tokens
+    .map(t => `(artist:${t} OR release:${t})`)
+    .join(" AND ");
+
+  const phraseArtist = `artist:${phrase}^10`;
+  const phraseRelease = `release:${phrase}^6`;
+
+  const last = tokens[tokens.length - 1];
+  const firstPart = tokens.slice(0, -1);
+
+  const artistPart = firstPart.map(t => `artist:${t}`).join(" AND ");
+  const structured = artistPart
+    ? `(${artistPart} AND release:${last})^4`
+    : "";
+
+  return `(
+    (${broad})^1
+    OR ${phraseArtist}
+    OR ${phraseRelease}
+    ${structured ? `OR ${structured}` : ""}
+  )`.replace(/\s+/g, " ").trim();
 }
 
 function firstReleaseDateLike(hit) {
@@ -1206,7 +1239,7 @@ function summarizeSearchHit(hit) {
   };
 }
 
-async function searchReleases(q, limit = 12) {
+async function searchReleases(q, limit = 25) {
   const query = buildReleaseSearchQuery(q);
   if (!query) return [];
 
@@ -1552,7 +1585,7 @@ async function go() {
   if (resEl) resEl.innerHTML = `<div class="result"><span class="muted">Searching…</span></div>`;
 
   try {
-    const items = await searchReleases(q, 12);
+    const items = await searchReleases(q, 18);
     renderSearchResults(items);
   } catch {
     if (resEl) resEl.innerHTML = `<div class="result"><span class="muted">Search error</span></div>`;
@@ -1593,7 +1626,7 @@ function bindOmniOnce() {
     resEl.innerHTML = `<div class="result"><span class="muted">Searching…</span></div>`;
 
     try {
-      const items = await searchReleases(val, 12);
+      const items = await searchReleases(val, 18);
       renderSearchResults(items);
     } catch {
       resEl.innerHTML = `<div class="result"><span class="muted">Search error</span></div>`;
