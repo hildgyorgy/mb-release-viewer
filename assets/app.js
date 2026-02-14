@@ -386,10 +386,10 @@ function ensureLightboxOnce() {
   `;
   document.body.appendChild(lb);
 
-  // Click background closes (image click keeps current behaviour: close too)
-  lb.addEventListener("click", (e) => {
-    if (e.target === lb) closeLightbox();
-  });
+// Click background OR image closes
+lb.addEventListener("click", (e) => {
+  if (e.target === lb || e.target.id === "lbImg") closeLightbox();
+});
 
   // ESC closes (bound once)
   if (!__lbBound) {
@@ -407,6 +407,13 @@ function ensureLightboxOnce() {
     });
   }
 
+  // Also close on tapping the image itself (iOS feels more reliable this way)
+  const img = lb.querySelector("#lbImg");
+  img?.addEventListener("pointerup", (e) => {
+    e.stopPropagation();
+    closeLightbox();
+  });
+  
   // Prev/Next buttons
   lb.querySelector("#lbPrev")?.addEventListener("click", (e) => { e.stopPropagation(); lbPrev(); });
   lb.querySelector("#lbNext")?.addEventListener("click", (e) => { e.stopPropagation(); lbNext(); });
