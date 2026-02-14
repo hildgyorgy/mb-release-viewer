@@ -313,8 +313,31 @@ function bindTabsOnce() {
 }
 
 /* ============================================================
-   Cover lightbox (single image) helper
+   Cover lightbox + cover gallery (desktop lightbox / mobile inline)
    ============================================================ */
+
+/* Escape for HTML attributes */
+function escAttr(str) {
+  return String(str)
+    .replaceAll("&", "&amp;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+}
+
+// --- cover gallery state ---
+let __coverGallery = [];
+let __coverIndex = 0;
+
+// --- lightbox state ---
+let __lbBound = false;
+
+function isCoarseMobile() {
+  const mq1 = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+  const mq2 = window.matchMedia && window.matchMedia("(max-width: 640px)").matches;
+  return !!(mq1 || mq2);
+}
+
 function ensureLightboxOnce() {
   let lb = document.getElementById("lb");
   if (lb) return lb;
@@ -322,32 +345,133 @@ function ensureLightboxOnce() {
   lb = document.createElement("div");
   lb.id = "lb";
   lb.className = "lb";
-  lb.innerHTML = `<img id="lbImg" alt="">`;
+  lb.innerHTML = `
+    <div class="lb-ui" style="
+      position:absolute; inset:0; display:grid; place-items:center; padding:24px;
+      pointer-events:none;
+    ">
+      <button id="lbPrev" type="button" aria-label="Previous cover"
+        style="pointer-events:auto; position:absolute; left:14px; top:50%; transform:translateY(-50%);
+               width:40px; height:40px; border-radius:999px; border:0; background:rgba(0,0,0,.35);
+               color:#fff; cursor:pointer; display:grid; place-items:center;">
+        ‹
+      </button>
+      <button id="lbNext" type="button" aria-label="Next cover"
+        style="pointer-events:auto; position:absolute; right:14px; top:50%; transform:translateY(-50%);
+               width:40px; height:40px; border-radius:999px; border:0; background:rgba(0,0,0,.35);
+               color:#fff; cursor:pointer; display:grid; place-items:center;">
+        ›
+      </button>
+
+      <div id="lbCount"
+        style="pointer-events:none; position:absolute; bottom:14px; left:50%; transform:translateX(-50%);
+               font-size:12px; color:#fff; opacity:.85; background:rgba(0,0,0,.35);
+               padding:6px 10px; border-radius:999px;">
+      </div>
+
+      <img id="lbImg" alt="" style="pointer-events:auto;">
+    </div>
+  `;
   document.body.appendChild(lb);
 
+  // Click background closes (image click keeps current behaviour: close too)
   lb.addEventListener("click", (e) => {
-    if (e.target === lb || e.target.id === "lbImg") closeLightbox();
+    if (e.target === lb) closeLightbox();
   });
 
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") closeLightbox();
-  });
+  // ESC closes (bound once)
+  if (!__lbBound) {
+    __lbBound = true;
+
+    document.addEventListener("keydown", (e) => {
+      const open = document.getElementById("lb")?.classList.contains("is-open");
+      if (!open) return;
+
+      if (e.key === "Escape") closeLightbox();
+      else if (e.key === "ArrowLeft") { e.preventDefault(); lbPrev(); }
+      else if (e.key === "ArrowRight") { e.preventDefault(); lbNext(); }
+      else if (e.key === "n") { e.preventDefault(); lbNext(); }
+      else if (e.key === "N") { e.preventDefault(); lbPrev(); }
+    });
+  }
+
+  // Prev/Next buttons
+  lb.querySelector("#lbPrev")?.addEventListener("click", (e) => { e.stopPropagation(); lbPrev(); });
+  lb.querySelector("#lbNext")?.addEventListener("click", (e) => { e.stopPropagation(); lbNext(); });
+
+  // Wheel navigation (throttled)
+  let wheelLock = false;
+  lb.addEventListener("wheel", (e) => {
+    const open = lb.classList.contains("is-open");
+    if (!open) return;
+    if (wheelLock) return;
+    wheelLock = true;
+    setTimeout(() => (wheelLock = false), 120);
+
+    if (Math.abs(e.deltaY) < 2) return;
+    e.preventDefault();
+    if (e.deltaY > 0) lbNext();
+    else lbPrev();
+  }, { passive: false });
+
+  // Basic swipe (touch) navigation
+  let sx = 0, sy = 0, touching = false;
+  lb.addEventListener("touchstart", (e) => {
+    if (!lb.classList.contains("is-open")) return;
+    const t = e.touches && e.touches[0];
+    if (!t) return;
+    touching = true;
+    sx = t.clientX; sy = t.clientY;
+  }, { passive: true });
+
+  lb.addEventListener("touchend", (e) => {
+    if (!touching) return;
+    touching = false;
+    const t = e.changedTouches && e.changedTouches[0];
+    if (!t) return;
+    const dx = t.clientX - sx;
+    const dy = t.clientY - sy;
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.2) {
+      if (dx < 0) lbNext();
+      else lbPrev();
+    }
+  }, { passive: true });
 
   return lb;
 }
 
-function openLightbox(src, alt = "") {
-  if (!src) return;
-
-  const lb = ensureLightboxOnce();
+function updateLightboxUI() {
+  const lb = document.getElementById("lb");
+  if (!lb) return;
   const img = document.getElementById("lbImg");
+  const count = document.getElementById("lbCount");
+  if (!img || !count) return;
 
-  img.src = src;
-  img.alt = alt || "";
+  const item = __coverGallery[__coverIndex] || null;
+  if (!item) return;
+
+  img.src = item.full || item.large || item.thumb || "";
+  img.alt = item.alt || "Cover";
+
+  const n = __coverGallery.length;
+  count.textContent = n > 1 ? `${__coverIndex + 1} / ${n}` : "";
+
+  // Hide nav buttons if single image
+  const prev = lb.querySelector("#lbPrev");
+  const next = lb.querySelector("#lbNext");
+  if (prev) prev.style.display = n > 1 ? "grid" : "none";
+  if (next) next.style.display = n > 1 ? "grid" : "none";
+}
+
+function openLightboxAt(index = 0) {
+  const lb = ensureLightboxOnce();
+  const n = __coverGallery.length;
+  __coverIndex = n ? ((index % n) + n) % n : 0;
+
+  updateLightboxUI();
 
   lb.classList.remove("is-open");
   requestAnimationFrame(() => lb.classList.add("is-open"));
-
   document.body.style.overflow = "hidden";
 }
 
@@ -358,12 +482,118 @@ function closeLightbox() {
   document.body.style.overflow = "";
 }
 
-function bindCoverLightboxOnce(root = document) {
-  const img = $("#coverImg", root);
-  if (!img || img.dataset.lbBound === "1") return;
-  img.dataset.lbBound = "1";
-  img.addEventListener("click", () => openLightbox(img.src, img.alt || "Cover"));
+function lbNext() {
+  const n = __coverGallery.length;
+  if (n <= 1) return;
+  __coverIndex = (__coverIndex + 1) % n;
+  updateLightboxUI();
 }
+
+function lbPrev() {
+  const n = __coverGallery.length;
+  if (n <= 1) return;
+  __coverIndex = (__coverIndex - 1 + n) % n;
+  updateLightboxUI();
+}
+
+function bindCoverGalleryOnce(root = document) {
+  const img = $("#coverImg", root);
+  const box = $(".cover-box", root);
+  if (!img || !box || box.dataset.covBound === "1") return;
+  box.dataset.covBound = "1";
+
+  // Desktop: open lightbox gallery
+  const desktopHandler = () => {
+    if (!__coverGallery.length) return;
+    openLightboxAt(__coverIndex || 0);
+  };
+
+  // Mobile: inline swipe carousel (no lightbox)
+  const mobileBind = () => {
+    if (!__coverGallery.length) return;
+
+    // small count badge (inline style; no CSS changes needed)
+    let badge = box.querySelector(".cov-badge");
+    if (!badge) {
+      badge = document.createElement("div");
+      badge.className = "cov-badge";
+      badge.setAttribute("aria-hidden", "true");
+      badge.style.cssText = `
+        position:absolute; right:10px; bottom:10px;
+        font-size:12px; padding:6px 10px; border-radius:999px;
+        background:rgba(0,0,0,.35); color:#fff; opacity:.9;
+        pointer-events:none;
+      `;
+      box.style.position = "relative";
+      box.appendChild(badge);
+    }
+
+    const updateInline = () => {
+      const it = __coverGallery[__coverIndex] || null;
+      if (!it) return;
+      img.src = it.large || it.full || it.thumb || "";
+      img.alt = it.alt || "Cover";
+      badge.textContent = __coverGallery.length > 1 ? `${__coverIndex + 1} / ${__coverGallery.length}` : "";
+    };
+
+    updateInline();
+
+    let sx = 0, sy = 0, touching = false;
+    box.addEventListener("touchstart", (e) => {
+      const t = e.touches && e.touches[0];
+      if (!t) return;
+      touching = true;
+      sx = t.clientX; sy = t.clientY;
+    }, { passive: true });
+
+    box.addEventListener("touchend", (e) => {
+      if (!touching) return;
+      touching = false;
+      const t = e.changedTouches && e.changedTouches[0];
+      if (!t) return;
+      const dx = t.clientX - sx;
+      const dy = t.clientY - sy;
+      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.2) {
+        if (dx < 0) __coverIndex = (__coverIndex + 1) % __coverGallery.length;
+        else __coverIndex = (__coverIndex - 1 + __coverGallery.length) % __coverGallery.length;
+        updateInline();
+      }
+    }, { passive: true });
+
+    // Tap cycles (nice on mobile)
+    box.addEventListener("click", () => {
+      if (__coverGallery.length <= 1) return;
+      __coverIndex = (__coverIndex + 1) % __coverGallery.length;
+      updateInline();
+    });
+  };
+
+  const applyMode = () => {
+    // Clean previous click listeners by reassigning (simple & safe here)
+    img.onclick = null;
+    box.onclick = null;
+
+    if (isCoarseMobile()) {
+      // Disable desktop lightbox
+      mobileBind();
+    } else {
+      // Ensure front cover remains visible (no inline cycling)
+      const frontIdx = __coverGallery.findIndex((x) => x.front);
+      __coverIndex = frontIdx >= 0 ? frontIdx : 0;
+      const it = __coverGallery[__coverIndex] || null;
+      if (it) {
+        img.src = it.large || it.full || it.thumb || img.src;
+        img.alt = it.alt || img.alt || "Cover";
+      }
+      box.addEventListener("click", desktopHandler);
+      img.style.cursor = "zoom-in";
+    }
+  };
+
+  applyMode();
+  window.addEventListener("resize", applyMode);
+}
+
 
 /* ============================================================
    5) MusicBrainz link helpers (HTML links)
@@ -1122,16 +1352,42 @@ async function loadRelease(mbid) {
     `?fmt=json&inc=recordings+artists+labels+release-groups+artist-credits+recording-rels+work-rels+annotation+release-rels+artist-rels+label-rels`;
   const rel = await fetchJSON(relUrl);
 
-  let cover = null;
+  // Cover Art Archive: collect ALL images (not only front) for paging.
+  let covers = [];
   try {
     const ca = await fetchJSON(`https://coverartarchive.org/release/${mbid}`);
-    const front = (ca.images || []).find((img) => img.front) || (ca.images || [])[0];
-    cover = front ? front.thumbnails?.large || front.image : null;
+    covers = (ca?.images || [])
+      .map((img, i) => {
+        const full = img.image || "";
+        const large = img.thumbnails?.large || img.thumbnails?.[500] || img.thumbnails?.[250] || full;
+        const thumb = img.thumbnails?.small || img.thumbnails?.[120] || large || full;
+
+        const parts = [];
+        if (img.front) parts.push("front");
+        if (img.back) parts.push("back");
+        const alt = parts.length ? `Cover (${parts.join(", ")})` : `Cover ${i + 1}`;
+
+        return {
+          full,
+          large,
+          thumb,
+          front: !!img.front,
+          back: !!img.back,
+          comment: String(img.comment || "").trim(),
+          alt,
+        };
+      })
+      .filter((x) => x.full || x.large || x.thumb);
   } catch {
-    cover = null;
+    covers = [];
   }
 
-  return { rel, cover };
+  // Pick the visual "front" that the main UI keeps showing
+  let cover = null;
+  const front = covers.find((c) => c.front) || covers[0] || null;
+  cover = front ? (front.large || front.full || front.thumb) : null;
+
+  return { rel, cover, covers };
 }
 
 /* ============================================================
@@ -1495,7 +1751,7 @@ function bindTrackToggles(outEl, tracks) {
   });
 }
 
-function renderAll({ rel, cover }) {
+function renderAll({ rel, cover, covers }) {
   const title = rel.title || "(untitled)";
   const artist = artistCreditToText(rel["artist-credit"]);
   const date = rel.date || rel["release-events"]?.[0]?.date || "";
@@ -1509,6 +1765,12 @@ function renderAll({ rel, cover }) {
 
   const annotation = (rel.annotation || "").trim();
   const mbLink = `https://musicbrainz.org/release/${rel.id}`;
+
+  // Cover gallery: keep front cover in the UI, but enable paging in lightbox (desktop) / swipe (mobile)
+  __coverGallery = Array.isArray(covers) ? covers : [];
+  __coverIndex = Math.max(0, __coverGallery.findIndex((x) => x.front));
+  if (__coverIndex < 0) __coverIndex = 0;
+
 
   const media = rel.media || [];
   const flatTracks = [];
@@ -1555,7 +1817,7 @@ function renderAll({ rel, cover }) {
   bindTabsOnce();
   setActiveView("tracks");
   bindTrackToggles(out, flatTracks);
-  bindCoverLightboxOnce(out);
+  bindCoverGalleryOnce(out);
 
   bindCoverSizerOnce();
   lockCoverSquareToTabs(out);
