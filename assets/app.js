@@ -12,6 +12,19 @@ const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
 /* ============================================================
+   0.5) App config (single source of truth for tunables)
+   ============================================================ */
+const CONFIG = Object.freeze({
+  // Responsive breakpoint (keep in sync with CSS @media)
+  MOBILE_BP: 640,
+
+  // Search behaviour
+  SEARCH_LIMIT: 50,
+  SEARCH_MIN_CHARS: 2,
+  SEARCH_DEBOUNCE_MS: 250,
+});
+
+/* ============================================================
    1) Small utilities (formatting, escaping, debounce, dedupe)
    ============================================================ */
 function extractMBID(value) {
@@ -332,12 +345,11 @@ let __coverIndex = 0;
 // --- lightbox state ---
 let __lbBound = false;
 
-function isCoarseMobile() {
-  const mq1 = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
-  const mq2 = window.matchMedia && window.matchMedia("(max-width: 640px)").matches;
-  return !!(mq1 || mq2);
+function isMobileLayout() {
+  return window.matchMedia(`(max-width: ${CONFIG.MOBILE_BP}px)`).matches;
 }
 
+// Back-compat alias (older code path)
 function ensureLightboxOnce() {
   let lb = document.getElementById("lb");
   if (lb) return lb;
@@ -573,7 +585,7 @@ function bindCoverGalleryOnce(root = document) {
     img.onclick = null;
     box.onclick = null;
 
-    if (isCoarseMobile()) {
+    if (isMobileLayout()) {
       // Disable desktop lightbox
       mobileBind();
     } else {
@@ -593,7 +605,6 @@ function bindCoverGalleryOnce(root = document) {
   applyMode();
   window.addEventListener("resize", applyMode);
 }
-
 
 /* ============================================================
    5) MusicBrainz link helpers (HTML links)
@@ -1535,7 +1546,7 @@ function summarizeSearchHit(hit) {
   };
 }
 
-async function searchReleases(q, limit = 25) {
+async function searchReleases(q, limit = CONFIG.SEARCH_LIMIT) {
   const query = buildReleaseSearchQuery(q);
   if (!query) return [];
 
@@ -1771,7 +1782,6 @@ function renderAll({ rel, cover, covers }) {
   __coverIndex = Math.max(0, __coverGallery.findIndex((x) => x.front));
   if (__coverIndex < 0) __coverIndex = 0;
 
-
   const media = rel.media || [];
   const flatTracks = [];
 
@@ -1880,14 +1890,14 @@ async function go() {
 
   // 2) otherwise → search
   const q = raw;
-  if (q.length < 2) return;
+  if (q.length < CONFIG.SEARCH_MIN_CHARS) return;
 
   openSearch();
   const resEl = document.getElementById("results");
   if (resEl) resEl.innerHTML = `<div class="result"><span class="muted">Searching…</span></div>`;
 
   try {
-    const items = await searchReleases(q, 50);
+    const items = await searchReleases(q, CONFIG.SEARCH_LIMIT);
     renderSearchResults(items);
   } catch {
     if (resEl) resEl.innerHTML = `<div class="result"><span class="muted">Search error</span></div>`;
@@ -1928,12 +1938,12 @@ function bindOmniOnce() {
     resEl.innerHTML = `<div class="result"><span class="muted">Searching…</span></div>`;
 
     try {
-      const items = await searchReleases(val, 50);
+      const items = await searchReleases(val, CONFIG.SEARCH_LIMIT);
       renderSearchResults(items);
     } catch {
       resEl.innerHTML = `<div class="result"><span class="muted">Search error</span></div>`;
     }
-  }, 250);
+  }, CONFIG.SEARCH_DEBOUNCE_MS);
 
   function pickActiveOrFirst() {
     const it = __searchItems[__searchActive] || __searchItems[0] || null;
@@ -1946,7 +1956,7 @@ function bindOmniOnce() {
     const mbid = extractMBID(val);
     if (mbid) return; // no dropdown
     openSearch();
-    if (val.length >= 2) runSearch();
+    if (val.length >= CONFIG.SEARCH_MIN_CHARS) runSearch();
     else renderSearchResults([]);
   });
 
