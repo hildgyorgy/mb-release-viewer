@@ -1,5 +1,12 @@
 /* MB Release Viewer – cleaned + consistent (v0.9.5 UI polish) */
 
+html{
+  width: 100%;
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 /* ------------------------------------------------------------
    THEME VARIABLES
    Light = default
@@ -67,6 +74,9 @@
 *, *::before, *::after{ box-sizing: border-box; }
 
 body{
+  width: 100%;
+  overflow-x: hidden;
+
   margin: 0;
   padding: 24px;
   background: var(--bg);
@@ -93,6 +103,7 @@ a:hover{ text-decoration: underline; }
   position: sticky;
   top: 0;
   z-index: 1000;
+  transform: translateZ(0);
   width: 100%;
 
   background: var(--topbar);
@@ -106,7 +117,7 @@ a:hover{ text-decoration: underline; }
 .top-inner{
   max-width: var(--wrap);
   margin: 0 auto;
-  padding: 15px 0px;
+  padding: 15px 5px;
 
   display: flex;
   align-items: center;
@@ -134,11 +145,6 @@ a:hover{ text-decoration: underline; }
   overflow: visible;
   
   max-width: none;
-}
-
-.search-field {
-  position: relative;
-  flex: 1;
 }
 
 /* Omni input */
@@ -606,8 +612,12 @@ tr.track.is-open + tr.details .perf{
    11) Responsive
 ------------------------------------------------------------ */
 @media (max-width: 640px){
-  body{ padding: 16px; }
 
+  body{ padding: 16px; }
+  #omni{ font-size: 16px; }
+
+  .tabs{ justify-content: center; }
+  
   .top-inner{
     flex-direction: column;
     align-items: stretch;
@@ -619,16 +629,33 @@ tr.track.is-open + tr.details .perf{
 
   .row{ flex-direction: column; }
 
-  .cover{ width: 100%; }
+  .cover{
+    display: block;
+    width: 100%;
+    max-width: none;
+    margin: 0 auto;
+  }
+  
+  .cover-box{ width: 100%; }
   .cover-nav-row,
   .cover-tabs{ width: 100%; justify-content: center; }
 
-  .theme-fab{ z-index: 6; }
+  .theme-fab{
+    position: static;
+    order: 99;            /* a sor végére/új sorba tolja */
+    margin-right: auto;   /* balra húzza */
+    margin-top: 8px; }
 
   td.num{ width: 34px; }
   td.len{ width: 56px; }
 
   .detail-cols{ grid-template-columns: 1fr; }
+}
+
+@media (orientation: landscape) and (max-width: 900px){
+  table{
+    font-size: 14px; /* vagy 13px, ha úgy szebb */
+  }
 }
 
 /* ------------------------------------------------------------
