@@ -242,6 +242,15 @@ function lockCoverSquareToTabs(root = document) {
   const tabs = $("#tabs", root);
   if (!cover || !box || !navRow || !tabs) return;
 
+  // Mobile: CSS handles width; clear JS inline sizes
+  if (isMobileLayout()) {
+    cover.style.removeProperty("width");
+    box.style.removeProperty("width");
+    box.style.removeProperty("height");
+    navRow.style.removeProperty("width");
+    return;
+  }
+
   const w = Math.ceil(tabs.getBoundingClientRect().width);
   cover.style.width = w + "px";
   navRow.style.width = w + "px";
@@ -250,12 +259,18 @@ function lockCoverSquareToTabs(root = document) {
 }
 
 function positionThemeToggle(root = document) {
-  return;
   const row = $(".row", root);
   const main = $(".main", root);
   const tabs = $("#tabs", root);
   const btn = $("#themeToggle", root);
   if (!row || !main || !tabs || !btn) return;
+
+    // Mobilon ne abszolút pozicionáljunk: a CSS/flex sorba essen be
+  if (isMobileLayout()) {
+    btn.style.removeProperty("left");
+    btn.style.removeProperty("top");
+    return;
+  }
 
   const rowRect = row.getBoundingClientRect();
   const mainRect = main.getBoundingClientRect();

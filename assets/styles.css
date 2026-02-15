@@ -689,7 +689,7 @@ tr.track.is-open + tr.details .perf{
 
 @media (orientation: landscape) and (max-width: 900px){
   table{
-    font-size: 14px; /* vagy 13px, ha úgy szebb */
+    font-size: 14px;
   }
 }
 
