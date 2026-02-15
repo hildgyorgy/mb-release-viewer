@@ -121,7 +121,7 @@ a:hover{ text-decoration: underline; }
 
   display: flex;
   align-items: center;
-  gap: 30px;
+  gap: 35px;
 
   overflow: visible; /* dropdown ne vágódjon */
 }
@@ -388,7 +388,7 @@ h1{
   background: var(--panel-2);
   color: var(--text);
   cursor: pointer;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1;
 }
 .tab:hover{ filter: brightness(1.08); }
