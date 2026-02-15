@@ -250,6 +250,7 @@ function lockCoverSquareToTabs(root = document) {
 }
 
 function positionThemeToggle(root = document) {
+  return;
   const row = $(".row", root);
   const main = $(".main", root);
   const tabs = $("#tabs", root);
@@ -287,6 +288,7 @@ function bindCoverSizerOnce() {
     document.fonts.ready.then(rerun);
   }
 }
+
 
 /* ============================================================
    4) Tabs / view switching
@@ -1588,10 +1590,10 @@ function renderHeader({ title, cover, mbLink, artist, date, country, label, catn
             <button class="tab" data-view="recordings">Recordings</button>
             <a class="tab mb-link" href="${mbLink}" target="_blank" rel="noreferrer">MusicBrainz</a>
           </div>
+
+          <button class="theme-fab" id="themeToggle" type="button"></button>
         </div>
       </div>
-
-      <button class="theme-fab" id="themeToggle" type="button"></button>
 
       <div class="main">
         <h1>${escHtml(title)}</h1>
@@ -1838,17 +1840,15 @@ function renderAll({ rel, cover, covers }) {
 
   bindCoverSizerOnce();
   lockCoverSquareToTabs(out);
-  positionThemeToggle(out);
 
   const img = $("#coverImg", out);
-  if (img) {
-    const relock = () => {
-      lockCoverSquareToTabs(out);
-      positionThemeToggle(out);
-    };
-    img.addEventListener("load", relock, { once: true });
-    if (img.complete) relock();
-  }
+if (img) {
+  const relock = () => {
+    lockCoverSquareToTabs(out);
+  };
+  img.addEventListener("load", relock, { once: true });
+  if (img.complete) relock();
+}
 }
 
 /* ============================================================
