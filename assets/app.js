@@ -1,6 +1,6 @@
 /*!
  * MB Release Viewer
- * Version: 0.9.5
+ * Version: 0.9.6
  * © 2026 György Hild
  * https://github.com/hildgyorgy/mb-release-viewer
  */
@@ -10,6 +10,50 @@
    ============================================================ */
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+
+/* ============================================================
+   0.1) STATE object
+   ============================================================ */
+
+const STATE = {
+  search: {
+    open: false,
+    items: [],
+    active: 0,
+  },
+  cover: {
+    gallery: [],
+    index: 0,
+  },
+  views: {
+    recordingsBuilt: false,
+  },
+};
+
+/* ============================================================
+   0.2) STATE helpers (single controlled entry points)
+   ============================================================ */
+const DEBUG = false;
+
+function logState(tag = "") {
+  if (!DEBUG) return;
+  console.log(`[STATE] ${tag}`, JSON.parse(JSON.stringify(STATE)));
+}
+
+function setSearchState(patch) {
+  Object.assign(STATE.search, patch);
+  logState("search");
+}
+
+function setCoverState(patch) {
+  Object.assign(STATE.cover, patch);
+  logState("cover");
+}
+
+function setViewsState(patch) {
+  Object.assign(STATE.views, patch);
+  logState("views");
+}
 
 /* ============================================================
    0.5) App config (single source of truth for tunables)
@@ -111,18 +155,14 @@ function mediumLabel(m, totalMediaCount) {
 /* ============================================================
    1.5) Omnibox Search UI state
    ============================================================ */
-let __searchOpen = false;
-let __searchItems = [];
-let __searchActive = 0;
-
 function openSearch() {
-  __searchOpen = true;
+  setSearchState({ open: true });
   const res = document.getElementById("results");
   if (res) res.hidden = false;
 }
 
 function closeSearch() {
-  __searchOpen = false;
+  setSearchState({ open: false });
   const res = document.getElementById("results");
   if (res) res.hidden = true;
 }
@@ -131,15 +171,17 @@ function renderSearchResults(items) {
   const res = document.getElementById("results");
   if (!res) return;
 
-  __searchItems = Array.isArray(items) ? items : [];
-  __searchActive = 0;
+  setSearchState({
+    items: Array.isArray(items) ? items : [],
+    active: 0,
+  });
 
-  if (!__searchItems.length) {
+  if (!STATE.search.items.length) {
     res.innerHTML = `<div class="result"><span class="muted">No results</span></div>`;
     return;
   }
 
-  res.innerHTML = __searchItems
+  res.innerHTML = STATE.search.items
     .map(
       (it, i) => `
       <div class="result ${i === 0 ? "is-active" : ""}" data-i="${i}">
@@ -154,16 +196,16 @@ function renderSearchResults(items) {
 function setActiveResult(i) {
   const res = document.getElementById("results");
   if (!res) return;
-  const n = __searchItems.length;
+  const n = STATE.search.items.length;
   if (!n) return;
 
-  __searchActive = Math.max(0, Math.min(i, n - 1));
+  setSearchState({ active: Math.max(0, Math.min(i, n - 1)) });
 
   Array.from(res.querySelectorAll(".result")).forEach((el) => {
-    el.classList.toggle("is-active", Number(el.dataset.i) === __searchActive);
+    el.classList.toggle("is-active", Number(el.dataset.i) === STATE.search.active);
   });
 
-  const activeEl = res.querySelector(`.result[data-i="${__searchActive}"]`);
+  const activeEl = res.querySelector(`.result[data-i="${STATE.search.active}"]`);
   if (activeEl) activeEl.scrollIntoView({ block: "nearest" });
 }
 
@@ -242,15 +284,6 @@ function lockCoverSquareToTabs(root = document) {
   const tabs = $("#tabs", root);
   if (!cover || !box || !navRow || !tabs) return;
 
-  // Mobile: CSS handles width; clear JS inline sizes
-  if (isMobileLayout()) {
-    cover.style.removeProperty("width");
-    box.style.removeProperty("width");
-    box.style.removeProperty("height");
-    navRow.style.removeProperty("width");
-    return;
-  }
-
   const w = Math.ceil(tabs.getBoundingClientRect().width);
   cover.style.width = w + "px";
   navRow.style.width = w + "px";
@@ -264,13 +297,6 @@ function positionThemeToggle(root = document) {
   const tabs = $("#tabs", root);
   const btn = $("#themeToggle", root);
   if (!row || !main || !tabs || !btn) return;
-
-    // Mobilon ne abszolút pozicionáljunk: a CSS/flex sorba essen be
-  if (isMobileLayout()) {
-    btn.style.removeProperty("left");
-    btn.style.removeProperty("top");
-    return;
-  }
 
   const rowRect = row.getBoundingClientRect();
   const mainRect = main.getBoundingClientRect();
@@ -293,8 +319,7 @@ function bindCoverSizerOnce() {
   const rerun = () => {
     const out = $("#out");
     if (!out) return;
-    lockCoverSquareToTabs(out);
-    positionThemeToggle(out);
+    layoutSync(out);
   };
 
   window.addEventListener("resize", rerun);
@@ -303,7 +328,34 @@ function bindCoverSizerOnce() {
     document.fonts.ready.then(rerun);
   }
 }
+/* 3) Layout helpers javítás */
 
+function clearInlineLayout(root = document) {
+  const cover = $(".cover", root);
+  const box = $(".cover-box", root);
+  const navRow = $(".cover-nav-row", root);
+  const btn = $("#themeToggle", root);
+
+  cover?.style.removeProperty("width");
+  box?.style.removeProperty("width");
+  box?.style.removeProperty("height");
+  navRow?.style.removeProperty("width");
+
+  btn?.style.removeProperty("left");
+  btn?.style.removeProperty("top");
+}
+
+function layoutSync(root = document) {
+  // Mobile: CSS drives layout; JS clears any leftover inline styles and exits
+  if (isMobileLayout()) {
+    clearInlineLayout(root);
+    return;
+  }
+
+  // Desktop: JS drives the pixel-perfect bits
+  lockCoverSquareToTabs(root);
+  positionThemeToggle(root);
+}
 
 /* ============================================================
    4) Tabs / view switching
@@ -317,8 +369,6 @@ function setActiveView(viewName) {
     btn.classList.toggle("is-active", btn.dataset.view === viewName);
   });
 }
-
-let recordingsBuilt = false;
 
 function bindTabsOnce() {
   const tabs = $("#tabs");
@@ -335,8 +385,8 @@ function bindTabsOnce() {
 
     setActiveView(view);
 
-    if (view === "recordings" && !recordingsBuilt) {
-      recordingsBuilt = true;
+    if (view === "recordings" && !STATE.views.recordingsBuilt) {
+      setViewsState({ recordingsBuilt: true });
       await buildRecordingsView();
     }
   });
@@ -354,10 +404,6 @@ function escAttr(str) {
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;");
 }
-
-// --- cover gallery state ---
-let __coverGallery = [];
-let __coverIndex = 0;
 
 // --- lightbox state ---
 let __lbBound = false;
@@ -403,10 +449,10 @@ function ensureLightboxOnce() {
   `;
   document.body.appendChild(lb);
 
-// Click background OR image closes
-lb.addEventListener("click", (e) => {
-  if (e.target === lb || e.target.id === "lbImg") closeLightbox();
-});
+  // Click background OR image closes
+  lb.addEventListener("click", (e) => {
+    if (e.target === lb || e.target.id === "lbImg") closeLightbox();
+  });
 
   // ESC closes (bound once)
   if (!__lbBound) {
@@ -430,7 +476,7 @@ lb.addEventListener("click", (e) => {
     e.stopPropagation();
     closeLightbox();
   });
-  
+
   // Prev/Next buttons
   lb.querySelector("#lbPrev")?.addEventListener("click", (e) => { e.stopPropagation(); lbPrev(); });
   lb.querySelector("#lbNext")?.addEventListener("click", (e) => { e.stopPropagation(); lbNext(); });
@@ -483,14 +529,14 @@ function updateLightboxUI() {
   const count = document.getElementById("lbCount");
   if (!img || !count) return;
 
-  const item = __coverGallery[__coverIndex] || null;
+  const item = STATE.cover.gallery[STATE.cover.index] || null;
   if (!item) return;
 
   img.src = item.full || item.large || item.thumb || "";
   img.alt = item.alt || "Cover";
 
-  const n = __coverGallery.length;
-  count.textContent = n > 1 ? `${__coverIndex + 1} / ${n}` : "";
+  const n = STATE.cover.gallery.length;
+  count.textContent = n > 1 ? `${STATE.cover.index + 1} / ${n}` : "";
 
   // Hide nav buttons if single image
   const prev = lb.querySelector("#lbPrev");
@@ -501,8 +547,10 @@ function updateLightboxUI() {
 
 function openLightboxAt(index = 0) {
   const lb = ensureLightboxOnce();
-  const n = __coverGallery.length;
-  __coverIndex = n ? ((index % n) + n) % n : 0;
+  const n = STATE.cover.gallery.length;
+
+  const nextIdx = n ? ((index % n) + n) % n : 0;
+  setCoverState({ index: nextIdx });
 
   updateLightboxUI();
 
@@ -519,16 +567,18 @@ function closeLightbox() {
 }
 
 function lbNext() {
-  const n = __coverGallery.length;
+  const n = STATE.cover.gallery.length;
   if (n <= 1) return;
-  __coverIndex = (__coverIndex + 1) % n;
+  const nextIdx = (STATE.cover.index + 1) % n;
+  setCoverState({ index: nextIdx });
   updateLightboxUI();
 }
 
 function lbPrev() {
-  const n = __coverGallery.length;
+  const n = STATE.cover.gallery.length;
   if (n <= 1) return;
-  __coverIndex = (__coverIndex - 1 + n) % n;
+  const nextIdx = (STATE.cover.index - 1 + n) % n;
+  setCoverState({ index: nextIdx });
   updateLightboxUI();
 }
 
@@ -540,13 +590,13 @@ function bindCoverGalleryOnce(root = document) {
 
   // Desktop: open lightbox gallery
   const desktopHandler = () => {
-    if (!__coverGallery.length) return;
-    openLightboxAt(__coverIndex || 0);
+    if (!STATE.cover.gallery.length) return;
+    openLightboxAt(STATE.cover.index || 0);
   };
 
   // Mobile: inline swipe carousel (no lightbox)
   const mobileBind = () => {
-    if (!__coverGallery.length) return;
+    if (!STATE.cover.gallery.length) return;
 
     // small count badge (inline style; no CSS changes needed)
     let badge = box.querySelector(".cov-badge");
@@ -565,11 +615,11 @@ function bindCoverGalleryOnce(root = document) {
     }
 
     const updateInline = () => {
-      const it = __coverGallery[__coverIndex] || null;
+      const it = STATE.cover.gallery[STATE.cover.index] || null;
       if (!it) return;
       img.src = it.large || it.full || it.thumb || "";
       img.alt = it.alt || "Cover";
-      badge.textContent = __coverGallery.length > 1 ? `${__coverIndex + 1} / ${__coverGallery.length}` : "";
+      badge.textContent = STATE.cover.gallery.length > 1 ? `${STATE.cover.index + 1} / ${STATE.cover.gallery.length}` : "";
     };
 
     updateInline();
@@ -589,17 +639,27 @@ function bindCoverGalleryOnce(root = document) {
       if (!t) return;
       const dx = t.clientX - sx;
       const dy = t.clientY - sy;
+
       if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.2) {
-        if (dx < 0) __coverIndex = (__coverIndex + 1) % __coverGallery.length;
-        else __coverIndex = (__coverIndex - 1 + __coverGallery.length) % __coverGallery.length;
-        updateInline();
+        const n = STATE.cover.gallery.length;
+        if (n > 1) {
+          const nextIdx =
+            dx < 0
+              ? (STATE.cover.index + 1) % n
+              : (STATE.cover.index - 1 + n) % n;
+
+          setCoverState({ index: nextIdx });
+          updateInline();
+        }
       }
     }, { passive: true });
 
     // Tap cycles (nice on mobile)
     box.addEventListener("click", () => {
-      if (__coverGallery.length <= 1) return;
-      __coverIndex = (__coverIndex + 1) % __coverGallery.length;
+      const n = STATE.cover.gallery.length;
+      if (n <= 1) return;
+      const nextIdx = (STATE.cover.index + 1) % n;
+      setCoverState({ index: nextIdx });
       updateInline();
     });
   };
@@ -614,9 +674,11 @@ function bindCoverGalleryOnce(root = document) {
       mobileBind();
     } else {
       // Ensure front cover remains visible (no inline cycling)
-      const frontIdx = __coverGallery.findIndex((x) => x.front);
-      __coverIndex = frontIdx >= 0 ? frontIdx : 0;
-      const it = __coverGallery[__coverIndex] || null;
+      const frontIdx = STATE.cover.gallery.findIndex((x) => x.front);
+      const nextIdx = frontIdx >= 0 ? frontIdx : 0;
+      setCoverState({ index: nextIdx });
+
+      const it = STATE.cover.gallery[STATE.cover.index] || null;
       if (it) {
         img.src = it.large || it.full || it.thumb || img.src;
         img.alt = it.alt || img.alt || "Cover";
@@ -1439,21 +1501,16 @@ function buildReleaseSearchQuery(input) {
   // ------------------------------------------------------------
   // 0) Optional comma syntax: "artist, release"
   // ------------------------------------------------------------
-  // First comma splits: left = artist-ish, right = release-ish
-  // Example: "ABBA, Waterloo" -> artist:"ABBA" AND release:"Waterloo"
-  // Keeps Spotlight mode when no comma is present.
   const commaIdx = q0.indexOf(",");
   if (commaIdx !== -1) {
-    const leftRaw = q0.slice(0, commaIdx).trim();      // artist side
-    const rightRaw = q0.slice(commaIdx + 1).trim();    // release side (rest)
+    const leftRaw = q0.slice(0, commaIdx).trim();
+    const rightRaw = q0.slice(commaIdx + 1).trim();
 
-    // If user typed only "Artist," then behave like artist-only Spotlight
     if (!rightRaw) {
       const t = tok(leftRaw);
       return `(artist:${t} OR release:${t})`;
     }
 
-    // If user typed ", Title" (rare), treat as release-only Spotlight
     if (!leftRaw) {
       const t = tok(rightRaw);
       return `(release:${t} OR artist:${t})`;
@@ -1468,7 +1525,6 @@ function buildReleaseSearchQuery(input) {
     const artistAND = artistTokens.map(t => `artist:${t}`).join(" AND ");
     const releaseAND = releaseTokens.map(t => `release:${t}`).join(" AND ");
 
-    // Strong structured hits + a few softer fallbacks
     return `(
       (artist:${artistPhrase} AND release:${releasePhrase})^30
       OR ((${artistAND}) AND (${releaseAND}))^22
@@ -1479,14 +1535,13 @@ function buildReleaseSearchQuery(input) {
   }
 
   // ------------------------------------------------------------
-  // 1) Spotlight mode (no comma): your original logic
+  // 1) Spotlight mode (no comma)
   // ------------------------------------------------------------
   const rawTokens = q0.split(/\s+/).map(t => t.trim()).filter(Boolean);
   if (!rawTokens.length) return "";
 
   const tokens = rawTokens.map(tok);
 
-  // 1 token -> Spotlight broad
   if (tokens.length === 1) {
     const t = tokens[0];
     return `(release:${t} OR artist:${t})`;
@@ -1494,7 +1549,6 @@ function buildReleaseSearchQuery(input) {
 
   const phrase = `"${esc(rawTokens.join(" "))}"`;
 
-  // 2 tokens -> treat as "likely artist name", DO NOT split across artist/release
   if (tokens.length === 2) {
     const [t1, t2] = tokens;
 
@@ -1507,7 +1561,6 @@ function buildReleaseSearchQuery(input) {
     )`.replace(/\s+/g, " ").trim();
   }
 
-  // 3+ tokens -> broad AND across tokens, plus a *mild* split heuristic
   const broad = tokens
     .map(t => `(artist:${t} OR release:${t})`)
     .join(" AND ");
@@ -1534,7 +1587,6 @@ function buildReleaseSearchQuery(input) {
 function firstReleaseDateLike(hit) {
   const d = String(hit?.date || "").trim();
   if (d) return d;
-  // search results usually have date; keep fallback minimal
   return "";
 }
 
@@ -1548,7 +1600,6 @@ function summarizeSearchHit(hit) {
   const date = firstReleaseDateLike(hit);
   const year = date ? String(date).slice(0, 4) : "";
 
-  // "Format" in search endpoint: often hit.media?.[0]?.format, but not always present.
   const format =
     String(hit?.media?.[0]?.format || hit?.packaging || "").trim();
 
@@ -1786,6 +1837,19 @@ function bindTrackToggles(outEl, tracks) {
   });
 }
 
+function hydrateUI(out, flatTracks) {
+  applyTheme(getPreferredTheme());
+  bindThemeToggleOnce(out);
+
+  bindTabsOnce();
+  setActiveView("tracks");
+
+  bindTrackToggles(out, flatTracks);
+  bindCoverGalleryOnce(out);
+
+  bindCoverSizerOnce();
+}
+
 function renderAll({ rel, cover, covers }) {
   const title = rel.title || "(untitled)";
   const artist = artistCreditToText(rel["artist-credit"]);
@@ -1801,10 +1865,15 @@ function renderAll({ rel, cover, covers }) {
   const annotation = (rel.annotation || "").trim();
   const mbLink = `https://musicbrainz.org/release/${rel.id}`;
 
-  // Cover gallery: keep front cover in the UI, but enable paging in lightbox (desktop) / swipe (mobile)
-  __coverGallery = Array.isArray(covers) ? covers : [];
-  __coverIndex = Math.max(0, __coverGallery.findIndex((x) => x.front));
-  if (__coverIndex < 0) __coverIndex = 0;
+  // Cover gallery state
+  const gallery = Array.isArray(covers) ? covers : [];
+  let idx = gallery.findIndex((x) => x.front);
+  if (idx < 0) idx = 0;
+
+  setCoverState({
+    gallery,
+    index: idx,
+  });
 
   const media = rel.media || [];
   const flatTracks = [];
@@ -1832,7 +1901,7 @@ function renderAll({ rel, cover, covers }) {
   });
 
   __mediaForRecordings = mediaWithTracks;
-  recordingsBuilt = false;
+  setViewsState({ recordingsBuilt: false });
 
   const out = $("#out");
   if (!out) return;
@@ -1845,25 +1914,18 @@ function renderAll({ rel, cover, covers }) {
     </div>
   `;
 
-  applyTheme(getPreferredTheme());
-  bindThemeToggleOnce(out);
+  hydrateUI(out, flatTracks);
 
-  bindTabsOnce();
-  setActiveView("tracks");
-  bindTrackToggles(out, flatTracks);
-  bindCoverGalleryOnce(out);
+  // Initial layout pass
+  layoutSync(out);
 
-  bindCoverSizerOnce();
-  lockCoverSquareToTabs(out);
-
+  // Cover image load can change intrinsic sizing; re-sync once
   const img = $("#coverImg", out);
-if (img) {
-  const relock = () => {
-    lockCoverSquareToTabs(out);
-  };
-  img.addEventListener("load", relock, { once: true });
-  if (img.complete) relock();
-}
+  if (img) {
+    const relock = () => layoutSync(out);
+    img.addEventListener("load", relock, { once: true });
+    if (img.complete) relock();
+  }
 }
 
 /* ============================================================
@@ -1968,7 +2030,7 @@ function bindOmniOnce() {
   }, CONFIG.SEARCH_DEBOUNCE_MS);
 
   function pickActiveOrFirst() {
-    const it = __searchItems[__searchActive] || __searchItems[0] || null;
+    const it = STATE.search.items[STATE.search.active] || STATE.search.items[0] || null;
     if (it?.mbid) return it.mbid;
     return "";
   }
@@ -2003,15 +2065,15 @@ function bindOmniOnce() {
   omni.addEventListener("keydown", async (e) => {
     // arrows/enter only if dropdown is open OR might need to open it
     if (e.key === "ArrowDown") {
-      if (!__searchOpen) openSearch();
+      if (!STATE.search.open) openSearch();
       e.preventDefault();
-      setActiveResult(__searchActive + 1);
+      setActiveResult(STATE.search.active + 1);
       return;
     }
     if (e.key === "ArrowUp") {
-      if (!__searchOpen) openSearch();
+      if (!STATE.search.open) openSearch();
       e.preventDefault();
-      setActiveResult(__searchActive - 1);
+      setActiveResult(STATE.search.active - 1);
       return;
     }
     if (e.key === "Escape") {
@@ -2049,7 +2111,7 @@ function bindOmniOnce() {
     const idx = Number(item.dataset.i);
     if (Number.isFinite(idx)) setActiveResult(idx);
 
-    const it = __searchItems[idx];
+    const it = STATE.search.items[idx];
     if (it?.mbid) await goByMbid(it.mbid);
   });
 
@@ -2073,7 +2135,7 @@ function bindOmniOnce() {
 
   // click-outside closes
   document.addEventListener("click", (e) => {
-    if (!__searchOpen) return;
+    if (!STATE.search.open) return;
     // close only if click is outside the search area
     const searchWrap = omni.closest(".search") || omni.parentElement;
     if (searchWrap && searchWrap.contains(e.target)) return;
