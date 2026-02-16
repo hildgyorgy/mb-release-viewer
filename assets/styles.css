@@ -637,7 +637,7 @@ tr.track.is-open + tr.details .perf{
 ------------------------------------------------------------ */
 @media (max-width: 640px){
 
-  .wrap{ padding-top: 130px; }
+  .wrap{ padding-top: 140px; }
   body{ padding: 16px; }
   #omni{ font-size: 16px; }
 
