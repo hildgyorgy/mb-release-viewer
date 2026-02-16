@@ -635,8 +635,8 @@ tr.track.is-open + tr.details .perf{
 @media (max-width: 640px){
 
     :root{
-    --page-pad: 16px;
-    --top-h: 130px;
+    --page-pad: 24px;
+    --top-h: 120px;
   }
 
   #omni{ font-size: 16px; }
