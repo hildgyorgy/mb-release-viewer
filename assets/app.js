@@ -20,13 +20,16 @@ const STATE = {
     open: false,
     items: [],
     active: 0,
+    req: 0,
   },
   cover: {
     gallery: [],
     index: 0,
+    lightboxBound: false,
   },
   views: {
     recordingsBuilt: false,
+    recordingsMedia: [],
   },
 };
 
@@ -53,6 +56,26 @@ function setCoverState(patch) {
 function setViewsState(patch) {
   Object.assign(STATE.views, patch);
   logState("views");
+}
+
+/* ============================================================
+   0.3) bindOnce helpers (DOM + global)
+   ============================================================ */
+function bindOnce(el, key, fn) {
+  if (!el) return false;
+  const k = `bound_${key}`;
+  if (el.dataset[k] === "1") return false;
+  el.dataset[k] = "1";
+  fn();
+  return true;
+}
+
+function bindGlobalOnce(key, fn) {
+  const k = `__bound_${key}`;
+  if (window[k]) return false;
+  window[k] = true;
+  fn();
+  return true;
 }
 
 /* ============================================================
@@ -405,9 +428,6 @@ function escAttr(str) {
     .replaceAll(">", "&gt;");
 }
 
-// --- lightbox state ---
-let __lbBound = false;
-
 function isMobileLayout() {
   return window.matchMedia(`(max-width: ${CONFIG.MOBILE_BP}px)`).matches;
 }
@@ -455,20 +475,20 @@ function ensureLightboxOnce() {
   });
 
   // ESC closes (bound once)
-  if (!__lbBound) {
-    __lbBound = true;
+if (!STATE.cover.lightboxBound) {
+  setCoverState({ lightboxBound: true });
 
-    document.addEventListener("keydown", (e) => {
-      const open = document.getElementById("lb")?.classList.contains("is-open");
-      if (!open) return;
+  document.addEventListener("keydown", (e) => {
+    const open = document.getElementById("lb")?.classList.contains("is-open");
+    if (!open) return;
 
-      if (e.key === "Escape") closeLightbox();
-      else if (e.key === "ArrowLeft") { e.preventDefault(); lbPrev(); }
-      else if (e.key === "ArrowRight") { e.preventDefault(); lbNext(); }
-      else if (e.key === "n") { e.preventDefault(); lbNext(); }
-      else if (e.key === "N") { e.preventDefault(); lbPrev(); }
-    });
-  }
+    if (e.key === "Escape") closeLightbox();
+    else if (e.key === "ArrowLeft") { e.preventDefault(); lbPrev(); }
+    else if (e.key === "ArrowRight") { e.preventDefault(); lbNext(); }
+    else if (e.key === "n") { e.preventDefault(); lbNext(); }
+    else if (e.key === "N") { e.preventDefault(); lbPrev(); }
+  });
+}
 
   // Also close on tapping the image itself (iOS feels more reliable this way)
   const img = lb.querySelector("#lbImg");
@@ -588,18 +608,16 @@ function bindCoverGalleryOnce(root = document) {
   if (!img || !box || box.dataset.covBound === "1") return;
   box.dataset.covBound = "1";
 
-  // Desktop: open lightbox gallery
-  const desktopHandler = () => {
-    if (!STATE.cover.gallery.length) return;
-    openLightboxAt(STATE.cover.index || 0);
-  };
+  // mode-specific listeners are managed via AbortController
+  let mode = ""; // "mobile" | "desktop"
+  let ctrl = null;
 
-  // Mobile: inline swipe carousel (no lightbox)
-  const mobileBind = () => {
-    if (!STATE.cover.gallery.length) return;
+  // badge is created once (mobile UX)
+  let badge = null;
 
-    // small count badge (inline style; no CSS changes needed)
-    let badge = box.querySelector(".cov-badge");
+  const ensureBadge = () => {
+    if (badge) return badge;
+    badge = box.querySelector(".cov-badge");
     if (!badge) {
       badge = document.createElement("div");
       badge.className = "cov-badge";
@@ -613,79 +631,115 @@ function bindCoverGalleryOnce(root = document) {
       box.style.position = "relative";
       box.appendChild(badge);
     }
+    return badge;
+  };
 
-    const updateInline = () => {
-      const it = STATE.cover.gallery[STATE.cover.index] || null;
-      if (!it) return;
-      img.src = it.large || it.full || it.thumb || "";
-      img.alt = it.alt || "Cover";
-      badge.textContent = STATE.cover.gallery.length > 1 ? `${STATE.cover.index + 1} / ${STATE.cover.gallery.length}` : "";
-    };
+  const setCoverToIndex = () => {
+    const it = STATE.cover.gallery[STATE.cover.index] || null;
+    if (!it) return;
+    img.src = it.large || it.full || it.thumb || "";
+    img.alt = it.alt || "Cover";
+  };
 
-    updateInline();
+  const updateBadge = () => {
+    const b = ensureBadge();
+    const n = STATE.cover.gallery.length;
+    b.textContent = n > 1 ? `${STATE.cover.index + 1} / ${n}` : "";
+  };
+
+  const bindMobile = (signal) => {
+    if (!STATE.cover.gallery.length) return;
+
+    // always show current (and badge)
+    setCoverToIndex();
+    updateBadge();
 
     let sx = 0, sy = 0, touching = false;
-    box.addEventListener("touchstart", (e) => {
-      const t = e.touches && e.touches[0];
-      if (!t) return;
-      touching = true;
-      sx = t.clientX; sy = t.clientY;
-    }, { passive: true });
 
-    box.addEventListener("touchend", (e) => {
-      if (!touching) return;
-      touching = false;
-      const t = e.changedTouches && e.changedTouches[0];
-      if (!t) return;
-      const dx = t.clientX - sx;
-      const dy = t.clientY - sy;
+    box.addEventListener(
+      "touchstart",
+      (e) => {
+        const t = e.touches && e.touches[0];
+        if (!t) return;
+        touching = true;
+        sx = t.clientX;
+        sy = t.clientY;
+      },
+      { passive: true, signal }
+    );
 
-      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.2) {
-        const n = STATE.cover.gallery.length;
-        if (n > 1) {
-          const nextIdx =
-            dx < 0
-              ? (STATE.cover.index + 1) % n
-              : (STATE.cover.index - 1 + n) % n;
+    box.addEventListener(
+      "touchend",
+      (e) => {
+        if (!touching) return;
+        touching = false;
 
-          setCoverState({ index: nextIdx });
-          updateInline();
+        const t = e.changedTouches && e.changedTouches[0];
+        if (!t) return;
+
+        const dx = t.clientX - sx;
+        const dy = t.clientY - sy;
+
+        if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.2) {
+          const n = STATE.cover.gallery.length;
+          if (n <= 1) return;
+
+          if (dx < 0) STATE.cover.index = (STATE.cover.index + 1) % n;
+          else STATE.cover.index = (STATE.cover.index - 1 + n) % n;
+
+          setCoverToIndex();
+          updateBadge();
         }
-      }
-    }, { passive: true });
+      },
+      { passive: true, signal }
+    );
 
     // Tap cycles (nice on mobile)
-    box.addEventListener("click", () => {
-      const n = STATE.cover.gallery.length;
-      if (n <= 1) return;
-      const nextIdx = (STATE.cover.index + 1) % n;
-      setCoverState({ index: nextIdx });
-      updateInline();
-    });
+    box.addEventListener(
+      "click",
+      () => {
+        const n = STATE.cover.gallery.length;
+        if (n <= 1) return;
+        STATE.cover.index = (STATE.cover.index + 1) % n;
+        setCoverToIndex();
+        updateBadge();
+      },
+      { signal }
+    );
+  };
+
+  const bindDesktop = (signal) => {
+    if (!STATE.cover.gallery.length) return;
+
+    // keep "front" as the displayed cover on desktop
+    const frontIdx = STATE.cover.gallery.findIndex((x) => x.front);
+    STATE.cover.index = frontIdx >= 0 ? frontIdx : 0;
+    setCoverToIndex();
+
+    const desktopHandler = () => {
+      if (!STATE.cover.gallery.length) return;
+      openLightboxAt(STATE.cover.index || 0);
+    };
+
+    box.addEventListener("click", desktopHandler, { signal });
+    img.style.cursor = "zoom-in";
+
+    // hide badge on desktop (optional)
+    if (badge) badge.textContent = "";
   };
 
   const applyMode = () => {
-    // Clean previous click listeners by reassigning (simple & safe here)
-    img.onclick = null;
-    box.onclick = null;
+    const want = isMobileLayout() ? "mobile" : "desktop";
+    if (want === mode) return;
+    mode = want;
 
-    if (isMobileLayout()) {
-      // Disable desktop lightbox
-      mobileBind();
-    } else {
-      // Ensure front cover remains visible (no inline cycling)
-      const frontIdx = STATE.cover.gallery.findIndex((x) => x.front);
-      const nextIdx = frontIdx >= 0 ? frontIdx : 0;
-      setCoverState({ index: nextIdx });
+    // kill previous mode listeners
+    if (ctrl) ctrl.abort();
+    ctrl = new AbortController();
 
-      const it = STATE.cover.gallery[STATE.cover.index] || null;
-      if (it) {
-        img.src = it.large || it.full || it.thumb || img.src;
-        img.alt = it.alt || img.alt || "Cover";
-      }
-      box.addEventListener("click", desktopHandler);
-      img.style.cursor = "zoom-in";
-    }
+    // bind new mode listeners
+    if (mode === "mobile") bindMobile(ctrl.signal);
+    else bindDesktop(ctrl.signal);
   };
 
   applyMode();
@@ -1193,8 +1247,6 @@ function renderRecordingTechGrid(items) {
   `;
 }
 
-let __mediaForRecordings = [];
-
 function itemsToRoleMap(items) {
   const map = new Map();
   for (const it of items || []) {
@@ -1279,7 +1331,7 @@ async function buildRecordingsView() {
   const view = $(`section.view[data-view="recordings"]`);
   if (!view) return;
 
-  const media = Array.isArray(__mediaForRecordings) ? __mediaForRecordings : [];
+const media = Array.isArray(STATE.views.recordingsMedia) ? STATE.views.recordingsMedia : [];
   const mediaCount = media.length;
 
   const seenGlobal = new Set();
@@ -1901,7 +1953,7 @@ function renderAll({ rel, cover, covers }) {
   });
 
   __mediaForRecordings = mediaWithTracks;
-  setViewsState({ recordingsBuilt: false });
+setViewsState({ recordingsMedia: mediaWithTracks, recordingsBuilt: false });
 
   const out = $("#out");
   if (!out) return;
@@ -2000,10 +2052,11 @@ function bindOmniOnce() {
   const resEl = document.getElementById("results");
   if (!omni || !goBtn || !resEl) return;
 
-  if (omni.dataset.bound === "1") return;
-  omni.dataset.bound = "1";
+  if (!bindOnce(omni, "omni", () => {})) return;
 
   const runSearch = debounce(async () => {
+    const myReq = (STATE.search.req || 0) + 1;
+    setSearchState({ req: myReq });
     const val = String(omni.value || "").trim();
     const mbid = extractMBID(val);
     if (mbid) {
@@ -2012,7 +2065,7 @@ function bindOmniOnce() {
       return;
     }
 
-    if (val.length < 2) {
+    if (val.length < CONFIG.SEARCH_MIN_CHARS) {
       renderSearchResults([]);
       openSearch();
       return;
@@ -2105,6 +2158,19 @@ function bindOmniOnce() {
     }
   });
 
+  // hover sets active result (delegated)
+  resEl.addEventListener("mousemove", (e) => {
+    const item = e.target.closest(".result");
+    if (!item) return;
+    const idx = Number(item.dataset.i);
+    if (Number.isFinite(idx)) setActiveResult(idx);
+  });
+
+  // prevent input blur on mousedown (so click selection feels snappier)
+  resEl.addEventListener("mousedown", (e) => {
+    e.preventDefault();
+  });
+
   resEl.addEventListener("click", async (e) => {
     const item = e.target.closest(".result");
     if (!item) return;
@@ -2133,14 +2199,21 @@ function bindOmniOnce() {
     await go();
   });
 
-  // click-outside closes
-  document.addEventListener("click", (e) => {
-    if (!STATE.search.open) return;
-    // close only if click is outside the search area
-    const searchWrap = omni.closest(".search") || omni.parentElement;
-    if (searchWrap && searchWrap.contains(e.target)) return;
-    if (resEl.contains(e.target)) return;
-    closeSearch();
+  // click-outside closes (global once)
+  bindGlobalOnce("search_click_outside", () => {
+    document.addEventListener("click", (e) => {
+      if (!STATE.search.open) return;
+
+      const omniNow = document.getElementById("omni");
+      const resNow = document.getElementById("results");
+      if (!omniNow || !resNow) return;
+
+      const searchWrap = omniNow.closest(".search") || omniNow.parentElement;
+      if (searchWrap && searchWrap.contains(e.target)) return;
+      if (resNow.contains(e.target)) return;
+
+      closeSearch();
+    });
   });
 }
 
