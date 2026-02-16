@@ -1,4 +1,4 @@
-/* MB Release Viewer – cleaned + consistent (v0.9.5 UI polish) */
+/* MB Release Viewer – cleaned + consistent (v0.9.6 UI polish) */
 
 html{
   width: 100%;
@@ -13,6 +13,8 @@ html{
 ------------------------------------------------------------ */
 :root{
   --wrap: 980px;
+  --page-pad: 24px;
+  --top-h: 105px;
 
   --bg: #ffffff;
   --panel: #ffffff;
@@ -71,22 +73,22 @@ html{
   outline-color: rgba(120, 170, 255, 0.22);
 }
 
-*, *::before, *::after{ box-sizing: border-box; }
+html{ width:100%; overflow-x:hidden; }
+*, *::before, *::after{ box-sizing:border-box; }
 
 body{
+  margin: 0;
+  padding: 0;
   width: 100%;
   overflow-x: hidden;
-
-  margin: 0;
-  padding: 24px;
   background: var(--bg);
   color: var(--text);
 }
 
-.wrap{
+.container{
   max-width: var(--wrap);
   margin: 0 auto;
-  padding-top: 80px;
+  padding-inline: var(--page-pad);
 }
 
 a{ color: var(--link); text-decoration: none; }
@@ -102,9 +104,7 @@ a:hover{ text-decoration: underline; }
 ------------------------------------------------------------ */
 .top{
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
+  top: 0; left: 0; right: 0;
   z-index: 1000;
   transform: translateZ(0);
 
@@ -112,27 +112,25 @@ a:hover{ text-decoration: underline; }
   backdrop-filter: blur(var(--topbar-blur));
   -webkit-backdrop-filter: blur(var(--topbar-blur));
   border-bottom: 1px solid var(--border);
-
-  overflow: visible;
 }
 
 .top-inner{
-  max-width: var(--wrap);
-  margin: 0 auto;
-  padding: 15px 5px;
-
+  padding-block: 15px;   /* csak függőleges */
   display: flex;
   align-items: center;
-  gap: 26px;
+  gap: 22px;
+  overflow: visible;
+}
 
-  overflow: visible; /* dropdown ne vágódjon */
+.wrap{
+  padding-top: var(--top-h);  /* fix header miatt */
 }
 
 .top .brand{
   font-weight: 600;
   opacity: 0.8;
   white-space: nowrap;
-  font-size: 21px;
+  font-size: 22px;
   color: var(--text);
 }
 
@@ -218,7 +216,6 @@ a:hover{ text-decoration: underline; }
 .go-btn:hover img{ transform: scale(1.06); filter: brightness(1.08); }
 .go-btn:active{ transform: scale(0.98); }
 
-/* Dropdown results (MUST be inside .search in HTML) */
 .results{
   position: absolute;
   top: calc(100% + 8px);
@@ -273,9 +270,9 @@ a:hover{ text-decoration: underline; }
 .main{ flex: 1; min-width: 0; }
 
 h1{
-  font-size: 30px;
+  font-size: 40px;
   line-height: 1.15;
-  margin: 0 0 8px;
+  margin: 0 0 10px;
 }
 
 /* ------------------------------------------------------------
@@ -476,17 +473,17 @@ h1{
 ------------------------------------------------------------ */
 .meta{
   opacity: .9;
-  line-height: 1.45;
+  line-height: 1.4;
 }
 
 .artist{
-  font-size: 15px;
+  font-size: 16px;
   opacity: 0.9;
-  margin-bottom: 6px;
+  margin-bottom: 15px;
 }
 
 .meta-list{
-  margin-top: 8px;
+  margin-top: 15px;
   font-size: 13px;
   line-height: 1.4;
   opacity: 0.75;
@@ -637,8 +634,12 @@ tr.track.is-open + tr.details .perf{
 ------------------------------------------------------------ */
 @media (max-width: 640px){
 
-  .wrap{ padding-top: 110px; }
-  body{ padding: 16px; }
+    :root{
+    --page-pad: 16px;   /* vagy 16 */
+    --top-h: 110px;      /* ha alacsonyabb a header */
+  }
+ /* .wrap{ padding-top: 110px; }
+  body{ padding: 16px; }*/
   #omni{ font-size: 16px; }
 
   .top .brand{

@@ -10,35 +10,41 @@
 </head>
 
 <body>
-<header class="top">
-  <div class="top-inner">
-    <div class="brand">MusicBrainz Release Viewer</div>
-<div class="search">
-  <div class="search-field">
-    <input id="omni" type="text" autocomplete="off" spellcheck="false"
-      placeholder="Paste a MusicBrainz release URL / MBID, or search releases…" />
-    <div class="results" id="results" hidden></div>
-  </div>
+  <header class="top">
+    <div class="container">
+      <div class="top-inner">
+        <div class="brand">MusicBrainz Release Viewer</div>
 
-  <button id="go" class="go-btn" title="Load from MusicBrainz">
-    <img src="assets/icons/MB_go.png" alt="MusicBrainz" />
-  </button>
-</div>
-  </div>
-</header>
-  <div class="wrap">
-    <div id="out"></div>
-  </div>
-  
-<footer class="footer muted">
-  <div class="footer-inner">
-    <div class="footer-right">
-      <div>MB Release Viewer v0.9.6</div>
-      <div>Data: MusicBrainz contributors • CC BY-NC-SA 3.0</div>
+        <div class="search">
+          <div class="search-field">
+            <input id="omni" type="text" autocomplete="off" spellcheck="false"
+              placeholder="Paste a MusicBrainz release URL / MBID, or search releases…" />
+            <div class="results" id="results" hidden></div>
+          </div>
+
+          <button id="go" class="go-btn" title="Load from MusicBrainz">
+            <img src="assets/icons/MB_go.png" alt="MusicBrainz" />
+          </button>
+        </div>
+      </div>
     </div>
-  </div>
-</footer>
+  </header>
 
-<script defer src="assets/app.js"></script>
+  <main class="wrap">
+    <div class="container">
+      <div id="out"></div>
+    </div>
+  </main>
+
+  <footer class="footer muted">
+    <div class="container footer-inner">
+      <div class="footer-right">
+        <div>MB Release Viewer v0.9.6</div>
+        <div>Data: MusicBrainz contributors • CC BY-NC-SA 3.0</div>
+      </div>
+    </div>
+  </footer>
+
+  <script defer src="assets/app.js"></script>
 </body>
 </html>
