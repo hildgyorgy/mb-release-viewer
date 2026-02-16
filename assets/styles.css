@@ -649,7 +649,7 @@ tr.track.is-open + tr.details .perf{
   }
 
   .top .brand{
-    margin-bottom: 12px;
+    margin-bottom: 0px;
     font-size: 30px;
   }
 
