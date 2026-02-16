@@ -1691,6 +1691,183 @@ async function searchReleases(q, limit = CONFIG.SEARCH_LIMIT) {
     .slice(0, limit);
 }
 
+  /* ============================================================
+   8.6) SearchController (closure) – omnibox + dropdown
+   ============================================================ */
+const SearchController = (() => {
+const getOmni = () => document.getElementById("omni");
+const getGo   = () => document.getElementById("go") || document.querySelector(".go-btn");
+const getRes  = () => document.getElementById("results");
+
+const runSearch = debounce(async () => {
+  const omni = getOmni();
+  const resEl = getRes();
+  if (!omni || !resEl) return;
+
+    const val = String(omni.value || "").trim();
+    const mbid = extractMBID(val);
+
+    // MBID/URL → no dropdown
+    if (mbid) {
+      closeSearch();
+      return;
+    }
+
+    if (val.length < CONFIG.SEARCH_MIN_CHARS) {
+      renderSearchResults([]);
+      openSearch();
+      return;
+    }
+
+    openSearch();
+    resEl.innerHTML = `<div class="result"><span class="muted">Searching…</span></div>`;
+
+    try {
+      const items = await searchReleases(val, CONFIG.SEARCH_LIMIT);
+      renderSearchResults(items);
+    } catch {
+      resEl.innerHTML = `<div class="result"><span class="muted">Search error</span></div>`;
+    }
+  }, CONFIG.SEARCH_DEBOUNCE_MS);
+
+  function pickActiveOrFirst() {
+    const it = STATE.search.items[STATE.search.active] || STATE.search.items[0] || null;
+    return it?.mbid || "";
+  }
+
+async function goByInput() {
+  const omni = getOmni();
+  if (!omni) return;
+
+  const val = String(omni.value || "").trim();
+  const mbid = extractMBID(val);
+
+  if (mbid) {
+    await goByMbid(mbid);
+    return;
+  }
+
+  const pick = pickActiveOrFirst();
+  if (pick) {
+    await goByMbid(pick);
+    return;
+  }
+
+  await go();
+}
+
+function bindUIOnce() {
+  const omni = getOmni();
+  const goBtn = getGo();
+  const resEl = getRes();
+  if (!omni || !goBtn || !resEl) return;
+
+    // guard
+    if (omni.dataset.bound_searchctrl === "1") return;
+    omni.dataset.bound_searchctrl = "1";
+
+    omni.addEventListener("focus", () => {
+      const val = String(omni.value || "").trim();
+      const mbid = extractMBID(val);
+      if (mbid) return; // no dropdown
+      openSearch();
+      if (val.length >= CONFIG.SEARCH_MIN_CHARS) runSearch();
+      else renderSearchResults([]);
+    });
+
+    omni.addEventListener("input", () => {
+      omni.classList.remove("is-loaded");
+      runSearch();
+    });
+
+    omni.addEventListener("paste", () => {
+      setTimeout(async () => {
+        const val = String(omni.value || "").trim();
+        const mbid = extractMBID(val);
+        if (mbid) await goByMbid(mbid);
+        else runSearch();
+      }, 0);
+    });
+
+    omni.addEventListener("keydown", async (e) => {
+      if (e.key === "ArrowDown") {
+        if (!STATE.search.open) openSearch();
+        e.preventDefault();
+        setActiveResult(STATE.search.active + 1);
+        return;
+      }
+      if (e.key === "ArrowUp") {
+        if (!STATE.search.open) openSearch();
+        e.preventDefault();
+        setActiveResult(STATE.search.active - 1);
+        return;
+      }
+      if (e.key === "Escape") {
+        e.preventDefault();
+        closeSearch();
+        return;
+      }
+      if (e.key === "Enter") {
+        e.preventDefault();
+        await goByInput();
+      }
+    });
+
+    // results: click select (delegated)
+    resEl.addEventListener("click", async (e) => {
+      const item = e.target.closest(".result");
+      if (!item) return;
+      const idx = Number(item.dataset.i);
+      if (Number.isFinite(idx)) setActiveResult(idx);
+
+      const it = STATE.search.items[idx];
+      if (it?.mbid) await goByMbid(it.mbid);
+    });
+
+    // results: hover sets active (delegated)
+    resEl.addEventListener("mousemove", (e) => {
+      const item = e.target.closest(".result");
+      if (!item) return;
+      const idx = Number(item.dataset.i);
+      if (Number.isFinite(idx)) setActiveResult(idx);
+    });
+
+    // keep input focus while clicking results
+    resEl.addEventListener("mousedown", (e) => e.preventDefault());
+
+    goBtn.addEventListener("click", async () => {
+      await goByInput();
+    });
+
+    // click-outside closes (global-ish, but guarded)
+    if (!window.__bound_search_click_outside) {
+      window.__bound_search_click_outside = true;
+
+      document.addEventListener("click", (e) => {
+        if (!STATE.search.open) return;
+
+        const omniNow = document.getElementById("omni");
+        const resNow = document.getElementById("results");
+        if (!omniNow || !resNow) return;
+
+        const searchWrap = omniNow.closest(".search") || omniNow.parentElement;
+        if (searchWrap && searchWrap.contains(e.target)) return;
+        if (resNow.contains(e.target)) return;
+
+        closeSearch();
+      });
+    }
+  }
+
+function init() {
+  bindUIOnce();
+}
+
+  return Object.freeze({
+    init,
+  });
+})();
+
 /* ============================================================
    9) Rendering + UI binding
    ============================================================ */
@@ -2040,198 +2217,32 @@ async function go() {
   }
 }
 
-/**
- * Single omnibox binder:
- *  - paste MBID/URL → immediate load
- *  - type text → debounced search results
- *  - Enter → load selected result (or first), or load MBID/URL if present
- */
-function bindOmniOnce() {
-  const omni = document.getElementById("omni");
-  const goBtn = document.getElementById("go");
-  const resEl = document.getElementById("results");
-  if (!omni || !goBtn || !resEl) return;
-
-  if (!bindOnce(omni, "omni", () => {})) return;
-
-  const runSearch = debounce(async () => {
-    const myReq = (STATE.search.req || 0) + 1;
-    setSearchState({ req: myReq });
-    const val = String(omni.value || "").trim();
-    const mbid = extractMBID(val);
-    if (mbid) {
-      // if it’s an MBID/URL, don’t show dropdown
-      closeSearch();
-      return;
-    }
-
-    if (val.length < CONFIG.SEARCH_MIN_CHARS) {
-      renderSearchResults([]);
-      openSearch();
-      return;
-    }
-
-    openSearch();
-    resEl.innerHTML = `<div class="result"><span class="muted">Searching…</span></div>`;
-
-    try {
-      const items = await searchReleases(val, CONFIG.SEARCH_LIMIT);
-      renderSearchResults(items);
-    } catch {
-      resEl.innerHTML = `<div class="result"><span class="muted">Search error</span></div>`;
-    }
-  }, CONFIG.SEARCH_DEBOUNCE_MS);
-
-  function pickActiveOrFirst() {
-    const it = STATE.search.items[STATE.search.active] || STATE.search.items[0] || null;
-    if (it?.mbid) return it.mbid;
-    return "";
-  }
-
-  omni.addEventListener("focus", () => {
-    const val = String(omni.value || "").trim();
-    const mbid = extractMBID(val);
-    if (mbid) return; // no dropdown
-    openSearch();
-    if (val.length >= CONFIG.SEARCH_MIN_CHARS) runSearch();
-    else renderSearchResults([]);
-  });
-
-  omni.addEventListener("input", () => {
-    omni.classList.remove("is-loaded");
-    runSearch();
-  });
-
-  omni.addEventListener("paste", () => {
-    // let paste complete, then decide
-    setTimeout(async () => {
-      const val = String(omni.value || "").trim();
-      const mbid = extractMBID(val);
-      if (mbid) {
-        await goByMbid(mbid);
-      } else {
-        runSearch();
-      }
-    }, 0);
-  });
-
-  omni.addEventListener("keydown", async (e) => {
-    // arrows/enter only if dropdown is open OR might need to open it
-    if (e.key === "ArrowDown") {
-      if (!STATE.search.open) openSearch();
-      e.preventDefault();
-      setActiveResult(STATE.search.active + 1);
-      return;
-    }
-    if (e.key === "ArrowUp") {
-      if (!STATE.search.open) openSearch();
-      e.preventDefault();
-      setActiveResult(STATE.search.active - 1);
-      return;
-    }
-    if (e.key === "Escape") {
-      e.preventDefault();
-      closeSearch();
-      return;
-    }
-    if (e.key === "Enter") {
-      e.preventDefault();
-
-      const val = String(omni.value || "").trim();
-      const mbid = extractMBID(val);
-
-      // MBID/URL wins
-      if (mbid) {
-        await goByMbid(mbid);
-        return;
-      }
-
-      // If we have items, open selected/first
-      const pick = pickActiveOrFirst();
-      if (pick) {
-        await goByMbid(pick);
-        return;
-      }
-
-      // Otherwise run a search
-      await go();
-    }
-  });
-
-  // hover sets active result (delegated)
-  resEl.addEventListener("mousemove", (e) => {
-    const item = e.target.closest(".result");
-    if (!item) return;
-    const idx = Number(item.dataset.i);
-    if (Number.isFinite(idx)) setActiveResult(idx);
-  });
-
-  // prevent input blur on mousedown (so click selection feels snappier)
-  resEl.addEventListener("mousedown", (e) => {
-    e.preventDefault();
-  });
-
-  resEl.addEventListener("click", async (e) => {
-    const item = e.target.closest(".result");
-    if (!item) return;
-    const idx = Number(item.dataset.i);
-    if (Number.isFinite(idx)) setActiveResult(idx);
-
-    const it = STATE.search.items[idx];
-    if (it?.mbid) await goByMbid(it.mbid);
-  });
-
-  goBtn.addEventListener("click", async () => {
-    const val = String(omni.value || "").trim();
-    const mbid = extractMBID(val);
-    if (mbid) {
-      await goByMbid(mbid);
-      return;
-    }
-
-    // if dropdown has items, load active/first
-    const pick = pickActiveOrFirst();
-    if (pick) {
-      await goByMbid(pick);
-      return;
-    }
-
-    await go();
-  });
-
-  // click-outside closes (global once)
-  bindGlobalOnce("search_click_outside", () => {
-    document.addEventListener("click", (e) => {
-      if (!STATE.search.open) return;
-
-      const omniNow = document.getElementById("omni");
-      const resNow = document.getElementById("results");
-      if (!omniNow || !resNow) return;
-
-      const searchWrap = omniNow.closest(".search") || omniNow.parentElement;
-      if (searchWrap && searchWrap.contains(e.target)) return;
-      if (resNow.contains(e.target)) return;
-
-      closeSearch();
-    });
-  });
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  applyTheme(getPreferredTheme());
-
-  bindOmniOnce();
-
-  // autoload from URL (?mbid=... or full MB release URL)
+function bootFromUrl() {
   const omni = document.getElementById("omni");
   if (!omni) return;
 
   const qs = new URLSearchParams(window.location.search);
   const mbidParam = String(qs.get("mbid") || "").trim();
-  if (mbidParam) {
-    omni.value = mbidParam;
-    omni.classList.remove("is-loaded");
-    const mbid = extractMBID(mbidParam);
-    if (mbid) goByMbid(mbid);
+  if (!mbidParam) return;
+
+  omni.value = mbidParam;
+  omni.classList.remove("is-loaded");
+
+  const mbid = extractMBID(mbidParam);
+  if (mbid) goByMbid(mbid);
+}
+
+/* ============================================================
+   11) App bootstrap
+   ============================================================ */
+const App = (() => {
+  function init() {
+    applyTheme(getPreferredTheme());
+    SearchController.init();
+    bootFromUrl();
   }
-});
+
+  return Object.freeze({ init });
+})();
+
+document.addEventListener("DOMContentLoaded", App.init);

@@ -85,7 +85,8 @@ body{
 
 .wrap{
   max-width: var(--wrap);
-  margin: 24px auto 0;
+  margin: 0 auto;
+  padding-top: 80px;
 }
 
 a{ color: var(--link); text-decoration: none; }
@@ -100,18 +101,19 @@ a:hover{ text-decoration: underline; }
    1) Header (sticky omni search)
 ------------------------------------------------------------ */
 .top{
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 1000;
   transform: translateZ(0);
-  width: 100%;
 
   background: var(--topbar);
   backdrop-filter: blur(var(--topbar-blur));
   -webkit-backdrop-filter: blur(var(--topbar-blur));
   border-bottom: 1px solid var(--border);
 
-  overflow: visible; /* dropdown ne vágódjon */
+  overflow: visible;
 }
 
 .top-inner{
@@ -635,6 +637,7 @@ tr.track.is-open + tr.details .perf{
 ------------------------------------------------------------ */
 @media (max-width: 640px){
 
+  .wrap{ padding-top: 108px; }
   body{ padding: 16px; }
   #omni{ font-size: 16px; }
 
