@@ -642,6 +642,7 @@ tr.track.is-open + tr.details .perf{
   #omni{ font-size: 16px; }
 
   .top .brand{
+    display: none;
     margin-bottom: 0px;
     font-size: 25px;
     text-align: center;
