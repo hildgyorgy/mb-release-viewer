@@ -635,16 +635,15 @@ tr.track.is-open + tr.details .perf{
 @media (max-width: 640px){
 
     :root{
-    --page-pad: 16px;   /* vagy 16 */
-    --top-h: 110px;      /* ha alacsonyabb a header */
+    --page-pad: 16px;
+    --top-h: 130px;
   }
- /* .wrap{ padding-top: 110px; }
-  body{ padding: 16px; }*/
+
   #omni{ font-size: 16px; }
 
   .top .brand{
     margin-bottom: 0px;
-    font-size: 29px;
+    font-size: 28px;
     text-align: center;
   }
 
@@ -709,26 +708,20 @@ tr.track.is-open + tr.details .perf{
    12) Footer
 ------------------------------------------------------------ */
 .footer{
-  margin-top: 75px;
-  padding: 0;
+  width: 100%;
   font-size: 12px;
   line-height: 1.25;
+  border-top: 0px solid var(--border);
+  background: var(--bg); 
 }
 
-.footer a{ color: inherit; text-decoration: none; }
-.footer a:hover{ text-decoration: underline; }
-
 .footer-inner{
-  max-width: var(--wrap);
-  margin: 0 auto;
-  padding: 0;
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: start;
+  padding-block: 80px;
+  display: flex;
+  justify-content: flex-end;
 }
 
 .footer-right{
   text-align: right;
   opacity: 0.85;
-  justify-self: end;
 }
