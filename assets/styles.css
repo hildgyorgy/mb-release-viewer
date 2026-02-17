@@ -670,6 +670,10 @@ tr.track.is-open + tr.details .perf{
     :root{
     --page-pad: 24px;
     --top-h: 80px;
+    /* --topbar: rgba(10, 20, 40, 0.88);
+    --border: rgba(255,255,255,0.14);
+    --text: rgba(255,255,255,0.92);
+    --muted: rgba(255,255,255,0.60); */
   }
 
   #omni{ font-size: 16px; }
