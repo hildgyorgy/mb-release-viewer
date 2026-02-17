@@ -293,6 +293,7 @@ h1{
   border-radius: 12px;
   background: transparent;
   border: 0px solid var(--border);
+  position: relative;
   overflow: hidden;
 
   cursor: zoom-in;
@@ -301,6 +302,21 @@ h1{
   outline: 1px solid transparent;
   outline-offset: 3px;
   will-change: transform, box-shadow;
+}
+
+#coverImg{
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+
+  will-change: transform;
+  transform: translateX(0);
+  transition: transform 220ms ease;
+}
+
+#coverImg.is-dragging{
+  transition: none;
 }
 
 .cover-box img{

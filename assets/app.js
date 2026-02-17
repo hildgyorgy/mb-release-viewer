@@ -654,45 +654,92 @@ function bindCoverGalleryOnce(root = document) {
     setCoverToIndex();
     updateBadge();
 
-    let sx = 0, sy = 0, touching = false;
+let sx = 0;
+let sy = 0;
+let lastX = 0;
+let dragging = false;
 
-    box.addEventListener(
-      "touchstart",
-      (e) => {
-        const t = e.touches && e.touches[0];
-        if (!t) return;
-        touching = true;
-        sx = t.clientX;
-        sy = t.clientY;
-      },
-      { passive: true, signal }
-    );
+const n = () => STATE.cover.gallery.length;
 
-    box.addEventListener(
-      "touchend",
-      (e) => {
-        if (!touching) return;
-        touching = false;
+const snapBack = () => {
+  img.classList.remove("is-dragging");
+  img.style.transform = "translateX(0px)";
+};
 
-        const t = e.changedTouches && e.changedTouches[0];
-        if (!t) return;
+box.addEventListener(
+  "touchstart",
+  (e) => {
+    const t = e.touches && e.touches[0];
+    if (!t) return;
 
-        const dx = t.clientX - sx;
-        const dy = t.clientY - sy;
+    dragging = true;
+    sx = t.clientX;
+    sy = t.clientY;
+    lastX = sx;
 
-        if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.2) {
-          const n = STATE.cover.gallery.length;
-          if (n <= 1) return;
+    img.classList.add("is-dragging");
+  },
+  { passive: true, signal }
+);
 
-          if (dx < 0) STATE.cover.index = (STATE.cover.index + 1) % n;
-          else STATE.cover.index = (STATE.cover.index - 1 + n) % n;
+box.addEventListener(
+  "touchmove",
+  (e) => {
+    if (!dragging) return;
 
-          setCoverToIndex();
-          updateBadge();
-        }
-      },
-      { passive: true, signal }
-    );
+    const t = e.touches && e.touches[0];
+    if (!t) return;
+
+    lastX = t.clientX;
+    const dx = lastX - sx;
+    const dy = t.clientY - sy;
+
+    // ha inkább vertikálisan scrolloz a user, ne "rángassuk" a képet
+    if (Math.abs(dy) > Math.abs(dx) * 1.2) {
+      snapBack();
+      dragging = false;
+      return;
+    }
+
+    // 1:1 ujjkövetés
+    img.style.transform = `translateX(${dx}px)`;
+  },
+  { passive: true, signal }
+);
+
+box.addEventListener(
+  "touchend",
+  () => {
+    if (!dragging) return;
+    dragging = false;
+
+    const dx = lastX - sx;
+    const absDx = Math.abs(dx);
+
+    // küszöb: a box szélességének 22%-a (szebb, mint fix 40px)
+    const threshold = box.getBoundingClientRect().width * 0.22;
+
+    const count = n();
+    if (count <= 1) {
+      snapBack();
+      return;
+    }
+
+    // döntés: lapozunk vagy csak visszapattanunk
+    if (absDx >= threshold) {
+      if (dx < 0) STATE.cover.index = (STATE.cover.index + 1) % count;
+      else STATE.cover.index = (STATE.cover.index - 1 + count) % count;
+
+      setCoverToIndex();
+      updateBadge();
+    }
+
+    // elengedés után visszacsúsztatjuk középre (transition visszakapcsol)
+    img.classList.remove("is-dragging");
+    img.style.transform = "translateX(0px)";
+  },
+  { passive: true, signal }
+);
 
     // Tap cycles (nice on mobile)
     box.addEventListener(
