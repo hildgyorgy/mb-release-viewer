@@ -39,4 +39,4 @@ GitHub Pages hosting
 
 ---
 
-v0.9.6 — experimental, evolving.
+v1.0.0-rc1 — experimental, evolving.
