@@ -57,5 +57,8 @@ export function bindThemeToggleOnce(root = document) {
   const btn = $("#themeToggle", root);
   if (!btn || btn.dataset.bound === "1") return;
   btn.dataset.bound = "1";
+
   btn.addEventListener("click", toggleTheme);
+
+  applyTheme(document.documentElement.dataset.theme || getPreferredTheme());
 }
