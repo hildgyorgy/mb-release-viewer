@@ -1,4 +1,4 @@
-/* MB Release Viewer – cleaned + consistent (v0.9.6 UI polish) */
+/* MB Release Viewer – cleaned + consistent (v1.0.0-rc1 */
 
 html{
   width: 100%;
@@ -152,13 +152,16 @@ a:hover{ text-decoration: underline; }
   position: relative; /* a dropdownnak is jó */
 }
 
-/* Omni input */
 #omni{
   width: 100%;
   padding: 12px 12px;
   border-radius: 12px;
   border: 0px solid var(--border);
   background: transparent;
+
+  font-size: 13px;
+  line-height: 1.4;
+  font-family: inherit;
 
   color: var(--text);
   caret-color: var(--link);
@@ -169,7 +172,6 @@ a:hover{ text-decoration: underline; }
   transition: color 120ms ease, caret-color 120ms ease, border-color 120ms ease;
 }
 
-/* placeholder */
 #omni::placeholder{
   color: var(--muted);
   opacity: 1;
@@ -188,7 +190,6 @@ a:hover{ text-decoration: underline; }
 
 #omni.is-loaded{ color: var(--link); }
 
-/* Go button */
 .go-btn{
   width: 44px;
   height: 44px;
@@ -206,8 +207,8 @@ a:hover{ text-decoration: underline; }
 }
 
 .go-btn img{
-  width: 25px;
-  height: 25px;
+  width: 30px;
+  height: 30px;
   display: block;
   transition: transform 120ms ease, filter 120ms ease;
 }

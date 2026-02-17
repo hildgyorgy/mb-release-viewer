@@ -5,7 +5,7 @@
 import { bootFromUrl } from "./core/boot.js";
 import { createReleaseNavigator } from "./services/navigation.js";
 import { applyTheme, getPreferredTheme } from "./ui/theme.js";
-import { createSearchController, closeSearch } from "./ui/searchController.js";
+import { createSearchController } from "./ui/searchController.js";
 
 import { loadRelease } from "./services/api.js";
 import { renderReleasePage } from "./features/releasePage.js";

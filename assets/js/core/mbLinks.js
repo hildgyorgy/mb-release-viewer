@@ -8,6 +8,20 @@ export function mbArtistLink(artist) {
   )}</a>`;
 }
 
+export function mbPlaceLink(place) {
+  if (!place?.id) return "";
+  const name = place.name || "(place)";
+  return `<a href="https://musicbrainz.org/place/${place.id}" target="_blank" rel="noreferrer">${escHtml(
+    name
+  )}</a>`;
+}
+
+export function mbRecordingLink(rec) {
+  if (!rec?.id) return escHtml(rec?.title || "(recording)");
+  const title = escHtml(rec?.title || "(recording)");
+  return `<a href="https://musicbrainz.org/recording/${rec.id}" target="_blank" rel="noreferrer">${title}</a>`;
+}
+
 export function artistCreditToLinks(ac) {
   if (!Array.isArray(ac) || !ac.length) return "";
   return ac
