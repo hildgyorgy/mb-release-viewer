@@ -27,8 +27,9 @@ export const App = Object.freeze({
     applyTheme(getPreferredTheme());
 
 const Nav = createReleaseNavigator({
+  getOut: () => document.getElementById("out"),
   loadRelease,
-  renderAll: renderReleasePage,
+  renderReleasePage,
 });
 
 const Search = createSearchController({

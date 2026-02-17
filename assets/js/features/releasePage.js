@@ -42,7 +42,7 @@ function hydrateUI(out, flatTracks) {
  *
  * @param {{rel:Object, cover:string|null, covers:Array}} param0
  */
-export function renderReleasePage({ rel, cover, covers }) {
+export function renderReleasePage(out, { rel, cover, covers }) {
   const title = rel.title || "(untitled)";
   const artist = artistCreditToText(rel["artist-credit"]);
   const date = rel.date || rel["release-events"]?.[0]?.date || "";
@@ -95,9 +95,6 @@ export function renderReleasePage({ rel, cover, covers }) {
     recordingsMedia: mediaWithTracks,
   });
 
-  const out = document.getElementById("out");
-  if (!out) return;
-
   out.innerHTML = `
     ${renderHeader({ title, cover, mbLink, artist, date, country, label, catno, barcode, releaseNotes })}
     <div class="views">
@@ -112,7 +109,7 @@ export function renderReleasePage({ rel, cover, covers }) {
   layoutSync(out);
 
   // cover image load can change intrinsic sizing; re-sync once
-  const img = document.getElementById("coverImg");
+const img = out.querySelector("#coverImg");
   if (img) {
     const relock = () => layoutSync(out);
     img.addEventListener("load", relock, { once: true });

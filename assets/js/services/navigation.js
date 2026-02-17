@@ -28,28 +28,34 @@ export function setOmniLoadedValue(mbid) {
 }
 
 /**
- * Create a loader that:
+ * Create a navigator that:
  * - closes search dropdown
  * - shows Loading…
  * - loads release via loadRelease
- * - calls renderAll({rel, cover, covers})
+ * - calls renderReleasePage({rel, cover, covers})
  * - updates omnibox + URL param
  */
-export function createReleaseNavigator({ loadRelease, renderAll }) {
+export function createReleaseNavigator({ getOut, loadRelease, renderReleasePage }) {
   if (typeof loadRelease !== "function") throw new Error("createReleaseNavigator: loadRelease missing");
-  if (typeof renderAll !== "function") throw new Error("createReleaseNavigator: renderAll missing");
+  if (typeof renderReleasePage !== "function")
+    throw new Error("createReleaseNavigator: renderReleasePage missing");
+
+  const resolveOut =
+    typeof getOut === "function" ? getOut : () => document.getElementById("out");
 
   async function goByMbid(mbid) {
     if (!mbid) return;
 
     closeSearch();
 
-    const out = document.getElementById("out");
+    const out = resolveOut();
     if (out) out.innerHTML = `<div class="muted">Loading…</div>`;
 
     try {
       const data = await loadRelease(mbid);
-      renderAll(data);
+
+      // NOTE: a te renderReleasePage-ed most maga keresi a #out-ot (OK).
+      renderReleasePage(data);
 
       setOmniLoadedValue(mbid);
       setUrlMbid(mbid);
