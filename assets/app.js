@@ -647,113 +647,173 @@ function bindCoverGalleryOnce(root = document) {
     b.textContent = n > 1 ? `${STATE.cover.index + 1} / ${n}` : "";
   };
 
-  const bindMobile = (signal) => {
-    if (!STATE.cover.gallery.length) return;
+ const bindMobile = (signal) => {
+  const gallery = STATE.cover.gallery || [];
+  const count = gallery.length;
+  if (count <= 0) return;
 
-    // always show current (and badge)
-    setCoverToIndex();
-    updateBadge();
+  // 1) Biztosítsuk a 2. képréteget
+  img.classList.add("cov-current");
 
-let sx = 0;
-let sy = 0;
-let lastX = 0;
-let dragging = false;
+  let imgNext = box.querySelector("img.cov-next");
+  if (!imgNext) {
+    imgNext = document.createElement("img");
+    imgNext.className = "cov-next";
+    imgNext.alt = "";
+    box.appendChild(imgNext);
+  }
 
-const n = () => STATE.cover.gallery.length;
-
-const snapBack = () => {
-  img.classList.remove("is-dragging");
-  img.style.transform = "translateX(0px)";
-};
-
-box.addEventListener(
-  "touchstart",
-  (e) => {
-    const t = e.touches && e.touches[0];
-    if (!t) return;
-
-    dragging = true;
-    sx = t.clientX;
-    sy = t.clientY;
-    lastX = sx;
-
-    img.classList.add("is-dragging");
-  },
-  { passive: true, signal }
-);
-
-box.addEventListener(
-  "touchmove",
-  (e) => {
-    if (!dragging) return;
-
-    const t = e.touches && e.touches[0];
-    if (!t) return;
-
-    lastX = t.clientX;
-    const dx = lastX - sx;
-    const dy = t.clientY - sy;
-
-    // ha inkább vertikálisan scrolloz a user, ne "rángassuk" a képet
-    if (Math.abs(dy) > Math.abs(dx) * 1.2) {
-      snapBack();
-      dragging = false;
-      return;
-    }
-
-    // 1:1 ujjkövetés
-    img.style.transform = `translateX(${dx}px)`;
-  },
-  { passive: true, signal }
-);
-
-box.addEventListener(
-  "touchend",
-  () => {
-    if (!dragging) return;
-    dragging = false;
-
-    const dx = lastX - sx;
-    const absDx = Math.abs(dx);
-
-    // küszöb: a box szélességének 22%-a (szebb, mint fix 40px)
-    const threshold = box.getBoundingClientRect().width * 0.22;
-
-    const count = n();
-    if (count <= 1) {
-      snapBack();
-      return;
-    }
-
-    // döntés: lapozunk vagy csak visszapattanunk
-    if (absDx >= threshold) {
-      if (dx < 0) STATE.cover.index = (STATE.cover.index + 1) % count;
-      else STATE.cover.index = (STATE.cover.index - 1 + count) % count;
-
-      setCoverToIndex();
-      updateBadge();
-    }
-
-    // elengedés után visszacsúsztatjuk középre (transition visszakapcsol)
-    img.classList.remove("is-dragging");
-    img.style.transform = "translateX(0px)";
-  },
-  { passive: true, signal }
-);
-
-    // Tap cycles (nice on mobile)
-    box.addEventListener(
-      "click",
-      () => {
-        const n = STATE.cover.gallery.length;
-        if (n <= 1) return;
-        STATE.cover.index = (STATE.cover.index + 1) % n;
-        setCoverToIndex();
-        updateBadge();
-      },
-      { signal }
-    );
+  const setImgToIndex = (imgEl, idx) => {
+    const it = gallery[idx] || null;
+    if (!it) return;
+    imgEl.src = it.large || it.full || it.thumb || "";
+    imgEl.alt = it.alt || "Cover";
   };
+
+  const curIndex = () => STATE.cover.index;
+
+  const clampIndex = (i) => (count ? (i % count + count) % count : 0);
+
+  // Kezdő állapot: current legyen a STATE.index
+  setImgToIndex(img, curIndex());
+  updateBadge();
+
+  let sx = 0;
+  let sy = 0;
+  let dragging = false;
+  let dx = 0;
+  let dir = 0; // -1 = balra húz (next), +1 = jobbra húz (prev)
+
+  const width = () => box.getBoundingClientRect().width || 1;
+
+  const resetPositions = () => {
+    box.classList.remove("is-animating");
+    img.style.transform = "translateX(0px)";
+    imgNext.style.transform = "translateX(100%)";
+  };
+
+  const prepareIncoming = (direction) => {
+    // direction: -1 (balra húz) -> a következő jön jobbról
+    // direction: +1 (jobbra húz) -> az előző jön balról
+    const incomingIndex = clampIndex(curIndex() + (direction === -1 ? 1 : -1));
+    setImgToIndex(imgNext, incomingIndex);
+
+    // tegyük a next-et a megfelelő oldalra
+    imgNext.style.transform = `translateX(${direction === -1 ? 100 : -100}%)`;
+  };
+
+  box.addEventListener(
+    "touchstart",
+    (e) => {
+      const t = e.touches && e.touches[0];
+      if (!t) return;
+
+      dragging = true;
+      sx = t.clientX;
+      sy = t.clientY;
+      dx = 0;
+      dir = 0;
+
+      resetPositions();
+    },
+    { passive: true, signal }
+  );
+
+  box.addEventListener(
+    "touchmove",
+    (e) => {
+      if (!dragging) return;
+      const t = e.touches && e.touches[0];
+      if (!t) return;
+
+      const mx = t.clientX;
+      const my = t.clientY;
+
+      dx = mx - sx;
+      const dy = my - sy;
+
+      // ha inkább függőlegesen mozog, engedjük el
+      if (Math.abs(dy) > Math.abs(dx) * 1.2) {
+        dragging = false;
+        resetPositions();
+        return;
+      }
+
+      // irány meghatározása, és incoming kép előkészítése egyszer
+      const newDir = dx < 0 ? -1 : 1;
+      if (newDir !== dir) {
+        dir = newDir;
+        prepareIncoming(dir);
+      }
+
+      // aktuális kép követi az ujjat
+      img.style.transform = `translateX(${dx}px)`;
+
+      // incoming kép: a megfelelő oldalról jön be
+      // ha dir = -1, next indul +100%-ról, és dx (negatív) húzza be
+      // ha dir = +1, next indul -100%-ról, és dx (pozitív) húzza be
+      const w = width();
+      const start = dir === -1 ? w : -w;
+      imgNext.style.transform = `translateX(${start + dx}px)`;
+    },
+    { passive: true, signal }
+  );
+
+  box.addEventListener(
+    "touchend",
+    () => {
+      if (!dragging) return;
+      dragging = false;
+
+      const w = width();
+      const threshold = w * 0.22;
+
+      // animáció bekapcsol
+      box.classList.add("is-animating");
+
+      if (Math.abs(dx) >= threshold) {
+        // lapozás: current kimegy, next bejön 0-ra
+        img.style.transform = `translateX(${dir === -1 ? -w : w}px)`;
+        imgNext.style.transform = "translateX(0px)";
+
+        // amikor az animáció lefutott:
+        setTimeout(() => {
+          // STATE index frissítés
+          STATE.cover.index = clampIndex(curIndex() + (dir === -1 ? 1 : -1));
+          updateBadge();
+
+          // next legyen az új current (egyszerűen átmásoljuk a src-et)
+          img.src = imgNext.src;
+          img.alt = imgNext.alt;
+
+          resetPositions();
+        }, 230);
+      } else {
+        // nem volt elég: visszapattan
+        img.style.transform = "translateX(0px)";
+        imgNext.style.transform = `translateX(${dir === -1 ? w : -w}px)`;
+
+        setTimeout(() => {
+          resetPositions();
+        }, 230);
+      }
+    },
+    { passive: true, signal }
+  );
+
+  // Tap: opcionális — ha marad, akkor a "next" legyen
+  box.addEventListener(
+    "click",
+    () => {
+      if (count <= 1) return;
+      STATE.cover.index = clampIndex(curIndex() + 1);
+      setImgToIndex(img, curIndex());
+      updateBadge();
+      resetPositions();
+    },
+    { signal }
+  );
+};
 
   const bindDesktop = (signal) => {
     if (!STATE.cover.gallery.length) return;

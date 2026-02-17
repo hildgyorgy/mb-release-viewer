@@ -295,6 +295,7 @@ h1{
   border: 0px solid var(--border);
   position: relative;
   overflow: hidden;
+  touch-action: pan-y;
 
   cursor: zoom-in;
   transition: transform 180ms ease, box-shadow 220ms ease, outline-color 220ms ease;
@@ -320,11 +321,27 @@ h1{
 }
 
 .cover-box img{
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   max-width: 100%; 
   object-fit: cover;
   display: block;
+
+  will-change: transform;
+}
+
+.cover-box img.cov-current {
+  transform: translateX(0);
+}
+
+.cover-box img.cov-next {
+  transform: translateX(100%); /* alapból jobbra kint */
+}
+
+.cover-box.is-animating img {
+  transition: transform 220ms ease;
 }
 
 .cover-box:hover{
