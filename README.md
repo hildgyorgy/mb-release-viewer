@@ -1,42 +1,70 @@
 # MusicBrainz Release Viewer
 
-A lightweight, read-only web viewer for exploring **MusicBrainz releases**.
+A small, framework-free web app for reading **MusicBrainz releases**  
+like a human being who actually cares about credits.
 
 👉 https://hildgyorgy.github.io/mb-release-viewer/
 
 ---
 
-## What it is
+## What this is
 
-An alternative way to read a release:
+An alternative way to look at a release:
 
-- Track-centric layout  
-- Clear separation of performers, creators and technical credits  
-- Explicit work hierarchy (based only on MB relations)
+- Track-first layout  
+- Performers separated from creators  
+- Technical / production credits clearly grouped  
+- Explicit work hierarchy (based strictly on MB relations)  
+- “Common credits” detection across recordings  
 
-Standalone.  
-No editing.  
-No data storage.  
-No backend.
+No backend.  
+No database.  
+No tracking.  
+No magic.
+
+Just structured MB data.
 
 ---
 
 ## How to use
 
 - Paste a MusicBrainz release URL or MBID  
-- Or search the database directly  
+- Or search directly  
 
 Optional structured search:
-Artist, Album (comma separeted)
+Artist, Album
+
+---
+
+## Architecture
+
+Plain HTML, CSS and vanilla ES modules.
+core/       state & utilities
+services/   MusicBrainz API layer
+ui/         layout, theme, search, lightbox
+features/   tracks / recordings
+No build step.  
+No dependencies.  
+No excuses.
 
 ---
 
 ## Tech
 
-Plain HTML / CSS / vanilla JavaScript  
-MusicBrainz Web Service v2 + Cover Art Archive  
-GitHub Pages hosting  
+- MusicBrainz Web Service v2  
+- Cover Art Archive  
+- GitHub Pages  
 
 ---
 
-v0.9.6 — experimental, evolving.
+## Version
+
+**v1.0.0-rc1**
+
+Modular. Clean.  
+Finally not a 2000-line single file.
+
+---
+
+© 2026 György Hild  
+Data: MusicBrainz contributors — CC BY-NC-SA 3.0
