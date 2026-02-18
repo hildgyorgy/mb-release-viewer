@@ -123,38 +123,24 @@ function parseRecordingTechCredits(recording) {
 function renderRecordingTechGrid(items) {
   if (!items.length) return `<div class="muted">N/A</div>`;
 
-  const rows = items
-    .map((it) => {
-      const role = escHtml(it.role);
-      const isNotes = String(it.role || "").toLowerCase() === "notes";
+  const rows = items.map((it) => {
+    const role = escHtml(it.role);
+    const isNotes = String(it.role || "").toLowerCase() === "notes";
 
-      const value = isNotes
-        ? `<span class="muted">${it.values.map((v) => escHtml(String(v))).join("<br>")}</span>`
-        : it.values.join("<br>");
+    const value = isNotes
+      ? `<span class="muted">${it.values.map((v) => escHtml(String(v))).join("<br>")}</span>`
+ //   : it.values.join("<br>");
+      : it.values.map(v => `<span class="rec-person">${v}</span>`).join("");
 
-      return `
-        <div style="display:contents">
-          <div class="muted" style="padding:2px 0;">${role}</div>
-          <div style="padding:2px 0;">${value}</div>
-        </div>
-      `;
-    })
-    .join("");
+    return `
+      <div class="rec-row">
+        <div class="rec-role muted">${role}</div>
+        <div class="rec-value">${value}</div>
+      </div>
+    `;
+  }).join("");
 
-  return `
-    <div style="
-      margin-left: 10px;
-      padding: 10px 10px 12px;
-      display: grid;
-      grid-template-columns: 220px 1fr;
-      column-gap: 16px;
-      row-gap: 2px;
-      font-size: 13px;
-      line-height: 1.35;
-    ">
-      ${rows}
-    </div>
-  `;
+  return `<div class="recording-grid">${rows}</div>`;
 }
 
 function itemsToRoleMap(items) {
@@ -373,15 +359,15 @@ export async function buildRecordingsView() {
       const diffItems = subtractCommon(items, commonMap, commonNotes);
 
       const grid = diffItems.length
-        ? renderRecordingTechGrid(diffItems)
-        : `<div class="muted" style="margin-left:10px; padding: 10px 10px 12px;">--</div>`;
+  ? renderRecordingTechGrid(diffItems)
+  : `<div class="rec-empty muted">--</div>`;
 
       html += `
-        <tr>
-          <td></td>
-          <td colspan="2">${grid}</td>
-        </tr>
-      `;
+  <tr>
+    <td></td>
+    <td colspan="2"><div class="rec-empty muted">--</div></td>
+  </tr>
+`;
     }
   }
 
