@@ -687,14 +687,23 @@ tr.details.is-open .details-wrap {
 
 .detail-cols {
   display: grid;
-  grid-template-columns: 0.85fr 0.9fr 1.6fr;
-  gap: 12px;
+  grid-template-columns: 0.85fr 2.5fr;
+  /* perf | (creators+work) */
+  column-gap: 12px;
   align-items: start;
 }
 
-.detail-col {
-  min-width: 0;
+.detail-col--meta {
+  display: grid;
+  grid-template-columns: 0.9fr 1.6fr;
+  /* creators | work */
+  column-gap: 12px;
+  align-items: start;
 }
+
+/* .detail-col {
+  min-width: 0;
+} */
 
 /* ------------------------------------------------------------
    8) Performer/Creator blocks
@@ -770,6 +779,7 @@ tr.track.is-open+tr.details .perf {
   white-space: nowrap;
   /* ne törje meg a neveket */
 }
+
 .recording-grid .rec-person:not(:last-child)::after {
   content: ",\00A0";
 }
@@ -777,7 +787,7 @@ tr.track.is-open+tr.details .perf {
 /* Fallback box ("--" / could not load) */
 .rec-empty {
   margin-left: 20px;
-  padding: 10px 15px 12px;
+  padding: 0px 15px 0px;
 }
 
 /* ------------------------------------------------------------
@@ -880,13 +890,10 @@ tr.track.is-open+tr.details .perf {
   }
 
   .theme-fab {
-    position: static;
-    /* a flex-sor része */
-    margin: 0;
-    /* ne toljon el semmit */
+    position: static; /* a flex-sor része */
+    margin: 0; /* ne toljon el semmit */
   }
 
-  /* Track details: mobile two-column layout */
   .detail-cols {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -896,13 +903,17 @@ tr.track.is-open+tr.details .perf {
 
   .detail-col--meta {
     display: grid;
-    grid-auto-rows: min-content;
-    row-gap: 14px; /* creators és work között */
+    grid-template-columns: 1fr;
+    row-gap: 28px; /* EZ a creators–work távolság */
   }
 
   .perf {
-  margin-left: 0px;
-  padding: 10px 0px 15px;
+    margin-left: 0px;
+    padding: 10px 0px 15px;
+  }
+
+  .detail-col--meta .perf {
+    padding: 10px 0 0;
   }
 
   .recording-grid {
@@ -910,7 +921,6 @@ tr.track.is-open+tr.details .perf {
     padding: 8px 0px 10px;
     column-gap: 8px;
     grid-template-columns: 108px 1fr;
-    /* itt lövöd be a role oszlopot */
   }
 
   /* Ha a kilógás link-törésből jön */

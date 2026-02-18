@@ -48,15 +48,15 @@ function renderRoleList(items) {
     <div class="perf">
       <div class="grid">
         ${items
-          .map(
-            (it) => `
+      .map(
+        (it) => `
           <div>
             <div class="inst">${escHtml(it.role)}</div>
             <div class="artists">${it.artists.map(mbArtistLink).join(" ")}</div>
           </div>
         `
-          )
-          .join("")}
+      )
+      .join("")}
       </div>
     </div>
   `;
@@ -296,10 +296,9 @@ export async function renderTrackDetails(recording, work) {
     <div class="detail-col detail-col--perf">${left}</div>
 
     <div class="detail-col detail-col--meta">
-      <div class="detail-stack detail-stack--creators">${mid}</div>
-      <div class="detail-stack detail-stack--work">${right}</div>
+      <div class="detail-col detail-col--creators">${mid}</div>
+      <div class="detail-col detail-col--work">${right}</div>
     </div>
   </div>
 `;
-
 }
