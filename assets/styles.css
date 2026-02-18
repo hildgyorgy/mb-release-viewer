@@ -687,7 +687,7 @@ tr.details.is-open .details-wrap {
 
 .detail-cols {
   display: grid;
-  grid-template-columns: 0.9fr 0.9fr 1.6fr;
+  grid-template-columns: 0.85fr 0.9fr 1.6fr;
   gap: 12px;
   align-items: start;
 }
@@ -761,7 +761,7 @@ tr.track.is-open+tr.details .perf {
 .recording-grid .rec-value {
   display: flex;
   flex-wrap: wrap;
-  gap: 14px;
+  gap: 0px;
   /* távolság a nevek között */
 }
 
@@ -769,6 +769,9 @@ tr.track.is-open+tr.details .perf {
 .recording-grid .rec-person {
   white-space: nowrap;
   /* ne törje meg a neveket */
+}
+.recording-grid .rec-person:not(:last-child)::after {
+  content: ",\00A0";
 }
 
 /* Fallback box ("--" / could not load) */
@@ -883,8 +886,23 @@ tr.track.is-open+tr.details .perf {
     /* ne toljon el semmit */
   }
 
+  /* Track details: mobile two-column layout */
   .detail-cols {
-    grid-template-columns: 1fr;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 14px;
+    align-items: start;
+  }
+
+  .detail-col--meta {
+    display: grid;
+    grid-auto-rows: min-content;
+    row-gap: 14px; /* creators és work között */
+  }
+
+  .perf {
+  margin-left: 0px;
+  padding: 10px 0px 15px;
   }
 
   .recording-grid {

@@ -292,10 +292,14 @@ export async function renderTrackDetails(recording, work) {
   const right = await renderWorkHierarchyBlock(work);
 
   return `
-    <div class="detail-cols">
-      <div class="detail-col">${left}</div>
-      <div class="detail-col">${mid}</div>
-      <div class="detail-col">${right}</div>
+  <div class="detail-cols">
+    <div class="detail-col detail-col--perf">${left}</div>
+
+    <div class="detail-col detail-col--meta">
+      <div class="detail-stack detail-stack--creators">${mid}</div>
+      <div class="detail-stack detail-stack--work">${right}</div>
     </div>
-  `;
+  </div>
+`;
+
 }
