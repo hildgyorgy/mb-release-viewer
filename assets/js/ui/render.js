@@ -2,40 +2,40 @@ import { escHtml, artistCreditToText, fmtMs, mediumLabel } from "../core/util.js
 
 export function renderHeader({ title, cover, mbLink, artist, date, country, label, catno, barcode, releaseNotes }) {
   return `
-    <div class="row">
+    <div class="row header-row">
       <div class="cover">
         <div class="cover-box">
           ${cover ? `<img id="coverImg" src="${cover}" alt="Cover">` : ""}
         </div>
-
-        <div class="cover-nav-row">
-          <div class="tabs cover-tabs" id="tabs">
-            <button class="tab is-active" data-view="tracks">Tracklist</button>
-            <button class="tab" data-view="recordings">Recordings</button>
-            <a class="tab mb-link" href="${mbLink}" target="_blank" rel="noreferrer">MusicBrainz</a>
-          </div>
-
-          <button class="theme-fab" id="themeToggle" type="button"></button>
-        </div>
       </div>
 
-      <div class="main">
+      <div class="main header-main">
         <h1>${escHtml(title)}</h1>
 
-        <div class="meta">
-          <div class="artist">
-            ${artist ? escHtml(artist) : "<span class='muted'>(n/a)</span>"}
-          </div>
-
-          <div class="meta-list">
-            <div><span class="meta-k">Date:</span> ${date ? escHtml(date) : "<span class='muted'>(n/a)</span>"}</div>
-            <div><span class="meta-k">Country:</span> ${country ? escHtml(country) : "<span class='muted'>(n/a)</span>"}</div>
-            <div><span class="meta-k">Label:</span> ${label ? escHtml(label) : "<span class='muted'>(n/a)</span>"}</div>
-            <div><span class="meta-k">Cat. no.:</span> ${catno ? escHtml(catno) : "<span class='muted'>(n/a)</span>"}</div>
-            <div><span class="meta-k">Barcode:</span> ${barcode ? escHtml(barcode) : "<span class='muted'>(n/a)</span>"}</div>
-            ${releaseNotes ? `<div><span class="meta-k">Notes:</span> <span class="muted">${escHtml(releaseNotes)}</span></div>` : ""}
-          </div>
+        <div class="artist">
+          ${artist ? escHtml(artist) : "<span class='muted'>(n/a)</span>"}
         </div>
+
+        <div class="meta">
+          <div><span class="meta-k">Date:</span> ${date ? escHtml(date) : "<span class='muted'>(n/a)</span>"}</div>
+          <div><span class="meta-k">Country:</span> ${country ? escHtml(country) : "<span class='muted'>(n/a)</span>"}</div>
+          <div><span class="meta-k">Label:</span> ${label ? escHtml(label) : "<span class='muted'>(n/a)</span>"}</div>
+          <div><span class="meta-k">Cat. no.:</span> ${catno ? escHtml(catno) : "<span class='muted'>(n/a)</span>"}</div>
+          <div><span class="meta-k">Barcode:</span> ${barcode ? escHtml(barcode) : "<span class='muted'>(n/a)</span>"}</div>
+          ${releaseNotes ? `<div><span class="meta-k">Notes:</span> <span class="muted">${escHtml(releaseNotes)}</span></div>` : ""}
+        </div>
+      </div>
+    </div>
+
+    <div class="header-nav">
+      <div class="cover-nav-row">
+        <div class="tabs cover-tabs" id="tabs">
+          <button class="tab is-active" data-view="tracks">Tracklist</button>
+          <button class="tab" data-view="recordings">Recordings</button>
+          <a class="tab mb-link" href="${mbLink}" target="_blank" rel="noreferrer">MusicBrainz</a>
+        </div>
+
+        <button class="theme-fab" id="themeToggle" type="button"></button>
       </div>
     </div>
   `;
