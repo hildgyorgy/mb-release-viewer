@@ -789,7 +789,7 @@ tr.track.is-open+tr.details .perf {
 }
 
 .recording-grid .rec-person:not(:last-child)::after {
-  content: ",\00A0";
+  content: ", ";
 }
 
 /* Fallback box ("--" / could not load) */
