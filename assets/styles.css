@@ -789,7 +789,11 @@ tr.track.is-open+tr.details .perf {
 }
 
 .recording-grid .rec-person:not(:last-child)::after {
-  content: ", ";
+  content: ",";
+}
+
+.recording-grid .rec-person:not(:last-child) {
+  margin-right: 0.35em;
 }
 
 /* Fallback box ("--" / could not load) */

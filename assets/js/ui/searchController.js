@@ -124,6 +124,18 @@ export function createSearchController({ onGoByMbid, onGoFallback }) {
     if (omni.dataset.bound_searchctrl === "1") return;
     omni.dataset.bound_searchctrl = "1";
 
+    omni.addEventListener("pointerdown", (e) => {
+      if (document.activeElement !== omni) {
+        e.preventDefault();
+        omni.focus();
+        setTimeout(() => omni.select(), 0);
+      }
+    });
+
+    omni.addEventListener("focus", () => {
+      setTimeout(() => omni.select(), 0);
+    });
+
     omni.addEventListener("focus", () => {
       const val = String(omni.value || "").trim();
       const mbid = extractMBID(val);
