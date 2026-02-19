@@ -10,6 +10,8 @@ import { createSearchController } from "./ui/searchController.js";
 import { loadRelease } from "./services/api.js";
 import { renderReleasePage } from "./features/releasePage.js";
 
+import { createMobileHeaderController } from "./ui/mobileHeader.js";
+
 // ------------------------------
 // Loading / navigation
 // ------------------------------
@@ -32,13 +34,21 @@ const Nav = createReleaseNavigator({
   renderReleasePage,
 });
 
+const MobileHdr = createMobileHeaderController();
+MobileHdr.bind();
+
+const goByMbidWrapped = async (mbid) => {
+  await Nav.goByMbid(mbid);
+  MobileHdr.onReleaseLoaded();
+};
+
 const Search = createSearchController({
-  onGoByMbid: Nav.goByMbid,
+  onGoByMbid: goByMbidWrapped,
   onGoFallback: goFallback,
 });
 Search.init();
 
-bootFromUrl({ onGoByMbid: Nav.goByMbid });
+bootFromUrl({ onGoByMbid: goByMbidWrapped });
   },
 });
 

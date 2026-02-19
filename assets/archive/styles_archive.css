@@ -816,6 +816,7 @@ tr.track.is-open+tr.details .perf {
 
   :root {
     --page-pad: 24px;
+    --top-h: 80px;
     /* --topbar: rgba(10, 20, 40, 0.88);
     --border: rgba(255,255,255,0.14);
     --text: rgba(255,255,255,0.92);
@@ -855,10 +856,9 @@ tr.track.is-open+tr.details .perf {
 
   .cover {
     display: block;
-    width: 92%;
+    width: 100%;
     max-width: none;
     margin: 0 auto;
-    padding-top: 12px;
   }
 
   .cover-box {
@@ -934,61 +934,6 @@ tr.track.is-open+tr.details .perf {
     margin-left: 0px;
     padding: 0px 0px 0px;
   }
-
-/* ------------------------------------------------------------
-   13) Mobile: collapsible topbar (Music-app-ish)
------------------------------------------------------------- */
-
-  :root[data-hdr="closed"] { --top-h: 20px; }  /* grabber-only */
-  :root[data-hdr="open"]   { --top-h: 80px; }  /* full mobile header height */
-
-  .wrap { padding-top: var(--top-h); }
-
-  .top {
-    max-height: var(--top-h);
-    transition: max-height 220ms ease;
-    border-bottom: none;
-    overflow: visible;
-  }
-  :root[data-hdr="closed"] .top {
-    overflow: hidden;
-  }
-
-  /* grabber */
-  .top::after {
-    content: "";
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%) translateY(-50%);
-    width: 56px;
-    height: 5px;
-    bottom: 5px;
-    border-radius: 999px;
-    background: rgba(127, 140, 170, 0.55);
-    opacity: 1;
-    pointer-events: none;
-  }
-  :root[data-hdr="open"] .top::after {
-    opacity: 0.35;
-  }
-
-  .top-inner {
-    transition: opacity 180ms ease, transform 220ms ease;
-    will-change: opacity, transform;
-  }
-  :root[data-hdr="closed"] .top-inner {
-    opacity: 0;
-    transform: translateY(-6px);
-    pointer-events: none;
-  }
-  :root[data-hdr="open"] .top-inner {
-    opacity: 1;
-    transform: translateY(0);
-    pointer-events: auto;
-  }
-
-  /* Ensure dropdown stacks above content */
-  .results { z-index: 2000; }
 }
 
 @media (orientation: landscape) and (max-width: 900px) {
@@ -996,6 +941,7 @@ tr.track.is-open+tr.details .perf {
     font-size: 14px;
   }
 }
+
 /* ------------------------------------------------------------
    12) Footer
 ------------------------------------------------------------ */
