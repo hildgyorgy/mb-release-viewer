@@ -15,8 +15,6 @@ const EXTRA_PERFORMER_REL_TYPES = new Set([
   "concertmaster",
   "leader",
   "soloist",
-  "narrator",
-  "spoken vocals",
   "performing orchestra",
 ]);
 

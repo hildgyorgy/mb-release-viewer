@@ -391,9 +391,17 @@ h1 {
   transition: transform 220ms ease;
 }
 
-.cover-box:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 18px 28px rgba(0, 0, 0, .33);
+@media (hover: none) {
+  .cover-box {
+    box-shadow: 0 12px 24px rgba(0, 0, 0, .18);
+  }
+}
+
+@media (hover: hover) {
+  .cover-box:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 18px 28px rgba(0, 0, 0, .33);
+  }
 }
 
 .cover-nav-row {
