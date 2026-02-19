@@ -377,7 +377,7 @@ export async function buildRecordingsView() {
       html += `
   <tr>
     <td></td>
-    <td colspan="2"><${grid}</td>
+    <td colspan="2">${grid}</td>
   </tr>
 `;
     }
