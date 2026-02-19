@@ -17,13 +17,13 @@ export function ensureLightboxOnce() {
       <button id="lbPrev" type="button" aria-label="Previous cover"
         style="pointer-events:auto; position:absolute; left:14px; top:50%; transform:translateY(-50%);
                width:40px; height:40px; border-radius:999px; border:0; background:rgba(0,0,0,.35);
-               color:#fff; cursor:pointer; display:grid; place-items:center;">
+               color:#fff; cursor:pointer; display:grid; place-items:center; z-index:3;">
         ‹
       </button>
       <button id="lbNext" type="button" aria-label="Next cover"
         style="pointer-events:auto; position:absolute; right:14px; top:50%; transform:translateY(-50%);
                width:40px; height:40px; border-radius:999px; border:0; background:rgba(0,0,0,.35);
-               color:#fff; cursor:pointer; display:grid; place-items:center;">
+               color:#fff; cursor:pointer; display:grid; place-items:center; z-index:3;">
         ›
       </button>
 
@@ -33,7 +33,7 @@ export function ensureLightboxOnce() {
                padding:6px 10px; border-radius:999px;">
       </div>
 
-      <img id="lbImg" alt="" style="pointer-events:auto;">
+      <img id="lbImg" alt="" style="pointer-events:auto; position:relative; z-index:1;">
     </div>
   `;
   document.body.appendChild(lb);
