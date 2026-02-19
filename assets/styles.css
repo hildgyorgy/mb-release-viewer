@@ -898,8 +898,10 @@ tr.track.is-open+tr.details .perf {
   }
 
   .theme-fab {
-    position: static; /* a flex-sor része */
-    margin: 0; /* ne toljon el semmit */
+    position: static;
+    /* a flex-sor része */
+    margin: 0;
+    /* ne toljon el semmit */
   }
 
   .detail-cols {
@@ -912,7 +914,8 @@ tr.track.is-open+tr.details .perf {
   .detail-col--meta {
     display: grid;
     grid-template-columns: 1fr;
-    row-gap: 28px; /* EZ a creators–work távolság */
+    row-gap: 28px;
+    /* EZ a creators–work távolság */
   }
 
   .perf {
@@ -931,6 +934,14 @@ tr.track.is-open+tr.details .perf {
     grid-template-columns: 108px 1fr;
   }
 
+  .recording-grid .rec-value {
+    min-width: 0;
+  }
+
+  .recording-grid .rec-person {
+    white-space: normal;
+  }
+
   /* Ha a kilógás link-törésből jön */
   .recording-grid,
   .recording-grid a {
@@ -943,14 +954,24 @@ tr.track.is-open+tr.details .perf {
     padding: 0px 0px 0px;
   }
 
-/* ------------------------------------------------------------
+  /* ------------------------------------------------------------
    13) Mobile: collapsible topbar (Music-app-ish)
 ------------------------------------------------------------ */
 
-  :root[data-hdr="closed"] { --top-h: 20px; }  /* grabber-only */
-  :root[data-hdr="open"]   { --top-h: 80px; }  /* full mobile header height */
+  :root[data-hdr="closed"] {
+    --top-h: 20px;
+  }
 
-  .wrap { padding-top: var(--top-h); }
+  /* grabber-only */
+  :root[data-hdr="open"] {
+    --top-h: 80px;
+  }
+
+  /* full mobile header height */
+
+  .wrap {
+    padding-top: var(--top-h);
+  }
 
   .top {
     max-height: var(--top-h);
@@ -958,6 +979,7 @@ tr.track.is-open+tr.details .perf {
     border-bottom: none;
     overflow: visible;
   }
+
   :root[data-hdr="closed"] .top {
     overflow: hidden;
   }
@@ -976,6 +998,7 @@ tr.track.is-open+tr.details .perf {
     opacity: 1;
     pointer-events: none;
   }
+
   :root[data-hdr="open"] .top::after {
     opacity: 0.35;
   }
@@ -984,11 +1007,13 @@ tr.track.is-open+tr.details .perf {
     transition: opacity 180ms ease, transform 220ms ease;
     will-change: opacity, transform;
   }
+
   :root[data-hdr="closed"] .top-inner {
     opacity: 0;
     transform: translateY(-6px);
     pointer-events: none;
   }
+
   :root[data-hdr="open"] .top-inner {
     opacity: 1;
     transform: translateY(0);
@@ -996,7 +1021,9 @@ tr.track.is-open+tr.details .perf {
   }
 
   /* Ensure dropdown stacks above content */
-  .results { z-index: 2000; }
+  .results {
+    z-index: 2000;
+  }
 }
 
 @media (orientation: landscape) and (max-width: 900px) {
@@ -1004,6 +1031,7 @@ tr.track.is-open+tr.details .perf {
     font-size: 14px;
   }
 }
+
 /* ------------------------------------------------------------
    12) Footer
 ------------------------------------------------------------ */
