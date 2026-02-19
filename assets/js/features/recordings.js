@@ -16,6 +16,18 @@ const EXCLUDE_ARTIST_REL_TYPES = new Set([
   "librettist",
   "arranger",
   "writer",
+
+  "conductor",
+  "orchestra",
+  "ensemble",
+  "choir",
+  "chorus",
+  "concertmaster",
+  "leader",
+  "soloist",
+  "narrator",
+  "spoken vocals",
+  "performing orchestra",
 ]);
 
 function prettyRelRole(typeRaw, attrs) {
@@ -365,7 +377,7 @@ export async function buildRecordingsView() {
       html += `
   <tr>
     <td></td>
-    <td colspan="2"><div class="rec-empty muted">--</div></td>
+    <td colspan="2"><${grid}</td>
   </tr>
 `;
     }

@@ -5,6 +5,20 @@ import { mbArtistLink, artistCreditToLinks, mbWorkUrl } from "../core/mbLinks.js
 /* ============================================================
    Track details (Performers / Creators / Work hierarchy)
    ============================================================ */
+   
+const EXTRA_PERFORMER_REL_TYPES = new Set([
+  "conductor",
+  "orchestra",
+  "ensemble",
+  "choir",
+  "chorus",
+  "concertmaster",
+  "leader",
+  "soloist",
+  "narrator",
+  "spoken vocals",
+  "performing orchestra",
+]);
 
 function parsePerformersFromRecording(recording) {
   const rels = recording?.relations || [];
@@ -18,18 +32,40 @@ function parsePerformersFromRecording(recording) {
     const attrs = Array.isArray(r.attributes) ? r.attributes : [];
     const baseType = r.type || "";
 
-    const isInstrument = baseType === "instrument";
-    const isVocal =
-      baseType === "vocal" ||
-      attrs.some((a) =>
-        ["vocals", "soprano", "mezzo-soprano", "alto", "tenor", "baritone", "bass"].includes(
-          String(a).toLowerCase()
-        )
-      );
+    const typeLc = String(baseType || "").toLowerCase();
 
-    if (!isInstrument && !isVocal) continue;
+const isInstrument = typeLc === "instrument";
+const isVocal =
+  typeLc === "vocal" ||
+  attrs.some((a) => {
+    const al = String(a).toLowerCase();
+    return [
+      "vocals",
+      "spoken vocals",
+      "narrator",
+      "soprano",
+      "mezzo-soprano",
+      "alto",
+      "tenor",
+      "baritone",
+      "bass",
+    ].includes(al);
+  });
 
-    const role = attrs.length ? attrs.join(", ") : isVocal ? "vocals" : "instrument";
+const isExtra = EXTRA_PERFORMER_REL_TYPES.has(typeLc);
+
+if (!isInstrument && !isVocal && !isExtra) continue;
+
+// role label
+let role = "";
+if (isInstrument || isVocal) {
+  role = attrs.length ? attrs.join(", ") : isVocal ? "vocals" : "instrument";
+} else {
+  // conductor / orchestra / choir / soloist / etc.
+  role = baseType || "performer";
+  // ha vannak attribútumok, őszintén kiírjuk zárójelben (nem “hekkeljük”)
+  if (attrs.length) role += ` (${attrs.join(", ")})`;
+}
 
     if (!byRole.has(role)) byRole.set(role, new Map());
     byRole.get(role).set(artist.id, artist);

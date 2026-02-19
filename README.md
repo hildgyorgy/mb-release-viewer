@@ -59,7 +59,7 @@ No excuses.
 
 ## Version
 
-**v1.0.0-rc1**
+**v1.0.0-rc2**
 
 Modular. Clean.  
 Finally not a 2000-line single file.

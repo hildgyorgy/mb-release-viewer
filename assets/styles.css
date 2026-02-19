@@ -1,4 +1,4 @@
-/* MB Release Viewer – cleaned + consistent (v1.0.0-rc1 */
+/* MB Release Viewer – cleaned + consistent (v1.0.0-rc2 */
 
 html {
   width: 100%;
@@ -20,7 +20,7 @@ html {
   --panel: #ffffff;
   --panel-2: #f4f6fb;
 
-  --border: rgba(10, 34, 68, .2);
+  --border: rgba(10, 34, 68, .1);
   --border-2: #0a2244;
 
   --meta: #0a2244;
