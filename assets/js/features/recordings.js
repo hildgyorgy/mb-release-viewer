@@ -1,13 +1,26 @@
+// ============================================================
+// Recordings view (technical / organisational credits)
+// Incremental fill (1 req / ~1s), common credits computed at end
+// ============================================================
+
 import { STATE } from "../core/state.js";
 import { escHtml, relDateLabel, uniq, mediumLabel } from "../core/util.js";
 import { mbArtistLink, mbPlaceLink, mbRecordingLink } from "../core/mbLinks.js";
 import { loadRecording } from "../services/api.js";
 
-// ============================================================
-// Recordings view (technical / organisational credits)
-// Ported from legacy app.js (v0.9.6), adapted to modular code.
-// ============================================================
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+function startAsciiSpinner(setText) {
+  const frames = ["|", "/", "-", "\\"]; // klasszikus :)
+  let i = 0;
+  const t = setInterval(() => setText(frames[i++ % frames.length]), 120);
+  return () => clearInterval(t);
+}
+
+// throttle target ~1 request / second (MB WS etiquette)
+const REQUEST_GAP_MS = 1050;
+
+// Roles that should NOT appear on Recordings tab (moved to Tracklist performers etc.)
 const EXCLUDE_ARTIST_REL_TYPES = new Set([
   "instrument",
   "vocal",
@@ -135,22 +148,23 @@ function parseRecordingTechCredits(recording) {
 function renderRecordingTechGrid(items) {
   if (!items.length) return `<div class="muted">N/A</div>`;
 
-  const rows = items.map((it) => {
-    const role = escHtml(it.role);
-    const isNotes = String(it.role || "").toLowerCase() === "notes";
+  const rows = items
+    .map((it) => {
+      const role = escHtml(it.role);
+      const isNotes = String(it.role || "").toLowerCase() === "notes";
 
-    const value = isNotes
-      ? `<span class="muted">${it.values.map((v) => escHtml(String(v))).join("<br>")}</span>`
- //   : it.values.join("<br>");
-      : it.values.map(v => `<span class="rec-person">${v}</span>`).join("");
+      const value = isNotes
+        ? `<span class="muted">${it.values.map((v) => escHtml(String(v))).join("<br>")}</span>`
+        : it.values.map((v) => `<span class="rec-person">${v}</span>`).join("");
 
-    return `
-      <div class="rec-row">
-        <div class="rec-role muted">${role}</div>
-        <div class="rec-value">${value}</div>
-      </div>
-    `;
-  }).join("");
+      return `
+        <div class="rec-row">
+          <div class="rec-role muted">${role}</div>
+          <div class="rec-value">${value}</div>
+        </div>
+      `;
+    })
+    .join("");
 
   return `<div class="recording-grid">${rows}</div>`;
 }
@@ -262,6 +276,31 @@ function collectMediumRecordingIds(medium) {
   return orderedRecIds;
 }
 
+// --- DOM helpers ------------------------------------------------------------
+
+function setAllRecCellsHtml(view, recId, html) {
+  // update every occurrence (same recording reused on a medium)
+  const nodes = view.querySelectorAll(`[data-rec-id="${recId}"]`);
+  nodes.forEach((el) => {
+    el.innerHTML = html;
+  });
+}
+
+function setCommonCellHtml(view, html) {
+  const el = view.querySelector("#recCommonCell");
+  if (el) el.innerHTML = html;
+}
+
+function renderInlineSpinner(label = "Loading…") {
+  return `<div class="rec-empty muted">${escHtml(label)} <span class="rec-spin">|</span></div>`;
+}
+
+function startSpinnerInside(containerEl) {
+  const spinEl = containerEl?.querySelector?.(".rec-spin");
+  if (!spinEl) return () => {};
+  return startAsciiSpinner((ch) => (spinEl.textContent = ch));
+}
+
 // ------------------------------------------------------------
 // Public builder (entry point)
 // ------------------------------------------------------------
@@ -270,68 +309,35 @@ export async function buildRecordingsView() {
   const view = document.querySelector('section.view[data-view="recordings"]');
   if (!view) return;
 
-  view.innerHTML = `<div class="muted">Loading…</div>`;
-
   const media = Array.isArray(STATE.views.recordingsMedia) ? STATE.views.recordingsMedia : [];
   const mediaCount = media.length;
 
-  // 1) Load all unique recordings once (album-scope cache)
   const albumRecIds = collectAlbumRecordingIds(media);
+  const total = albumRecIds.length;
 
-  const recData = new Map();
-  const recItems = new Map();
-  const roleMaps = [];
-  const itemsListForCommon = [];
-
-  for (const recId of albumRecIds) {
-    let rec = null;
-    try {
-      rec = await loadRecording(recId);
-    } catch {
-      rec = null;
-    }
-
-    recData.set(recId, rec);
-
-    if (!rec) continue;
-    const items = parseRecordingTechCredits(rec);
-    recItems.set(recId, items);
-    roleMaps.push(itemsToRoleMap(items));
-    itemsListForCommon.push(items);
-  }
-
-  // 2) Common credits/notes (intersection across recordings)
-  const commonMap = intersectRoleMaps(roleMaps);
-  const commonItems = Array.from(commonMap.entries())
-    .map(([role, set]) => ({
-      role,
-      values: Array.from(set).sort((a, b) => String(a).localeCompare(String(b))),
-    }))
-    .sort((a, b) => String(a.role).localeCompare(String(b.role)));
-
-  const commonNotes = getCommonNotesFromItemsList(itemsListForCommon);
-  if (commonNotes) commonItems.push({ role: "notes", values: [commonNotes] });
-
-  // 3) Render
+  // 0) Render skeleton IMMEDIATELY (titles come from STATE media tracks)
   let html = `
+    <div class="muted" id="recLoadLine" style="margin-bottom:10px;">
+      Loading recordings <span id="recSpin">|</span>
+      <span id="recProg"></span>
+    </div>
+
     <div class="tracks">
       <table>
         <tbody>
-  `;
 
-  if (commonItems.length) {
-    html += `
-      <tr>
-        <td class="num"></td>
-        <td class="title">${escHtml("Common credits/notes")}</td>
-        <td class="len"></td>
-      </tr>
-      <tr>
-        <td></td>
-        <td colspan="2">${renderRecordingTechGrid(commonItems)}</td>
-      </tr>
-    `;
-  }
+          <tr>
+            <td class="num"></td>
+            <td class="title">${escHtml("Common credits/notes")}</td>
+            <td class="len"></td>
+          </tr>
+          <tr>
+            <td></td>
+            <td colspan="2" id="recCommonCell">
+              ${renderInlineSpinner("Computing common credits…")}
+            </td>
+          </tr>
+  `;
 
   for (const m of media) {
     html += `
@@ -344,42 +350,21 @@ export async function buildRecordingsView() {
 
     for (let idx = 0; idx < orderedRecIds.length; idx++) {
       const recId = orderedRecIds[idx];
-      const rec = recData.get(recId) ?? null;
-      const title = rec?.title || "(untitled recording)";
+      const titleFromState = m?.tracks?.[idx]?.rec?.title || "(recording)";
 
       html += `
         <tr>
           <td class="num">${idx + 1}</td>
-          <td class="title">${escHtml(title)}</td>
+          <td class="title">${escHtml(titleFromState)}</td>
           <td class="len"></td>
         </tr>
+        <tr>
+          <td></td>
+          <td colspan="2" data-rec-id="${escHtml(recId)}">
+            ${renderInlineSpinner("Loading…")}
+          </td>
+        </tr>
       `;
-
-      if (!rec) {
-        html += `
-          <tr>
-            <td></td>
-            <td colspan="2">
-              <div class="muted" style="margin-left:10px; padding: 10px 10px 12px;">(could not load recording)</div>
-            </td>
-          </tr>
-        `;
-        continue;
-      }
-
-      const items = recItems.get(recId) || [];
-      const diffItems = subtractCommon(items, commonMap, commonNotes);
-
-      const grid = diffItems.length
-  ? renderRecordingTechGrid(diffItems)
-  : `<div class="rec-empty muted">--</div>`;
-
-      html += `
-  <tr>
-    <td></td>
-    <td colspan="2">${grid}</td>
-  </tr>
-`;
     }
   }
 
@@ -390,4 +375,105 @@ export async function buildRecordingsView() {
   `;
 
   view.innerHTML = html;
+
+  // spin: global + per-row + common
+  const spinEl = view.querySelector("#recSpin");
+  const progEl = view.querySelector("#recProg");
+  const stopGlobalSpin = startAsciiSpinner((ch) => {
+    if (spinEl) spinEl.textContent = ch;
+  });
+
+  // start spinners inside every row placeholder + common placeholder
+  const rowStopFns = [];
+  view.querySelectorAll('[data-rec-id] .rec-spin').forEach((el) => {
+    rowStopFns.push(startAsciiSpinner((ch) => (el.textContent = ch)));
+  });
+  // common spinner
+  const commonCell = view.querySelector("#recCommonCell");
+  const stopCommonSpin = commonCell ? startSpinnerInside(commonCell) : () => {};
+
+  // 1) Load recordings one-by-one, fill rows as they arrive
+  const recData = new Map();
+  const recItems = new Map();
+  const roleMaps = [];
+  const itemsListForCommon = [];
+
+  let loaded = 0;
+  if (progEl) progEl.textContent = `(${loaded}/${total})`;
+
+  for (let k = 0; k < albumRecIds.length; k++) {
+    const recId = albumRecIds[k];
+
+    let rec = null;
+    try {
+      rec = await loadRecording(recId);
+    } catch {
+      rec = null;
+    }
+
+    recData.set(recId, rec);
+
+    if (!rec) {
+      setAllRecCellsHtml(
+        view,
+        recId,
+        `<div class="rec-empty muted">(could not load recording)</div>`
+      );
+    } else {
+      const items = parseRecordingTechCredits(rec);
+      recItems.set(recId, items);
+      roleMaps.push(itemsToRoleMap(items));
+      itemsListForCommon.push(items);
+
+      // TEMP: show full credits immediately (common subtraction later)
+      const gridNow = items.length ? renderRecordingTechGrid(items) : `<div class="rec-empty muted">--</div>`;
+      setAllRecCellsHtml(view, recId, gridNow);
+    }
+
+    loaded++;
+    if (progEl) progEl.textContent = `(${loaded}/${total})`;
+
+    // throttle (no extra backoff)
+    if (k < albumRecIds.length - 1) await sleep(REQUEST_GAP_MS);
+  }
+
+  // 2) Compute common and update (final polish)
+  const commonMap = intersectRoleMaps(roleMaps);
+  const commonItems = Array.from(commonMap.entries())
+    .map(([role, set]) => ({
+      role,
+      values: Array.from(set).sort((a, b) => String(a).localeCompare(String(b))),
+    }))
+    .sort((a, b) => String(a.role).localeCompare(String(b.role)));
+
+  const commonNotes = getCommonNotesFromItemsList(itemsListForCommon);
+  if (commonNotes) commonItems.push({ role: "notes", values: [commonNotes] });
+
+  // show common (or --)
+  stopCommonSpin();
+  setCommonCellHtml(
+    view,
+    commonItems.length ? renderRecordingTechGrid(commonItems) : `<div class="rec-empty muted">--</div>`
+  );
+
+  // now update every loaded recording cell to show diff (subtract common)
+  for (const recId of albumRecIds) {
+    const rec = recData.get(recId) ?? null;
+    if (!rec) continue;
+
+    const items = recItems.get(recId) || [];
+    const diffItems = subtractCommon(items, commonMap, commonNotes);
+
+    const grid = diffItems.length ? renderRecordingTechGrid(diffItems) : `<div class="rec-empty muted">--</div>`;
+    setAllRecCellsHtml(view, recId, grid);
+  }
+
+  // 3) cleanup spinners + line
+  stopGlobalSpin();
+  rowStopFns.forEach((fn) => {
+    try { fn(); } catch {}
+  });
+
+  const loadLine = view.querySelector("#recLoadLine");
+  if (loadLine) loadLine.remove();
 }
