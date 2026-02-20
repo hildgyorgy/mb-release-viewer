@@ -13,7 +13,7 @@ export async function loadRecording(recId) {
 
   const rec = await fetchJSON(
     `https://musicbrainz.org/ws/2/recording/${recId}?fmt=json&inc=` +
-      `artist-credits+artist-rels+work-rels+place-rels+recording-rels+url-rels`
+    `artist-credits+artist-rels+work-rels+place-rels+recording-rels+url-rels`
   );
   recordingCache.set(recId, rec);
   return rec;
@@ -31,6 +31,13 @@ export async function loadWork(workId) {
   return w;
 }
 
+function forceHttps(url) {
+  const s = String(url || "").trim();
+  if (!s) return "";
+  if (s.startsWith("//")) return "https:" + s;
+  return s.replace(/^http:\/\//i, "https://");
+}
+
 export async function loadRelease(mbid) {
   const relUrl =
     `https://musicbrainz.org/ws/2/release/${mbid}` +
@@ -44,9 +51,9 @@ export async function loadRelease(mbid) {
     const ca = await fetchJSON(`https://coverartarchive.org/release/${mbid}`);
     covers = (ca?.images || [])
       .map((img, i) => {
-        const full = img.image || "";
-        const large = img.thumbnails?.large || img.thumbnails?.[500] || img.thumbnails?.[250] || full;
-        const thumb = img.thumbnails?.small || img.thumbnails?.[120] || large || full;
+        const full = forceHttps(img.image || "");
+        const large = forceHttps(img.thumbnails?.large || img.thumbnails?.[500] || img.thumbnails?.[250] || full);
+        const thumb = forceHttps(img.thumbnails?.small || img.thumbnails?.[120] || large || full);
 
         const parts = [];
         if (img.front) parts.push("front");
