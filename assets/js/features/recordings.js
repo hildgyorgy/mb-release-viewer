@@ -291,13 +291,13 @@ function setCommonCellHtml(view, html) {
   if (el) el.innerHTML = html;
 }
 
-function renderInlineSpinner(label = "Loading…") {
-  return `<div class="rec-empty muted">${escHtml(label)} <span class="rec-spin">|</span></div>`;
+function renderInlineSpinner() {
+  return `<div class="rec-empty muted"><span class="rec-spin">|</span></div>`;
 }
 
 function startSpinnerInside(containerEl) {
   const spinEl = containerEl?.querySelector?.(".rec-spin");
-  if (!spinEl) return () => {};
+  if (!spinEl) return () => { };
   return startAsciiSpinner((ch) => (spinEl.textContent = ch));
 }
 
@@ -317,10 +317,6 @@ export async function buildRecordingsView() {
 
   // 0) Render skeleton IMMEDIATELY (titles come from STATE media tracks)
   let html = `
-    <div class="muted" id="recLoadLine" style="margin-bottom:10px;">
-      Loading recordings <span id="recSpin">|</span>
-      <span id="recProg"></span>
-    </div>
 
     <div class="tracks">
       <table>
@@ -332,9 +328,12 @@ export async function buildRecordingsView() {
             <td class="len"></td>
           </tr>
           <tr>
-            <td></td>
-            <td colspan="2" id="recCommonCell">
-              ${renderInlineSpinner("Computing common credits…")}
+            <td class="num"></td>
+            <td colspan="3" id="recCommonCell">
+              <div class="rec-empty muted">
+                Computing <span id="recCommonProg">(0/${total})</span>
+                <span class="rec-spin">|</span>
+              </div>
             </td>
           </tr>
   `;
@@ -361,7 +360,7 @@ export async function buildRecordingsView() {
         <tr>
           <td></td>
           <td colspan="2" data-rec-id="${escHtml(recId)}">
-            ${renderInlineSpinner("Loading…")}
+            ${renderInlineSpinner()}
           </td>
         </tr>
       `;
@@ -376,13 +375,6 @@ export async function buildRecordingsView() {
 
   view.innerHTML = html;
 
-  // spin: global + per-row + common
-  const spinEl = view.querySelector("#recSpin");
-  const progEl = view.querySelector("#recProg");
-  const stopGlobalSpin = startAsciiSpinner((ch) => {
-    if (spinEl) spinEl.textContent = ch;
-  });
-
   // start spinners inside every row placeholder + common placeholder
   const rowStopFns = [];
   view.querySelectorAll('[data-rec-id] .rec-spin').forEach((el) => {
@@ -390,7 +382,7 @@ export async function buildRecordingsView() {
   });
   // common spinner
   const commonCell = view.querySelector("#recCommonCell");
-  const stopCommonSpin = commonCell ? startSpinnerInside(commonCell) : () => {};
+  const stopCommonSpin = commonCell ? startSpinnerInside(commonCell) : () => { };
 
   // 1) Load recordings one-by-one, fill rows as they arrive
   const recData = new Map();
@@ -399,9 +391,10 @@ export async function buildRecordingsView() {
   const itemsListForCommon = [];
 
   let loaded = 0;
-  if (progEl) progEl.textContent = `(${loaded}/${total})`;
+  const commonProgEl = view.querySelector("#recCommonProg");
 
   for (let k = 0; k < albumRecIds.length; k++) {
+
     const recId = albumRecIds[k];
 
     let rec = null;
@@ -431,7 +424,7 @@ export async function buildRecordingsView() {
     }
 
     loaded++;
-    if (progEl) progEl.textContent = `(${loaded}/${total})`;
+    if (commonProgEl) commonProgEl.textContent = `(${loaded}/${total})`;
 
     // throttle (no extra backoff)
     if (k < albumRecIds.length - 1) await sleep(REQUEST_GAP_MS);
@@ -467,12 +460,6 @@ export async function buildRecordingsView() {
     const grid = diffItems.length ? renderRecordingTechGrid(diffItems) : `<div class="rec-empty muted">--</div>`;
     setAllRecCellsHtml(view, recId, grid);
   }
-
-  // 3) cleanup spinners + line
-  stopGlobalSpin();
-  rowStopFns.forEach((fn) => {
-    try { fn(); } catch {}
-  });
 
   const loadLine = view.querySelector("#recLoadLine");
   if (loadLine) loadLine.remove();
