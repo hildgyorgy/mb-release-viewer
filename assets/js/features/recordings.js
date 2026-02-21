@@ -279,16 +279,20 @@ function collectMediumRecordingIds(medium) {
 // --- DOM helpers ------------------------------------------------------------
 
 function setAllRecCellsHtml(view, recId, html) {
-  // update every occurrence (same recording reused on a medium)
   const nodes = view.querySelectorAll(`[data-rec-id="${recId}"]`);
   nodes.forEach((el) => {
-    el.innerHTML = html;
+    el.innerHTML = `<div class="rec-reveal">${html}</div>`;
+    const wrap = el.querySelector(".rec-reveal");
+    requestAnimationFrame(() => wrap?.classList.add("is-in"));
   });
 }
 
 function setCommonCellHtml(view, html) {
   const el = view.querySelector("#recCommonCell");
-  if (el) el.innerHTML = html;
+  if (!el) return;
+  el.innerHTML = `<div class="rec-reveal">${html}</div>`;
+  const wrap = el.querySelector(".rec-reveal");
+  requestAnimationFrame(() => wrap?.classList.add("is-in"));
 }
 
 function renderInlineSpinner() {

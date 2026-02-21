@@ -86,7 +86,7 @@ function renderRoleList(items) {
         (it) => `
           <div>
             <div class="inst">${escHtml(it.role)}</div>
-            <div class="artists">${it.artists.map(mbArtistLink).join(" ")}</div>
+            <div class="artists">${it.artists.map(mbArtistLink).join(", ")}</div>
           </div>
         `
       )

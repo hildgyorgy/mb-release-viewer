@@ -700,6 +700,7 @@ tr.details.is-open .details-wrap {
   /* perf | (creators+work) */
   column-gap: 12px;
   align-items: start;
+  padding-bottom: 14px;
 }
 
 .detail-col--meta {
@@ -795,6 +796,19 @@ tr.track.is-open+tr.details .perf {
 
 .recording-grid .rec-person:not(:last-child) {
   margin-right: 0.35em;
+}
+
+/* recordings: content reveal micro-animation */
+.rec-reveal {
+  opacity: 0;
+  transform: translateY(2px);
+  transition: opacity 1000ms ease, transform 1000ms ease;
+  will-change: opacity, transform;
+}
+
+.rec-reveal.is-in {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 /* Fallback box ("--" / could not load) */
