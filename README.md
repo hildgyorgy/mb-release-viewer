@@ -12,29 +12,17 @@ Designed for clarity, structured credit overview and calm navigation — on desk
 
 ### What it focuses on
 
-- Track-first layout  
-- Performers separated from creators  
-- Technical / production credits clearly grouped  
-- Explicit work hierarchy (based strictly on MB relations)  
-- “Common credits” detection across recordings
-- mobile-friendly
+- Clean release overview
+- Incremental recording credit loading 
+- Structured technical credit grouping
+- Cover navigation
+- Minimal, mobile-friendly layout
 
-	•	Clean release overview
-	•	Incremental recording credit loading
-	•	Structured technical credit grouping
-	•	Cover navigation
-	•	Minimal, mobile-friendly layout
-
-No backend.  
-No database.  
-No tracking.  
-No magic.
-
-Just structured MB data.
+This project is an independent viewer and is not affiliated with or endorsed by MusicBrainz or MetaBrainz.
 
 ---
 
-## How to use
+### How to use
 
 - Paste a MusicBrainz release URL or MBID  
 - Or search directly  
