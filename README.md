@@ -9,8 +9,6 @@ the way credits deserve to be read.
 Built on the MusicBrainz API and Cover Art Archive.  
 Designed for clarity, structured credit overview and calm navigation — on desktop and mobile alike.
 
----
-
 ### What it focuses on
 
 - Clean release overview
@@ -21,22 +19,16 @@ Designed for clarity, structured credit overview and calm navigation — on desk
 
 This project is an independent viewer and is not affiliated with or endorsed by MusicBrainz or MetaBrainz.
 
----
-
 ### How to use
 
 - Paste a MusicBrainz release URL or MBID, or
 - Search directly
 - Optional comma separated search: Artist, Album
 
----
-
 ### Architecture
 
 Plain HTML, CSS and vanilla ES modules.  
 No frameworks. No build step.
-
----
 
 ### Version
 
