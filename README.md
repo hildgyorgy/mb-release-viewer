@@ -60,7 +60,7 @@ No excuses.
 
 ## Version
 
-**v1.0.0-rc3**
+**v1.0.0**
 
 Modular. Clean.
 
