@@ -10,16 +10,20 @@ Designed for clarity, structured credit overview and calm navigation — on desk
 
 ---
 
-### What this is
-
-An alternative way to look at a release:
+### What it focuses on
 
 - Track-first layout  
 - Performers separated from creators  
 - Technical / production credits clearly grouped  
 - Explicit work hierarchy (based strictly on MB relations)  
 - “Common credits” detection across recordings
-- mobile-friendly 
+- mobile-friendly
+
+	•	Clean release overview
+	•	Incremental recording credit loading
+	•	Structured technical credit grouping
+	•	Cover navigation
+	•	Minimal, mobile-friendly layout
 
 No backend.  
 No database.  
