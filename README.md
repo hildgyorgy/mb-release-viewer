@@ -59,10 +59,9 @@ No excuses.
 
 ## Version
 
-**v1.0.0-rc2**
+**v1.0.0-rc3**
 
-Modular. Clean.  
-Finally not a 2000-line single file.
+Modular. Clean.
 
 ---
 
