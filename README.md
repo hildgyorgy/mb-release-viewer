@@ -3,7 +3,7 @@
 A small, framework-free web app for reading **MusicBrainz releases**  
 like a human being who actually cares about credits.
 
-▶ Live demo: [https://hildgyorgy.github.io/...](https://hildgyorgy.github.io/mb-release-viewer/)
+▶ Live demo: [MusicBrain Release Viewer](https://hildgyorgy.github.io/mb-release-viewer/)
 
 ---
 
