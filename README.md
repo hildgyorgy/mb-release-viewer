@@ -7,6 +7,7 @@ the way credits deserve to be read.
 
 Built on the MusicBrainz API and Cover Art Archive.
 Designed for clarity, structured credit overview and calm navigation — on desktop and mobile alike.
+
 ---
 
 ## What this is
