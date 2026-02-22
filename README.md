@@ -31,10 +31,6 @@ This project is an independent viewer and is not affiliated with or endorsed by 
 Plain HTML, CSS and vanilla ES modules.  
 No frameworks. No build step.
 
-### Version
-
-**v1.0.0**
-
 ---
 
 © 2026 György Hild
