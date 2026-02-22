@@ -1,3 +1,4 @@
+![MusicBrainz Release Viewer screenshot](assets/hero.png)
 # MusicBrainz Release Viewer
 _version 1.0.0_
 
