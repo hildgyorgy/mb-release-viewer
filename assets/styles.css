@@ -300,6 +300,37 @@ a:hover {
   outline-offset: -2px;
 }
 
+.result {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 12px;
+  align-items: center;
+}
+
+.res-thumb {
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 10px;
+  object-fit: cover;
+  background: rgba(0, 0, 0, .06);
+  display: block;
+}
+
+.res-thumb.is-empty {
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+.res-text {
+  min-width: 0;
+}
+
+.res-title {
+  font-weight: 500;
+}
+
 /* ------------------------------------------------------------
    2) Layout blocks
 ------------------------------------------------------------ */

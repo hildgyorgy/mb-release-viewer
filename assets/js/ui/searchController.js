@@ -33,9 +33,19 @@ export function renderSearchResults(items) {
     .map(
       (it, i) => `
       <div class="result ${i === 0 ? "is-active" : ""}" data-i="${i}">
-        <div>${it.title}</div>
-        <div class="sub">${it.sub || ""}</div>
-      </div>
+<img
+  class="res-thumb"
+  src="https://coverartarchive.org/release/${it.mbid}/front-250"
+  alt=""
+  loading="lazy"
+  decoding="async"
+  onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'res-thumb is-empty',ariaHidden:'true'}));"
+/>
+  <div class="res-text">
+    <div class="res-title">${it.title}</div>
+    <div class="sub">${it.sub || ""}</div>
+  </div>
+</div>
     `
     )
     .join("");
