@@ -1,6 +1,7 @@
 # MusicBrainz Release Viewer
 
-A small, framework-free web app for reading MusicBrainz releases the way credits deserve to be read.
+A small, framework-free web app for reading MusicBrainz releases<br>
+the way credits deserve to be read.
 
 ▶ Open the viewer: 
 [MusicBrainz Release Viewer](https://hildgyorgy.github.io/mb-release-viewer/)
