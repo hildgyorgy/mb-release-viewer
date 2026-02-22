@@ -40,8 +40,6 @@ Plain HTML, CSS and vanilla ES modules.
 
 **v1.0.0**
 
-Modular. Clean.
-
 ---
 
 © 2026 György Hild  
