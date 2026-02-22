@@ -1,4 +1,4 @@
-# MusicBrainz Release Viewer
+# MusicBrainz Release Viewer — v1.0.0
 
 A small, framework-free web app for reading MusicBrainz releases  
 the way credits deserve to be read.
