@@ -15,7 +15,8 @@ An alternative way to look at a release:
 - Performers separated from creators  
 - Technical / production credits clearly grouped  
 - Explicit work hierarchy (based strictly on MB relations)  
-- “Common credits” detection across recordings  
+- “Common credits” detection across recordings
+- mobile-friendly 
 
 No backend.  
 No database.  
