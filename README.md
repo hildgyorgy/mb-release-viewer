@@ -1,12 +1,13 @@
 # MusicBrainz Release Viewer
 
-A small, framework-free web app for reading MusicBrainz releases<br>
+A small, framework-free web app for reading MusicBrainz releases  
 the way credits deserve to be read.
 
 ▶ Open the viewer: 
 [MusicBrainz Release Viewer](https://hildgyorgy.github.io/mb-release-viewer/)
 
-Built on the MusicBrainz API and Cover Art Archive. Designed for clarity, structured credit overview and calm navigation — on desktop and mobile alike.
+Built on the MusicBrainz API and Cover Art Archive.  
+Designed for clarity, structured credit overview and calm navigation — on desktop and mobile alike.
 
 ---
 
@@ -32,7 +33,7 @@ This project is an independent viewer and is not affiliated with or endorsed by 
 
 ### Architecture
 
-Plain HTML, CSS and vanilla ES modules.
+Plain HTML, CSS and vanilla ES modules.  
 No frameworks. No build step.
 
 ---
@@ -43,6 +44,6 @@ No frameworks. No build step.
 
 ---
 
-© 2026 György Hild  
-Data: MusicBrainz contributors — CC BY-NC-SA 3.0
+© 2026 György Hild
+Data: MusicBrainz contributors — CC BY-NC-SA 3.0  
 Made with respect for structured music data.
