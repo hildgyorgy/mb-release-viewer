@@ -3,7 +3,8 @@
 A small, framework-free web app for reading **MusicBrainz releases**  
 the way credits deserve to be read.
 
-▶ : [MusicBrain Release Viewer](https://hildgyorgy.github.io/mb-release-viewer/)
+▶ Open the viewer:
+[MusicBrainz Release Viewer](https://hildgyorgy.github.io/mb-release-viewer/)
 
 Built on the MusicBrainz API and Cover Art Archive.
 Designed for clarity, structured credit overview and calm navigation — on desktop and mobile alike.
