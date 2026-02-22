@@ -10,7 +10,7 @@ Designed for clarity, structured credit overview and calm navigation — on desk
 
 ---
 
-## What this is
+# What this is
 
 An alternative way to look at a release:
 
