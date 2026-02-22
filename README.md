@@ -24,36 +24,19 @@ This project is an independent viewer and is not affiliated with or endorsed by 
 
 ### How to use
 
-- Paste a MusicBrainz release URL or MBID  
-- Or search directly  
-
-Optional structured search:
-Artist, Album
+- Paste a MusicBrainz release URL or MBID, or
+- Search directly
+- Optional comma separated search: Artist, Album
 
 ---
 
-## Architecture
+### Architecture
 
 Plain HTML, CSS and vanilla ES modules.
-core/       state & utilities
-services/   MusicBrainz API layer
-ui/         layout, theme, search, lightbox
-features/   tracks / recordings
-No build step.  
-No dependencies.  
-No excuses.
 
 ---
 
-## Tech
-
-- MusicBrainz Web Service v2  
-- Cover Art Archive  
-- GitHub Pages  
-
----
-
-## Version
+### Version
 
 **v1.0.0**
 
