@@ -32,6 +32,7 @@ This project is an independent viewer and is not affiliated with or endorsed by 
 ### Architecture
 
 Plain HTML, CSS and vanilla ES modules.
+No frameworks. No build step.
 
 ---
 
