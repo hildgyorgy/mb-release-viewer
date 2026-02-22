@@ -33,6 +33,6 @@ No frameworks. No build step.
 
 ---
 
-© 2026 György Hild
+© 2026 György Hild  
 Data: MusicBrainz contributors — CC BY-NC-SA 3.0  
 Made with respect for structured music data.
