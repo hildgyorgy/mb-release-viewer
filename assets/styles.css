@@ -1,4 +1,4 @@
-/* MB Release Viewer – cleaned + consistent (v1.0.0-rc2 */
+/* MB Release Viewer (v1.0.0 */
 
 html {
   width: 100%;
@@ -604,6 +604,55 @@ a:hover {
 }
 
 .theme-fab svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+/* ------------------------------------------------------------
+   4.6) Streaming buttons (Spotify / Apple Music)
+------------------------------------------------------------ */
+
+.streaming {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  /* artist alatt, meta felett */
+  margin: -14px 0 16px;
+}
+
+.stream-btn {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 999px;
+
+  border: 0px solid var(--border-2);
+  background: var(--panel-2);
+  color: var(--text);
+
+  display: grid;
+  place-items: center;
+
+  cursor: pointer;
+  text-decoration: none;
+
+  flex: 0 0 auto;
+  white-space: nowrap;
+
+  transition: transform 80ms ease, filter 120ms ease;
+}
+
+.stream-btn:hover {
+  filter: brightness(1.08);
+}
+
+.stream-btn:active {
+  transform: scale(0.98);
+}
+
+.stream-btn svg {
   width: 16px;
   height: 16px;
   display: block;

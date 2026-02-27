@@ -41,7 +41,7 @@ function forceHttps(url) {
 export async function loadRelease(mbid) {
   const relUrl =
     `https://musicbrainz.org/ws/2/release/${mbid}` +
-    `?fmt=json&inc=recordings+artists+labels+release-groups+artist-credits+recording-rels+work-rels+annotation+release-rels+artist-rels+label-rels`;
+    `?fmt=json&inc=recordings+artists+labels+release-groups+artist-credits+recording-rels+work-rels+annotation+release-rels+artist-rels+label-rels+url-rels`;
 
   const rel = await fetchJSON(relUrl);
 

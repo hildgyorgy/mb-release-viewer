@@ -1,6 +1,7 @@
 import { escHtml, artistCreditToText, fmtMs, mediumLabel } from "../core/util.js";
+import { ICON_SPOTIFY, ICON_APPLE_MUSIC } from "./icons.js";
 
-export function renderHeader({ title, cover, mbLink, artist, date, country, label, catno, barcode, releaseNotes }) {
+export function renderHeader({ title, cover, mbLink, artist, date, country, label, catno, barcode, releaseNotes, streaming }) {
   return `
     <div class="row header-row">
       <div class="cover">
@@ -15,6 +16,18 @@ export function renderHeader({ title, cover, mbLink, artist, date, country, labe
         <div class="artist">
           ${artist ? escHtml(artist) : "<span class='muted'>(n/a)</span>"}
         </div>
+
+                ${(() => {
+          const sp = streaming?.spotifyUrl || "";
+          const am = streaming?.appleMusicUrl || "";
+          if (!sp && !am) return "";
+          return `
+            <div class="streaming">
+              ${sp ? `<a class="stream-btn" href="${sp}" target="_blank" rel="noreferrer noopener" aria-label="Spotify">${ICON_SPOTIFY}</a>` : ""}
+              ${am ? `<a class="stream-btn" href="${am}" target="_blank" rel="noreferrer noopener" aria-label="Apple Music">${ICON_APPLE_MUSIC}</a>` : ""}
+            </div>
+          `;
+        })()}
 
         <div class="meta">
           <div><span class="meta-k">Date:</span> ${date ? escHtml(date) : "<span class='muted'>(n/a)</span>"}</div>

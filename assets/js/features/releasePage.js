@@ -43,6 +43,30 @@ function hydrateUI(out, flatTracks) {
  * @param {{rel:Object, cover:string|null, covers:Array}} param0
  */
 export function renderReleasePage(out, { rel, cover, covers }) {
+    function pickStreamingLinksFromRelease(rel) {
+    const rels = Array.isArray(rel?.relations) ? rel.relations : [];
+
+    let spotifyUrl = "";
+    let appleMusicUrl = "";
+
+    for (const r of rels) {
+      const tt = r.target_type ?? r["target-type"];
+      if (tt !== "url") continue;
+
+      const u = r.url?.resource || r.target?.resource || "";
+      const url = String(u || "").trim();
+      if (!url) continue;
+
+      const low = url.toLowerCase();
+
+      if (!spotifyUrl && low.includes("spotify.com")) spotifyUrl = url;
+      if (!appleMusicUrl && low.includes("music.apple.com")) appleMusicUrl = url;
+
+      if (spotifyUrl && appleMusicUrl) break;
+    }
+
+    return { spotifyUrl, appleMusicUrl };
+  }
   const title = rel.title || "(untitled)";
   const artist = artistCreditToText(rel["artist-credit"]);
   const date = rel.date || rel["release-events"]?.[0]?.date || "";
@@ -56,6 +80,7 @@ export function renderReleasePage(out, { rel, cover, covers }) {
 
   const annotation = (rel.annotation || "").trim();
   const mbLink = `https://musicbrainz.org/release/${rel.id}`;
+  const streaming = pickStreamingLinksFromRelease(rel);
 
   // cover gallery state
   const gallery = Array.isArray(covers) ? covers : [];
@@ -96,7 +121,7 @@ export function renderReleasePage(out, { rel, cover, covers }) {
   });
 
   out.innerHTML = `
-    ${renderHeader({ title, cover, mbLink, artist, date, country, label, catno, barcode, releaseNotes })}
+    ${renderHeader({ title, cover, mbLink, artist, date, country, label, catno, barcode, releaseNotes, streaming })}
     <div class="views">
       ${renderTracksView(mediaWithTracks, annotation)}
       ${renderRecordingsViewShell()}
