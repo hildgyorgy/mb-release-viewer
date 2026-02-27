@@ -1,6 +1,6 @@
 ![MusicBrainz Release Viewer screenshot](assets/hero.png)
 # MusicBrainz Release Viewer
-_version 1.0.0_
+_version 1.1.0_
 
 A small, framework-free web app for reading MusicBrainz releases  
 the way credits deserve to be read.
@@ -18,6 +18,7 @@ Designed for clarity, structured credit overview and calm navigation — on desk
 - Structured technical credit grouping
 - Cover navigation
 - Minimal, mobile-friendly layout
+- album links to streaming platforms
 
 This project is an independent viewer and is not affiliated with or endorsed by MusicBrainz or MetaBrainz.
 
