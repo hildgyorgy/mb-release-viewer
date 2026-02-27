@@ -337,7 +337,7 @@ a:hover {
 .row {
   display: grid;
   grid-template-columns: auto 1fr;
-  column-gap: 30px;
+  column-gap: 35px;
   align-items: start;
 }
 
@@ -347,8 +347,8 @@ a:hover {
 }
 
 .header-main h1 {
-  font-size: 40px;
-  line-height: 1.15;
+  font-size: 42px;
+  line-height: 1;
   margin: 0 0 10px;
 }
 
@@ -616,10 +616,10 @@ a:hover {
 .streaming {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
 
   /* artist alatt, meta felett */
-  margin: -14px 0 16px;
+  margin: -8px 0 20px;
 }
 
 .stream-btn {
@@ -653,8 +653,8 @@ a:hover {
 }
 
 .stream-btn svg {
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
   display: block;
 }
 

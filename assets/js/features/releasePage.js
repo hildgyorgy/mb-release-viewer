@@ -48,6 +48,7 @@ export function renderReleasePage(out, { rel, cover, covers }) {
 
     let spotifyUrl = "";
     let appleMusicUrl = "";
+    let tidalUrl = "";
 
     for (const r of rels) {
       const tt = r.target_type ?? r["target-type"];
@@ -61,11 +62,12 @@ export function renderReleasePage(out, { rel, cover, covers }) {
 
       if (!spotifyUrl && low.includes("spotify.com")) spotifyUrl = url;
       if (!appleMusicUrl && low.includes("music.apple.com")) appleMusicUrl = url;
+      if (!tidalUrl && low.includes("tidal.com")) tidalUrl = url;
 
-      if (spotifyUrl && appleMusicUrl) break;
+      if (spotifyUrl && appleMusicUrl && tidalUrl) break;
     }
 
-    return { spotifyUrl, appleMusicUrl };
+    return { spotifyUrl, appleMusicUrl, tidalUrl };
   }
   const title = rel.title || "(untitled)";
   const artist = artistCreditToText(rel["artist-credit"]);
