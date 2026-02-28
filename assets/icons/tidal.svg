@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" image-rendering="optimizeQuality" fill-rule="evenodd" clip-rule="evenodd" viewBox="0 0 40 40">
+  <path d="M 20 0 C 31.046 0 40 8.954 40 20 C 40 31.046 31.046 40 20 40 C 8.954 40 0 31.046 0 20 C 0 8.954 8.954 0 20 0 Z M 23.936 17.145 L 20.001 21.081 L 23.937 25.018 L 20.001 28.955 L 16.064 25.018 L 20.001 21.082 L 16.064 17.145 L 20.001 13.21 L 23.937 17.145 L 27.873 13.209 L 31.809 17.145 L 27.873 21.082 L 23.936 17.145 Z M 16.064 17.145 L 12.127 21.082 L 8.191 17.145 L 12.127 13.209 L 16.064 17.145 Z"/>
+</svg>
