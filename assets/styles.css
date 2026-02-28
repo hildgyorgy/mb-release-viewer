@@ -162,7 +162,7 @@ a:hover {
   opacity: 1;
   white-space: nowrap;
   font-size: inherit;
-  color: var(--link);
+  color: var(--meta);
 }
 
 .top .search {
@@ -198,8 +198,8 @@ a:hover {
   /* letter-spacing: var(--hdr-track); */
   /* text-transform: uppercase; */
 
-  color: var(--link);
-  caret-color: var(--link);
+  color: var(--meta);
+  caret-color: var(--meta);
 
   outline: none;
   box-shadow: none;
@@ -208,7 +208,7 @@ a:hover {
 }
 
 #omni::placeholder {
-  color: var(--muted);
+  color: var(--meta);
   opacity: 1;
 }
 
@@ -220,13 +220,13 @@ a:hover {
 #omni:focus-visible {
   border-color: var(--border-2);
   color: var(--text);
-  caret-color: var(--link);
+  caret-color: var(--meta);
   outline: none;
   box-shadow: none;
 }
 
 #omni.is-loaded {
-  color: var(--link);
+  color: var(--meta);
 }
 
 .go-btn {
@@ -677,9 +677,10 @@ a:hover {
 ------------------------------------------------------------ */
 
 .artist {
-  font-size: 18px;
-  font-weight: 500;
-  opacity: 0.9;
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--link);
+  opacity: 1;
   margin-bottom: 25px;
 }
 
