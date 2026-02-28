@@ -43,12 +43,14 @@ function hydrateUI(out, flatTracks) {
  * @param {{rel:Object, cover:string|null, covers:Array}} param0
  */
 export function renderReleasePage(out, { rel, cover, covers }) {
-    function pickStreamingLinksFromRelease(rel) {
+  function pickStreamingLinksFromRelease(rel) {
     const rels = Array.isArray(rel?.relations) ? rel.relations : [];
 
     let spotifyUrl = "";
     let appleMusicUrl = "";
     let tidalUrl = "";
+    let qobuzUrl = "";
+
 
     for (const r of rels) {
       const tt = r.target_type ?? r["target-type"];
@@ -63,11 +65,13 @@ export function renderReleasePage(out, { rel, cover, covers }) {
       if (!spotifyUrl && low.includes("spotify.com")) spotifyUrl = url;
       if (!appleMusicUrl && low.includes("music.apple.com")) appleMusicUrl = url;
       if (!tidalUrl && low.includes("tidal.com")) tidalUrl = url;
+      if (!qobuzUrl && low.includes("qobuz.com")) qobuzUrl = url;
 
-      if (spotifyUrl && appleMusicUrl && tidalUrl) break;
+
+      if (spotifyUrl && appleMusicUrl && tidalUrl && qobuzUrl) break;
     }
 
-    return { spotifyUrl, appleMusicUrl, tidalUrl };
+    return { spotifyUrl, appleMusicUrl, tidalUrl, qobuzUrl };
   }
   const title = rel.title || "(untitled)";
   const artist = artistCreditToText(rel["artist-credit"]);
@@ -136,7 +140,7 @@ export function renderReleasePage(out, { rel, cover, covers }) {
   layoutSync(out);
 
   // cover image load can change intrinsic sizing; re-sync once
-const img = out.querySelector("#coverImg");
+  const img = out.querySelector("#coverImg");
   if (img) {
     const relock = () => layoutSync(out);
     img.addEventListener("load", relock, { once: true });

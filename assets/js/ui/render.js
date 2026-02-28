@@ -1,5 +1,5 @@
 import { escHtml, artistCreditToText, fmtMs, mediumLabel } from "../core/util.js";
-import { ICON_SPOTIFY, ICON_APPLE_MUSIC, ICON_TIDAL } from "./icons.js";
+import { ICON_SPOTIFY, ICON_APPLE_MUSIC, ICON_TIDAL, ICON_QOBUZ } from "./icons.js";
 
 export function renderHeader({ title, cover, mbLink, artist, date, country, label, catno, barcode, releaseNotes, streaming }) {
   return `
@@ -21,12 +21,15 @@ export function renderHeader({ title, cover, mbLink, artist, date, country, labe
           const sp = streaming?.spotifyUrl || "";
           const am = streaming?.appleMusicUrl || "";
           const td = streaming?.tidalUrl || "";
-          if (!sp && !am) return "";
+          const qb = streaming?.qobuzUrl || "";
+          
+          if (!sp && !am && !td && !qb) return "";
           return `
             <div class="streaming">
               ${sp ? `<a class="stream-btn" href="${sp}" target="_blank" rel="noreferrer noopener" aria-label="Spotify">${ICON_SPOTIFY}</a>` : ""}
               ${am ? `<a class="stream-btn" href="${am}" target="_blank" rel="noreferrer noopener" aria-label="Apple Music">${ICON_APPLE_MUSIC}</a>` : ""}
               ${td ? `<a class="stream-btn" href="${td}" target="_blank" rel="noreferrer noopener" aria-label="Tidal">${ICON_TIDAL}</a>` : ""}
+              ${qb ? `<a class="stream-btn" href="${qb}" target="_blank" rel="noreferrer noopener" aria-label="Qobuz">${ICON_QOBUZ}</a>` : ""}
             </div>
           `;
         })()}
