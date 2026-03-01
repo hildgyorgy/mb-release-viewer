@@ -814,7 +814,7 @@ tr.details.is-open .details-wrap {
 
 .detail-cols {
   display: grid;
-  grid-template-columns: 0.85fr 2.5fr;
+  grid-template-columns: 0.95fr 2.45fr;
   /* perf | (creators+work) */
   column-gap: 12px;
   align-items: start;
@@ -823,15 +823,11 @@ tr.details.is-open .details-wrap {
 
 .detail-col--meta {
   display: grid;
-  grid-template-columns: 0.9fr 1.6fr;
+  grid-template-columns: 0.95fr 1.55fr;
   /* creators | work */
   column-gap: 12px;
   align-items: start;
 }
-
-/* .detail-col {
-  min-width: 0;
-} */
 
 /* ------------------------------------------------------------
    8) Performer/Creator blocks
@@ -859,14 +855,14 @@ tr.track.is-open+tr.details .perf {
 }
 
 .perf .inst {
-  opacity: .65;
+  opacity: .7;
   font-size: 12px;
   letter-spacing: .02em;
 }
 
 .perf .artists a {
   margin-right: 8px;
-  opacity: 0.9;
+  opacity: 0.8;
 }
 
 /* ------------------------------------------------------------
@@ -1080,9 +1076,7 @@ tr.track.is-open+tr.details .perf {
 
   .theme-fab {
     position: static;
-    /* a flex-sor része */
     margin: 0;
-    /* ne toljon el semmit */
   }
 
   .detail-cols {
