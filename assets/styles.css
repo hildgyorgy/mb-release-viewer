@@ -16,7 +16,7 @@ html {
   --page-pad: 24px;
   --top-h: 90px;
   --hdr-font: 13px;
-  --hdr-track: 0.25em;
+  --hdr-track: 0.30em;
 
   --bg: #ffffff;
   --panel: #ffffff;
@@ -36,9 +36,9 @@ html {
 
   --tr-hover: rgba(0, 0, 0, 0.03);
 
-  --tabs-gap: 10px;
-  --tab-pad-y: 7px;
-  --tab-pad-x: 10px;
+  --tabs-gap: 12px;
+  --tab-pad-y: 8px;
+  --tab-pad-x: 12px;
 
   --col-num: 42px;
   --col-len: 70px;
@@ -53,7 +53,7 @@ html {
 :root[data-theme="dark"] {
   --bg: #0b0c10;
   --panel: #141823;
-  --panel-2: #0f1220;
+  --panel-2: #171c33;
 
   --border: #242a3a;
   --border-2: #2b3247;
@@ -346,19 +346,76 @@ a:hover {
 }
 
 /* ------------------------------------------------------------
-   2) Layout blocks
+   Header hero: 3-block grid (cover / main / tabs)
 ------------------------------------------------------------ */
-.row {
+
+.header-hero {
   display: grid;
-  grid-template-columns: auto 1fr;
-  column-gap: 35px;
-  align-items: start;
+  gap: 35px;
 }
 
-.main {
-  flex: 1;
-  min-width: 0;
+/* alapból (mobil): egymás alatt */
+.header-hero {
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    "cover"
+    "main"
+    "tabs";
 }
+
+.header-cover {
+  grid-area: cover;
+}
+
+.header-main {
+  grid-area: main;
+}
+
+.header-tabs {
+  grid-area: tabs;
+  width: 100%;
+}
+
+.header-cover .cover-box {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+}
+
+.header-cover .cover-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* desktop: 2 oszlop, tabs a cover alatt, main jobbra */
+@media (min-width: 641px) {
+  .header-hero {
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      "cover main"
+      "tabs  main";
+    align-items: start;
+  }
+
+  .header-main h1{
+    transform: translateY(-4px);
+  }
+
+  .header-cover .cover-box {
+    max-width: 360px;
+  }
+
+  .header-tabs {
+    width: fit-content;
+    max-width: 100%;
+    white-space: nowrap;
+  }
+}
+
+/* ------------------------------------------------------------
+   2) Layout blocks
+------------------------------------------------------------ */
 
 .header-main h1 {
   font-size: 42px;
@@ -369,13 +426,6 @@ a:hover {
 /* ------------------------------------------------------------
    3) Cover + cover navigation
 ------------------------------------------------------------ */
-.cover {
-  flex: 0 0 auto;
-  display: inline-block;
-  max-width: 100%;
-  width: fit-content;
-  min-width: 0;
-}
 
 .cover-box {
   width: 100%;
@@ -419,7 +469,6 @@ a:hover {
   max-width: 100%;
   object-fit: cover;
   display: block;
-
   will-change: transform;
 }
 
@@ -447,19 +496,6 @@ a:hover {
     transform: translateY(-4px);
     box-shadow: 0 18px 28px rgba(0, 0, 0, .33);
   }
-}
-
-.header-nav {
-  margin-top: 25px;
-}
-
-.cover-nav-row {
-  margin-top: 20px;
-  width: fit-content;
-  max-width: 100%;
-  display: flex;
-  align-items: center;
-  gap: var(--tabs-gap);
 }
 
 /* ------------------------------------------------------------
@@ -537,25 +573,6 @@ a:hover {
   color: var(--bg);
 }
 
-.cover-tabs {
-  display: flex;
-  gap: var(--tabs-gap);
-  align-items: center;
-  width: fit-content;
-  max-width: 100%;
-  flex: 0 0 auto;
-  flex-wrap: nowrap;
-  /* NE törjön */
-  white-space: nowrap;
-  /* biztos ami biztos */
-}
-
-.cover-tabs .tab {
-  flex: 0 0 auto;
-  width: auto;
-  text-align: center;
-}
-
 .mb-link {
   flex: 0 0 auto;
   width: auto;
@@ -609,18 +626,24 @@ a:hover {
   }
 }
 
+.theme-fab svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+  transition: transform 120ms ease, filter 120ms ease;
+}
+
 .theme-fab:hover {
+  filter: brightness(1.12);
+}
+
+.theme-fab:hover svg {
+  transform: scale(1.06);
   filter: brightness(1.08);
 }
 
 .theme-fab:active {
   transform: scale(0.98);
-}
-
-.theme-fab svg {
-  width: 16px;
-  height: 16px;
-  display: block;
 }
 
 /* ------------------------------------------------------------
@@ -631,8 +654,6 @@ a:hover {
   display: flex;
   align-items: center;
   gap: 6px;
-
-  /* artist alatt, meta felett */
   margin: -10px 0 18px;
 }
 
@@ -644,7 +665,7 @@ a:hover {
 
   border: 0px solid var(--border-2);
   background: var(--panel-2);
-  color: var(--text);
+  color: var(--muted);
 
   display: grid;
   place-items: center;
@@ -659,6 +680,7 @@ a:hover {
 }
 
 .stream-btn:hover {
+  color: var(--text);
   filter: brightness(1.08);
 }
 
@@ -688,7 +710,8 @@ a:hover {
   margin-top: 15px;
   font-size: 13px;
   line-height: 1.4;
-  opacity: 0.75;
+  opacity: 0.8
+  ;
 }
 
 .meta>div {
@@ -938,6 +961,9 @@ tr.track.is-open+tr.details .perf {
 
   :root {
     --page-pad: 24px;
+    --tabs-gap: 12px;
+    --tab-pad-y: 9px;
+    --tab-pad-x: 14px;
     /* --topbar: rgba(10, 20, 40, 0.88);
     --border: rgba(255,255,255,0.14);
     --text: rgba(255,255,255,0.92);
@@ -955,16 +981,37 @@ tr.track.is-open+tr.details .perf {
     text-align: center;
   }
 
+  .header-hero {
+    padding-inline: 16px;
+    gap: 15px;
+    /* ez lesz a közös "hasáb" */
+  }
+
   .header-main {
-    padding-left: 16px;
-    padding-right: 8px;
+    padding-left: 0;
+    padding-right: 0;
     padding-top: 6px;
-    /* opcionális egyensúly */
   }
 
   .header-main h1 {
-    font-size: 42px;
+    font-size: 40px;
     line-height: 1.1;
+  }
+
+  .header-tabs {
+    width: 100%;
+    white-space: normal;
+    justify-content: center;
+  }
+
+  .header-tabs .tabs {
+    flex-wrap: nowrap;
+    width: 100%;
+    justify-content: space-between;
+  }
+
+    .tab{
+    font-size: 14px;
   }
 
   .artist {
@@ -1076,7 +1123,6 @@ tr.track.is-open+tr.details .perf {
     white-space: normal;
   }
 
-  /* Ha a kilógás link-törésből jön */
   .recording-grid,
   .recording-grid a {
     overflow-wrap: anywhere;
@@ -1096,12 +1142,9 @@ tr.track.is-open+tr.details .perf {
     --top-h: 20px;
   }
 
-  /* grabber-only */
   :root[data-hdr="open"] {
     --top-h: 80px;
   }
-
-  /* full mobile header height */
 
   .wrap {
     padding-top: var(--top-h);
@@ -1154,7 +1197,6 @@ tr.track.is-open+tr.details .perf {
     pointer-events: auto;
   }
 
-  /* Ensure dropdown stacks above content */
   .results {
     z-index: 2000;
   }

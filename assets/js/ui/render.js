@@ -3,26 +3,25 @@ import { ICON_SPOTIFY, ICON_APPLE_MUSIC, ICON_TIDAL, ICON_QOBUZ } from "./icons.
 
 export function renderHeader({ title, cover, mbLink, artist, date, country, label, catno, barcode, releaseNotes, streaming }) {
   return `
-    <div class="row header-row">
-      <div class="cover">
+    <section class="header-hero">
+      <div class="header-cover">
         <div class="cover-box">
           ${cover ? `<img id="coverImg" src="${cover}" alt="Cover">` : ""}
         </div>
       </div>
 
-      <div class="main header-main">
+      <div class="header-main">
         <h1>${escHtml(title)}</h1>
 
         <div class="artist">
           ${artist ? escHtml(artist) : "<span class='muted'>(n/a)</span>"}
         </div>
 
-                ${(() => {
+        ${(() => {
           const sp = streaming?.spotifyUrl || "";
           const am = streaming?.appleMusicUrl || "";
           const td = streaming?.tidalUrl || "";
           const qb = streaming?.qobuzUrl || "";
-          
           if (!sp && !am && !td && !qb) return "";
           return `
             <div class="streaming">
@@ -43,19 +42,13 @@ export function renderHeader({ title, cover, mbLink, artist, date, country, labe
           ${releaseNotes ? `<div><span class="meta-k">Notes:</span> <span class="muted">${escHtml(releaseNotes)}</span></div>` : ""}
         </div>
       </div>
-    </div>
 
-    <div class="header-nav">
-      <div class="cover-nav-row">
-        <div class="tabs cover-tabs" id="tabs">
-          <button class="tab is-active" data-view="tracks">Tracklist</button>
-          <button class="tab" data-view="recordings">Recordings</button>
-          <a class="tab mb-link" href="${mbLink}" target="_blank" rel="noreferrer">MusicBrainz</a>
-        </div>
-
-        <button class="theme-fab" id="themeToggle" type="button"></button>
+      <div class="header-tabs tabs" id="tabs">
+        <button class="tab is-active" data-view="tracks">Tracklist</button>
+        <button class="tab" data-view="recordings">Recordings</button>
+        <a class="tab mb-link" href="${mbLink}" target="_blank" rel="noreferrer">MusicBrainz</a>
       </div>
-    </div>
+    </section>
   `;
 }
 
@@ -68,8 +61,8 @@ export function renderTracksView(mediaWithTracks, annotation) {
         <table>
           <tbody>
             ${mediaWithTracks
-              .map((m) => {
-                const head = `
+      .map((m) => {
+        const head = `
 				  <tr class="medium-row">
 				    <td colspan="3" class="medium-cell">
 				      ${escHtml(mediumLabel(m, mediaCount))}
@@ -77,11 +70,11 @@ export function renderTracksView(mediaWithTracks, annotation) {
 				  </tr>
 				`;
 
-                const rows = m.tracks
-                  .map((t) => {
-                    const idx = t._i;
-                    const recId = t.rec?.id || "";
-                    return `
+        const rows = m.tracks
+          .map((t) => {
+            const idx = t._i;
+            const recId = t.rec?.id || "";
+            return `
                       <tr class="track" data-i="${idx}" data-rec="${recId}">
                         <td class="num">${t.pos ?? ""}</td>
                         <td class="title">${escHtml(t.title || "")}</td>
@@ -99,12 +92,12 @@ export function renderTracksView(mediaWithTracks, annotation) {
                         </td>
                       </tr>
                     `;
-                  })
-                  .join("");
+          })
+          .join("");
 
-                return head + rows;
-              })
-              .join("")}
+        return head + rows;
+      })
+      .join("")}
           </tbody>
         </table>
       </div>

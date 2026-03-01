@@ -1,17 +1,12 @@
 <!doctype html>
 <html lang="hu">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MusicBrainz Release Viewer</title>
   <link rel="icon" href="favicon.ico">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <script>
-  (function () {
-    const t = localStorage.getItem("mb_theme");
-    if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
-  })();
-</script>
   <link rel="stylesheet" href="assets/styles.css" />
 </head>
 
@@ -23,14 +18,13 @@
 
         <div class="search">
           <div class="search-field">
-            <input id="omni" type="text" autocomplete="off" spellcheck="false"
-              placeholder="Search releases or paste a MB release URL / MBID" />
+            <input id="omni" type="text" autocomplete="off" spellcheck="false" placeholder="Search releases or paste a MB release URL / MBID" />
             <div class="results" id="results" hidden></div>
           </div>
-
           <button id="go" class="go-btn" title="Load from MusicBrainz">
             <img src="assets/icons/MB_go.png" alt="MusicBrainz" />
           </button>
+          <button class="theme-fab" id="themeToggle" type="button"></button>
         </div>
       </div>
     </div>
@@ -42,15 +36,16 @@
     </div>
   </main>
 
-<footer class="footer muted">
-  <div class="container footer-inner">
-    <div class="footer-right">
-      <div>MB Release Viewer v1.1.0</div>
-      <div>Data: MusicBrainz contributors • CC BY-NC-SA 3.0</div>
+  <footer class="footer muted">
+    <div class="container footer-inner">
+      <div class="footer-right">
+        <div>MB Release Viewer v1.1.0</div>
+        <div>Data: MusicBrainz contributors • CC BY-NC-SA 3.0</div>
+      </div>
     </div>
-  </div>
-</footer>
+  </footer>
 
   <script type="module" src="assets/js/app.js"></script>
 </body>
+
 </html>

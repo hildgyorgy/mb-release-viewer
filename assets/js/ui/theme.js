@@ -1,12 +1,10 @@
 import { $ } from "../core/util.js";
 import { ICON_MOON, ICON_SUN } from "./icons.js";
 
-const THEME_STORAGE_KEY = "mb_theme";
+// Session-only override: reload után null lesz (pont ez kell)
+let sessionOverride = null; // "light" | "dark" | null
 
 export function getPreferredTheme() {
-  const saved = localStorage.getItem(THEME_STORAGE_KEY);
-  if (saved === "light" || saved === "dark") return saved;
-
   const prefersDark =
     window.matchMedia &&
     window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -17,7 +15,6 @@ export function getPreferredTheme() {
 export function applyTheme(theme) {
   const t = theme === "dark" ? "dark" : "light";
   document.documentElement.dataset.theme = t;
-  localStorage.setItem(THEME_STORAGE_KEY, t);
 
   const btn = document.getElementById("themeToggle");
   if (btn) {
@@ -28,8 +25,9 @@ export function applyTheme(theme) {
 }
 
 export function toggleTheme() {
-  const cur = document.documentElement.dataset.theme || "light";
-  applyTheme(cur === "dark" ? "light" : "dark");
+  const cur = document.documentElement.dataset.theme || getPreferredTheme();
+  sessionOverride = cur === "dark" ? "light" : "dark";
+  applyTheme(sessionOverride);
 }
 
 export function bindThemeToggleOnce(root = document) {
@@ -39,5 +37,15 @@ export function bindThemeToggleOnce(root = document) {
 
   btn.addEventListener("click", toggleTheme);
 
-  applyTheme(document.documentElement.dataset.theme || getPreferredTheme());
+  // induláskor: rendszer (ha nincs session override)
+  applyTheme(sessionOverride || getPreferredTheme());
+
+  // Ha a rendszer téma vált futás közben, kövessük – de csak ha nincs override
+  const mq = window.matchMedia?.("(prefers-color-scheme: dark)");
+  if (mq && !mq.__mbThemeBound) {
+    mq.__mbThemeBound = true;
+    mq.addEventListener("change", () => {
+      if (!sessionOverride) applyTheme(getPreferredTheme());
+    });
+  }
 }

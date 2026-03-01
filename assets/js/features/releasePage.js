@@ -16,7 +16,7 @@ import { bindTrackToggles } from "./tracks.js";
 
 function hydrateUI(out, flatTracks) {
   // Theme is applied in App.init(); here we only bind UI behaviour.
-  bindThemeToggleOnce(out);
+  bindThemeToggleOnce(document);
 
   bindTabsOnce({
     onViewActivated: async (view) => {
