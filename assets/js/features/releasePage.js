@@ -46,6 +46,28 @@ export function renderReleasePage(out, { rel, cover, covers }) {
   function pickStreamingLinksFromRelease(rel) {
     const rels = Array.isArray(rel?.relations) ? rel.relations : [];
 
+    // Qobuz normalize to play.qobuz.com if possible (purchase pages are common, but we want the streaming page)
+    function normalizeQobuzToPlay(url) {
+      const s = String(url || "").trim();
+      if (!s) return "";
+
+      let u;
+      try { u = new URL(s); } catch { return s; }
+
+      const host = u.hostname.toLowerCase();
+
+      // Already streaming page
+      if (host === "play.qobuz.com") return u.toString();
+
+      // Convert purchase page -> play page (extract album id from the end)
+      if (host.endsWith("qobuz.com")) {
+        const m = u.pathname.match(/\/album\/[^/]+\/([a-z0-9]+)$/i);
+        if (m && m[1]) return `https://play.qobuz.com/album/${m[1]}`;
+      }
+
+      return s;
+    }
+
     let spotifyUrl = "";
     let appleMusicUrl = "";
     let tidalUrl = "";
@@ -65,12 +87,15 @@ export function renderReleasePage(out, { rel, cover, covers }) {
       if (!spotifyUrl && low.includes("spotify.com")) spotifyUrl = url;
       if (!appleMusicUrl && low.includes("music.apple.com")) appleMusicUrl = url;
       if (!tidalUrl && low.includes("tidal.com")) tidalUrl = url;
-      if (!qobuzUrl && low.includes("qobuz.com")) qobuzUrl = url;
-
+      if (low.includes("qobuz.com")) {
+        if (low.includes("play.qobuz.com")) qobuzUrl = url;
+        else if (!qobuzUrl) qobuzUrl = url;
+      }
 
       if (spotifyUrl && appleMusicUrl && tidalUrl && qobuzUrl) break;
     }
 
+    qobuzUrl = normalizeQobuzToPlay(qobuzUrl);
     return { spotifyUrl, appleMusicUrl, tidalUrl, qobuzUrl };
   }
   const title = rel.title || "(untitled)";
