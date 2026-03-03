@@ -25,7 +25,7 @@ html {
   --border: rgba(10, 34, 68, .1);
   --border-2: #0a2244;
 
-  --meta: #0a2244;
+  --meta: #5163a7;
 
   --text: #0a2244;
   --link: #2f5ee8;
@@ -36,7 +36,7 @@ html {
 
   --tr-hover: rgba(0, 0, 0, 0.03);
 
-  --tabs-gap: 12px;
+  --tabs-gap: 10px;
   --tab-pad-y: 8px;
   --tab-pad-x: 12px;
 
@@ -418,7 +418,7 @@ a:hover {
 ------------------------------------------------------------ */
 
 .header-main h1 {
-  font-size: 42px;
+  font-size: 38px;
   line-height: 1;
   margin: 0 0 10px;
 }
@@ -560,7 +560,7 @@ a:hover {
   background: var(--panel-2);
   color: var(--text);
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1;
 }
 
@@ -699,7 +699,7 @@ a:hover {
 ------------------------------------------------------------ */
 
 .artist {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 400;
   color: var(--link);
   opacity: 1;
@@ -719,15 +719,66 @@ a:hover {
 }
 
 .meta-k {
-  font-weight: 600;
+  font-weight: 500;
   color: var(--meta);
 }
 
 /* ------------------------------------------------------------
    6) Track table
 ------------------------------------------------------------ */
+/* ------------------------------------------------------------
+   Track title: 2-line classical layout (work / movement)
+------------------------------------------------------------ */
+.t-work {
+  /* maradjon olyan, mint eddig, csak explicit block */
+  display: block;
+}
+
+.t-mov {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.work-row {
+  background: none;
+}
+
+.work-cell {
+  font-size: 0.95rem;
+  font-weight: 500;
+  opacity: 0.75;
+  padding-top: 16px;
+  padding-bottom: 6px;
+  letter-spacing: 0.2px;
+  color: var(--meta);
+}
+
+.trk-mov {
+  opacity: 1;
+  font-size: 14px;
+  line-height: 1.25;
+  display: flex;
+  gap: 8px;
+}
+
+.medium-row + .work-row .work-cell {
+  padding-top: 30px;
+}
+
 .tracks {
   margin-top: 16px;
+}
+
+.mov-num {
+  width: 2ch;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.mov-title {
+  flex: 1;
 }
 
 table {
@@ -936,7 +987,7 @@ tr.track.is-open+tr.details .perf {
 ------------------------------------------------------------ */
 .annotation {
   margin-top: 0;
-  padding-top: 8px;
+  padding-top: 20px;
   padding-left: calc(var(--col-num) + var(--cell-pad-x));
   padding-right: calc(var(--col-len) + var(--cell-pad-x));
   border-top: 1px solid var(--border);
@@ -946,8 +997,8 @@ tr.track.is-open+tr.details .perf {
   white-space: pre-wrap;
   font-size: 13px;
   line-height: 1.45;
-  opacity: .90;
-  padding-top: 8px;
+  opacity: .65;
+  padding-top: 20px;
 }
 
 /* ------------------------------------------------------------

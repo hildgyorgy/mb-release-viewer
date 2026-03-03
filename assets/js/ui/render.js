@@ -1,5 +1,6 @@
 import { escHtml, artistCreditToText, fmtMs, mediumLabel } from "../core/util.js";
 import { ICON_SPOTIFY, ICON_APPLE_MUSIC, ICON_TIDAL, ICON_QOBUZ } from "./icons.js";
+import { splitClassicalTitle } from "../core/classicalTitle.js";
 
 export function renderHeader({ title, cover, mbLink, artist, date, country, label, catno, barcode, releaseNotes, streaming }) {
   return `
@@ -61,8 +62,8 @@ export function renderTracksView(mediaWithTracks, annotation) {
         <table>
           <tbody>
             ${mediaWithTracks
-      .map((m) => {
-        const head = `
+              .map((m) => {
+                const head = `
 				  <tr class="medium-row">
 				    <td colspan="3" class="medium-cell">
 				      ${escHtml(mediumLabel(m, mediaCount))}
@@ -70,34 +71,143 @@ export function renderTracksView(mediaWithTracks, annotation) {
 				  </tr>
 				`;
 
-        const rows = m.tracks
-          .map((t) => {
-            const idx = t._i;
-            const recId = t.rec?.id || "";
-            return `
-                      <tr class="track" data-i="${idx}" data-rec="${recId}">
-                        <td class="num">${t.pos ?? ""}</td>
-                        <td class="title">${escHtml(t.title || "")}</td>
-                        <td class="len">${escHtml(t.len || "")}</td>
-                      </tr>
+                const rows = (() => {
+                  let lastWork = ""; // mediumon belül
 
-                      <tr class="details" data-i="${idx}">
-                        <td></td>
-                        <td colspan="2">
-                          <div class="details-wrap">
-                            <div class="details-inner">
-                              <div class="muted">Loading…</div>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                    `;
-          })
-          .join("");
+                  // --- helperek: colon + keyword + ismétlődés(2) gate ---
+                  const splitFirstColon = (str) => {
+                    const s = String(str || "");
+                    const i = s.indexOf(":");
+                    if (i === -1) return null;
+                    return {
+                      left: s.slice(0, i).trim(),
+                      right: s.slice(i + 1).trim(), // további ":" maradnak
+                    };
+                  };
 
-        return head + rows;
-      })
-      .join("")}
+                  // minimál, könnyűzene-barát lista (később bővíthető)
+                  const colonKeywordRe =
+                    /^(Introduction|Intro|Prelude|Interlude|Variation|Variations|Theme|Finale|Coda|Overture)\b/i;
+
+                  // előszámítás
+                  const prepared = m.tracks.map((t) => {
+                    const rawTitle = String(t.title || "").trim();
+
+                    // A) meglévő klasszikus split (római / ". I.")
+                    const base = splitClassicalTitle(rawTitle);
+                    const baseWork = String(base.workLine || "").trim();
+                    const baseMov = String(base.movLine || "").trim();
+
+                    // B) colon split (első ":" alapján)
+                    const colon = splitFirstColon(rawTitle);
+                    const colonWork = String(colon?.left || "").trim();
+                    const colonMov = String(colon?.right || "").trim();
+
+                    return {
+                      t,
+                      rawTitle,
+                      baseWork,
+                      baseMov,
+                      colonWork,
+                      colonMov,
+                      hasColon: !!colon,
+                      colonRightIsKeyword: colon ? colonKeywordRe.test(colonMov) : false,
+                    };
+                  });
+
+                  // Count: hányszor fordul elő ugyanaz a "work:" előtag a mediumon belül
+                  // (csak azokon a trackeken, ahol a ":" jobb oldala kulcsszavas)
+                  const workCount = new Map();
+                  for (const p of prepared) {
+                    if (!p.hasColon) continue;
+                    if (!p.colonRightIsKeyword) continue;
+                    const w = p.colonWork;
+                    if (!w) continue;
+                    workCount.set(w, (workCount.get(w) || 0) + 1);
+                  }
+
+                  return prepared
+                    .map((p) => {
+                      const t = p.t;
+                      const idx = t._i;
+                      const recId = t.rec?.id || "";
+
+                      // --- Döntés trackenként ---
+                      let workLine = p.baseWork;
+                      let movLine = p.baseMov;
+
+                      // jelző: használtuk-e a colon+keyword+repeat kaput?
+                      let usedColonGate = false;
+
+                      // 1) Ha már a base felismerte (római / ". I."), azt tiszteletben tartjuk
+                      const hasBaseSplit = !!(p.baseMov && p.baseWork);
+
+                      // 2) Ha nincs base split, de van ":" + keyword + ismétlődés(2), akkor colon splitet használunk
+                      if (
+                        !hasBaseSplit &&
+                        p.hasColon &&
+                        p.colonRightIsKeyword &&
+                        (workCount.get(p.colonWork) || 0) >= 2
+                      ) {
+                        usedColonGate = true;
+                        workLine = p.colonWork;
+                        movLine = p.colonMov;
+                      }
+
+                      const work = String(workLine || "").trim();
+                      const mov = String(movLine || "").trim();
+
+                      // Klasszikus-csoport csak akkor, ha tényleges split történt
+                      // - base split: van work+mov
+                      // - colon gate: átmentünk a (:) + keyword + repeat(2) kapun
+                      const isClassicalGroup = hasBaseSplit || usedColonGate;
+
+                      // work-header csak klasszikus-csoportban, és csak ha változott
+                      const showWorkHeader = isClassicalGroup && !!work && work !== lastWork;
+                      if (showWorkHeader) lastWork = work;
+
+                      // Track sor tartalma:
+                      // - klasszikus-csoport + movLine: csak a tétel (mov)
+                      // - különben: eredeti cím
+                      const trackTitleHtml =
+                        isClassicalGroup && mov
+                          ? `<div class="trk-mov">${escHtml(mov)}</div>`
+                          : `<div class="trk-title">${escHtml(t.title || "")}</div>`;
+
+                      return `
+        ${showWorkHeader
+                          ? `
+            <tr class="work-row">
+              <td colspan="3" class="work-cell">${escHtml(work)}</td>
+            </tr>
+          `
+                          : ""
+                        }
+
+        <tr class="track" data-i="${idx}" data-rec="${recId}">
+          <td class="num">${t.pos ?? ""}</td>
+          <td class="title">${trackTitleHtml}</td>
+          <td class="len">${escHtml(t.len || "")}</td>
+        </tr>
+
+        <tr class="details" data-i="${idx}">
+          <td></td>
+          <td colspan="2">
+            <div class="details-wrap">
+              <div class="details-inner">
+                <div class="muted">Loading…</div>
+              </div>
+            </div>
+          </td>
+        </tr>
+      `;
+                    })
+                    .join("");
+                })();
+
+                return head + rows;
+              })
+              .join("")}
           </tbody>
         </table>
       </div>
