@@ -1,71 +1,32 @@
 // assets/js/core/classicalTitle.js
-import { escHtml } from "./util.js";
 
 /**
- * Split a classical-ish track title into:
- * - workLine: the "work" (CD booklet style)
- * - movLine:  the movement/part line
+ * Split ONLY when:
+ * - there is a ":" and the right side starts with a roman movement (I., II., III., ...)
  *
- * Goal: nicer layout immediately (no API calls).
+ * Everything else returns { workLine: fullTitle, movLine: "" }.
  */
 export function splitClassicalTitle(titleRaw) {
   const s = String(titleRaw || "").trim();
   if (!s) return { workLine: "", movLine: "" };
 
-  // Normalizáljuk a dash-eket
-  const t = s.replace(/\s*[–—]\s*/g, " – ").replace(/\s+/g, " ").trim();
+  // normalize whitespace (dash normalization not needed anymore for this strict rule)
+  const t = s.replace(/\s+/g, " ").trim();
 
-  // Római tételkezdet: I. / II. / III. / IV. stb.
+  // Roman movement start: I. / II. / III. / IV. ... (accept "." or ":" after the roman)
   const romanMovStart = /^([IVXLCDM]{1,7})\s*[.:]\s+/i;
 
-  // --------------------------------------------------
-  // 1) Split az ELSŐ ":" után (ha van),
-  //    és csak akkor, ha a jobb oldal római tétellel indul
-  //    (ha több ":" van, azokat békén hagyjuk a jobb oldalon)
-  // --------------------------------------------------
+  // Split at FIRST ":" only
   const colonPos = t.indexOf(":");
   if (colonPos !== -1) {
     const left = t.slice(0, colonPos).trim();
-    const right = t.slice(colonPos + 1).trim(); // minden további ":" marad
+    const right = t.slice(colonPos + 1).trim(); // keep further ":" in the right side
 
     if (romanMovStart.test(right)) {
       return { workLine: left, movLine: right };
     }
   }
 
-  // --------------------------------------------------
-  // 2) Split utolsó ". I." típusú mintára
-  // pl: "... Op. 64. I. Allegro"
-  // --------------------------------------------------
-  const dotSplit = t.match(/\.\s*([IVXLCDM]{1,7}\s*[.:]\s+.+)$/i);
-
-  if (dotSplit) {
-    const movLine = dotSplit[1].trim();
-    const workLine = t.slice(0, dotSplit.index).trim();
-
-    if (romanMovStart.test(movLine)) {
-      return {
-        workLine,
-        movLine
-      };
-    }
-  }
-
-  // --------------------------------------------------
-  // 3) Ha maga a cím római számmal kezdődik
-  // --------------------------------------------------
-  if (romanMovStart.test(t)) {
-    return {
-      workLine: "",
-      movLine: t
-    };
-  }
-
-  // --------------------------------------------------
-  // 4) Fallback: nem klasszikus-szerű
-  // --------------------------------------------------
-  return {
-    workLine: t,
-    movLine: ""
-  };
+  // Fallback: no split
+  return { workLine: t, movLine: "" };
 }

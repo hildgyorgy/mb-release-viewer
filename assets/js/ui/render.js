@@ -2,7 +2,19 @@ import { escHtml, artistCreditToText, fmtMs, mediumLabel } from "../core/util.js
 import { ICON_SPOTIFY, ICON_APPLE_MUSIC, ICON_TIDAL, ICON_QOBUZ } from "./icons.js";
 import { splitClassicalTitle } from "../core/classicalTitle.js";
 
-export function renderHeader({ title, cover, mbLink, artist, date, country, label, catno, barcode, releaseNotes, streaming }) {
+export function renderHeader({
+  title,
+  cover,
+  mbLink,
+  artist,
+  date,
+  country,
+  label,
+  catno,
+  barcode,
+  releaseNotes,
+  streaming,
+}) {
   return `
     <section class="header-hero">
       <div class="header-cover">
@@ -26,21 +38,53 @@ export function renderHeader({ title, cover, mbLink, artist, date, country, labe
           if (!sp && !am && !td && !qb) return "";
           return `
             <div class="streaming">
-              ${sp ? `<a class="stream-btn" href="${sp}" target="_blank" rel="noreferrer noopener" aria-label="Spotify">${ICON_SPOTIFY}</a>` : ""}
-              ${am ? `<a class="stream-btn" href="${am}" target="_blank" rel="noreferrer noopener" aria-label="Apple Music">${ICON_APPLE_MUSIC}</a>` : ""}
-              ${td ? `<a class="stream-btn" href="${td}" target="_blank" rel="noreferrer noopener" aria-label="Tidal">${ICON_TIDAL}</a>` : ""}
-              ${qb ? `<a class="stream-btn" href="${qb}" target="_blank" rel="noreferrer noopener" aria-label="Qobuz">${ICON_QOBUZ}</a>` : ""}
+              ${
+                sp
+                  ? `<a class="stream-btn" href="${sp}" target="_blank" rel="noreferrer noopener" aria-label="Spotify">${ICON_SPOTIFY}</a>`
+                  : ""
+              }
+              ${
+                am
+                  ? `<a class="stream-btn" href="${am}" target="_blank" rel="noreferrer noopener" aria-label="Apple Music">${ICON_APPLE_MUSIC}</a>`
+                  : ""
+              }
+              ${
+                td
+                  ? `<a class="stream-btn" href="${td}" target="_blank" rel="noreferrer noopener" aria-label="Tidal">${ICON_TIDAL}</a>`
+                  : ""
+              }
+              ${
+                qb
+                  ? `<a class="stream-btn" href="${qb}" target="_blank" rel="noreferrer noopener" aria-label="Qobuz">${ICON_QOBUZ}</a>`
+                  : ""
+              }
             </div>
           `;
         })()}
 
         <div class="meta">
-          <div><span class="meta-k">Date:</span> ${date ? escHtml(date) : "<span class='muted'>(n/a)</span>"}</div>
-          <div><span class="meta-k">Country:</span> ${country ? escHtml(country) : "<span class='muted'>(n/a)</span>"}</div>
-          <div><span class="meta-k">Label:</span> ${label ? escHtml(label) : "<span class='muted'>(n/a)</span>"}</div>
-          <div><span class="meta-k">Cat. no.:</span> ${catno ? escHtml(catno) : "<span class='muted'>(n/a)</span>"}</div>
-          <div><span class="meta-k">Barcode:</span> ${barcode ? escHtml(barcode) : "<span class='muted'>(n/a)</span>"}</div>
-          ${releaseNotes ? `<div><span class="meta-k">Notes:</span> <span class="muted">${escHtml(releaseNotes)}</span></div>` : ""}
+          <div><span class="meta-k">Date:</span> ${
+            date ? escHtml(date) : "<span class='muted'>(n/a)</span>"
+          }</div>
+          <div><span class="meta-k">Country:</span> ${
+            country ? escHtml(country) : "<span class='muted'>(n/a)</span>"
+          }</div>
+          <div><span class="meta-k">Label:</span> ${
+            label ? escHtml(label) : "<span class='muted'>(n/a)</span>"
+          }</div>
+          <div><span class="meta-k">Cat. no.:</span> ${
+            catno ? escHtml(catno) : "<span class='muted'>(n/a)</span>"
+          }</div>
+          <div><span class="meta-k">Barcode:</span> ${
+            barcode ? escHtml(barcode) : "<span class='muted'>(n/a)</span>"
+          }</div>
+          ${
+            releaseNotes
+              ? `<div><span class="meta-k">Notes:</span> <span class="muted">${escHtml(
+                  releaseNotes
+                )}</span></div>`
+              : ""
+          }
         </div>
       </div>
 
@@ -74,7 +118,7 @@ export function renderTracksView(mediaWithTracks, annotation) {
                 const rows = (() => {
                   let lastWork = ""; // mediumon belül
 
-                  // --- helperek: colon + keyword + ismétlődés(2) gate ---
+                  // --- helper: split az ELSŐ ":"-nál ---
                   const splitFirstColon = (str) => {
                     const s = String(str || "");
                     const i = s.indexOf(":");
@@ -85,47 +129,64 @@ export function renderTracksView(mediaWithTracks, annotation) {
                     };
                   };
 
-                  // minimál, könnyűzene-barát lista (később bővíthető)
-                  const colonKeywordRe =
-                    /^(Introduction|Intro|Prelude|Interlude|Variation|Variations|Theme|Finale|Coda|Overture)\b/i;
-
-                  // előszámítás
-                  const prepared = m.tracks.map((t) => {
+                  // 1) előszámítás (base split + colon split)
+                  const prepared = m.tracks.map((t, idx) => {
                     const rawTitle = String(t.title || "").trim();
 
-                    // A) meglévő klasszikus split (római / ". I.")
+                    // A) base: (:) + római, vagy ". I." stb. (splitClassicalTitle intézi)
                     const base = splitClassicalTitle(rawTitle);
                     const baseWork = String(base.workLine || "").trim();
                     const baseMov = String(base.movLine || "").trim();
 
-                    // B) colon split (első ":" alapján)
+                    // B) colon: csak az első ":" mentén
                     const colon = splitFirstColon(rawTitle);
                     const colonWork = String(colon?.left || "").trim();
                     const colonMov = String(colon?.right || "").trim();
 
                     return {
+                      _idx: idx, // fontos a runLenByIndex-hez
                       t,
                       rawTitle,
                       baseWork,
                       baseMov,
+                      hasColon: !!colon,
                       colonWork,
                       colonMov,
-                      hasColon: !!colon,
-                      colonRightIsKeyword: colon ? colonKeywordRe.test(colonMov) : false,
                     };
                   });
 
-                  // Count: hányszor fordul elő ugyanaz a "work:" előtag a mediumon belül
-                  // (csak azokon a trackeken, ahol a ":" jobb oldala kulcsszavas)
-                  const workCount = new Map();
-                  for (const p of prepared) {
-                    if (!p.hasColon) continue;
-                    if (!p.colonRightIsKeyword) continue;
-                    const w = p.colonWork;
-                    if (!w) continue;
-                    workCount.set(w, (workCount.get(w) || 0) + 1);
+                  // 2) egymást követő azonos colonWork futamok hossza (mediumon belül)
+                  const runLenByIndex = new Array(prepared.length).fill(0);
+
+                  let i = 0;
+                  while (i < prepared.length) {
+                    const cur = prepared[i];
+
+                    if (!cur.hasColon || !cur.colonWork) {
+                      runLenByIndex[i] = 0;
+                      i += 1;
+                      continue;
+                    }
+
+                    const w = cur.colonWork;
+                    let j = i + 1;
+
+                    while (
+                      j < prepared.length &&
+                      prepared[j].hasColon &&
+                      prepared[j].colonWork &&
+                      prepared[j].colonWork === w
+                    ) {
+                      j += 1;
+                    }
+
+                    const runLen = j - i;
+                    for (let k = i; k < j; k++) runLenByIndex[k] = runLen;
+
+                    i = j;
                   }
 
+                  // 3) render
                   return prepared
                     .map((p) => {
                       const t = p.t;
@@ -136,19 +197,20 @@ export function renderTracksView(mediaWithTracks, annotation) {
                       let workLine = p.baseWork;
                       let movLine = p.baseMov;
 
-                      // jelző: használtuk-e a colon+keyword+repeat kaput?
+                      // jelző: használtuk-e a colon+repeat(2) kaput?
                       let usedColonGate = false;
 
-                      // 1) Ha már a base felismerte (római / ". I."), azt tiszteletben tartjuk
+                      // base split csak akkor "igazi", ha VAN work + mov
+                      // (ez pont megfelel annak, hogy "van : és utána római" vagy ". I." stb.)
                       const hasBaseSplit = !!(p.baseMov && p.baseWork);
 
-                      // 2) Ha nincs base split, de van ":" + keyword + ismétlődés(2), akkor colon splitet használunk
-                      if (
-                        !hasBaseSplit &&
-                        p.hasColon &&
-                        p.colonRightIsKeyword &&
-                        (workCount.get(p.colonWork) || 0) >= 2
-                      ) {
+                      // colon+repeat(2, consecutive) gate:
+                      // - nincs base split
+                      // - van ":" (colonWork)
+                      // - a colonWork ugyanazon mediumon belül egymást követően >=2× ismétlődik
+                      const runLen = runLenByIndex[p._idx] || 0;
+
+                      if (!hasBaseSplit && p.hasColon && p.colonWork && p.colonMov && runLen >= 2) {
                         usedColonGate = true;
                         workLine = p.colonWork;
                         movLine = p.colonMov;
@@ -157,9 +219,9 @@ export function renderTracksView(mediaWithTracks, annotation) {
                       const work = String(workLine || "").trim();
                       const mov = String(movLine || "").trim();
 
-                      // Klasszikus-csoport csak akkor, ha tényleges split történt
-                      // - base split: van work+mov
-                      // - colon gate: átmentünk a (:) + keyword + repeat(2) kapun
+                      // Klasszikus-csoport csak akkor, ha tényleges split történt:
+                      // - base split (work+mov)
+                      // - vagy colonGate (repeat futam)
                       const isClassicalGroup = hasBaseSplit || usedColonGate;
 
                       // work-header csak klasszikus-csoportban, és csak ha változott
@@ -167,22 +229,23 @@ export function renderTracksView(mediaWithTracks, annotation) {
                       if (showWorkHeader) lastWork = work;
 
                       // Track sor tartalma:
-                      // - klasszikus-csoport + movLine: csak a tétel (mov)
-                      // - különben: eredeti cím
+                      // - klasszikus-csoport + movLine: csak a "tétel" (mov)
+                      // - különben: eredeti track cím (jazz/pop ne essen szét)
                       const trackTitleHtml =
                         isClassicalGroup && mov
                           ? `<div class="trk-mov">${escHtml(mov)}</div>`
                           : `<div class="trk-title">${escHtml(t.title || "")}</div>`;
 
                       return `
-        ${showWorkHeader
-                          ? `
+        ${
+          showWorkHeader
+            ? `
             <tr class="work-row">
               <td colspan="3" class="work-cell">${escHtml(work)}</td>
             </tr>
           `
-                          : ""
-                        }
+            : ""
+        }
 
         <tr class="track" data-i="${idx}" data-rec="${recId}">
           <td class="num">${t.pos ?? ""}</td>
