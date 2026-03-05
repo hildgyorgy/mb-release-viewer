@@ -1,7 +1,6 @@
 // assets/js/ui/composerHeaders.js
-import { $ } from "../core/util.js";
-import { escHtml } from "../core/util.js"; // ha innen jön; ha máshonnan, igazítsd
-import { loadWork, loadRecording } from "../services/api.js"; // <-- lehet, hogy nálad más a név/export
+import { escHtml } from "../core/util.js";
+import { loadWork, loadRecording } from "../services/api.js";
 
 // === Feature flag: easy kill switch ===
 export const ENABLE_COMPOSER_HEADERS = true;
@@ -9,6 +8,10 @@ export const ENABLE_COMPOSER_HEADERS = true;
 /**
  * Insert composer headers above each classical work header row.
  * We only touch rows that already exist: <tr.work-row data-rec="...">
+ *
+ * Policy:
+ * - Within the same medium: only insert when composer changes vs previous work.
+ * - When a new medium starts: reset, so first work can show composer again.
  *
  * Idempotent: won't insert twice.
  */
@@ -28,17 +31,62 @@ export function bindComposerHeadersOnce(root = document) {
 }
 
 // --- Caches to minimize API calls ---
-const recToWorkId = new Map();   // recId -> workId|null
+const recToWorkId = new Map();    // recId -> workId|null
 const workToComposer = new Map(); // workId -> "NAME"|null
+
+function normName(s) {
+  return String(s || "").trim().toLowerCase();
+}
+
+/**
+ * Detect if this work-row is the first work under a medium-row.
+ * We scan upward until we hit either:
+ * - a previous work-row  -> same medium (return false)
+ * - a medium-row         -> new medium (return true)
+ * - start of tbody       -> treat as new medium (return true)
+ *
+ * We skip rows that are "noise" for this purpose (composer-row, track, details).
+ */
+function isFirstWorkInMedium(workRow) {
+  let p = workRow?.previousElementSibling || null;
+
+  while (p) {
+    if (p.classList?.contains("composer-row")) {
+      p = p.previousElementSibling;
+      continue;
+    }
+    if (p.classList?.contains("details") || p.classList?.contains("track")) {
+      p = p.previousElementSibling;
+      continue;
+    }
+    if (p.classList?.contains("work-row")) return false;
+    if (p.classList?.contains("medium-row")) return true;
+
+    // if some other row type appears, still keep scanning
+    p = p.previousElementSibling;
+  }
+  return true;
+}
 
 async function hydrateComposerHeaders(root) {
   const workRows = Array.from(root.querySelectorAll("tr.work-row[data-rec]"));
   if (!workRows.length) return;
 
+  let lastComposerNorm = null; // mediumon belül értelmezett "utolsó kiírt composer"
+
   // Process sequentially (gentle on rate limit)
   for (const wr of workRows) {
-    // Already inserted?
-    if (wr.previousElementSibling?.classList?.contains("composer-row")) continue;
+    // If this is the first work of a medium, reset composer run
+    if (isFirstWorkInMedium(wr)) lastComposerNorm = null;
+
+    // Already inserted for THIS work row?
+    if (wr.previousElementSibling?.classList?.contains("composer-row")) {
+      // Ha már van composer-row, akkor azt tekintsük "utolsó composer"-nek is,
+      // hogy a run-compression stabil maradjon akkor is, ha újrahívódna.
+      const prevText = wr.previousElementSibling.querySelector(".composer-cell")?.textContent || "";
+      if (prevText) lastComposerNorm = normName(prevText);
+      continue;
+    }
 
     const recId = String(wr.getAttribute("data-rec") || "").trim();
     if (!recId) continue;
@@ -49,6 +97,14 @@ async function hydrateComposerHeaders(root) {
     const composerName = await getComposerNameFromWorkId(workId);
     if (!composerName) continue;
 
+    const composerNorm = normName(composerName);
+    if (!composerNorm) continue;
+
+    // Run compression within medium: only insert if changed
+    if (lastComposerNorm === composerNorm) {
+      continue;
+    }
+
     // Insert composer header row above work-row
     const tr = document.createElement("tr");
     tr.className = "composer-row";
@@ -57,15 +113,14 @@ async function hydrateComposerHeaders(root) {
     `.trim();
 
     wr.parentNode.insertBefore(tr, wr);
+
+    lastComposerNorm = composerNorm;
   }
 }
 
 async function getPrimaryWorkIdFromRecordingId(recId) {
   if (recToWorkId.has(recId)) return recToWorkId.get(recId);
 
-  // You must have something like loadRecording() in services/api.js.
-  // It needs to include work relations. If your current loader doesn't,
-  // make a dedicated loader or adjust the inc=... there.
   const rec = await loadRecording(recId);
   const rels = Array.isArray(rec?.relations) ? rec.relations : [];
 
