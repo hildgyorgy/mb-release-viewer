@@ -15,19 +15,25 @@ export const ENABLE_COMPOSER_HEADERS = true;
  *
  * Idempotent: won't insert twice.
  */
+// assets/js/ui/composerHeaders.js
+
 export function bindComposerHeadersOnce(root = document) {
   if (!ENABLE_COMPOSER_HEADERS) return;
 
-  // Avoid double-binding
   const host = root?.querySelector?.(".tracks") ? root : document;
-  const marker = host.documentElement || document.documentElement;
-  if (marker.dataset.composerHeadersBound === "1") return;
-  marker.dataset.composerHeadersBound = "1";
+  const marker = document.documentElement;
 
-  hydrateComposerHeaders(host).catch((err) => {
-    // silent fail: feature should never break the page
-    console.warn("[composerHeaders] hydrate failed:", err);
-  });
+  // ne fussunk párhuzamosan, de később újra lehessen hívni
+  if (marker.dataset.composerHeadersRunning === "1") return;
+  marker.dataset.composerHeadersRunning = "1";
+
+  hydrateComposerHeaders(host)
+    .catch((err) => {
+      console.warn("[composerHeaders] hydrate failed:", err);
+    })
+    .finally(() => {
+      marker.dataset.composerHeadersRunning = "0";
+    });
 }
 
 // --- Caches to minimize API calls ---
