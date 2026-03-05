@@ -878,7 +878,7 @@ tr.details.is-open .details-wrap {
 
 .detail-col--meta {
   display: grid;
-  grid-template-columns: 0.85fr 2.2fr;
+  grid-template-columns: 0.9fr 2.2fr;
   /* creators | work arány*/
   column-gap: 12px;
   align-items: start;
