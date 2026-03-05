@@ -742,9 +742,18 @@ a:hover {
   font-size: 14px;
   font-weight: 400;
   opacity: 1;
-
   padding-left: 3.1rem;
   color: var(--text);
+}
+
+.composer-row .composer-cell{
+  padding: 12px 50px 6px;
+  border-top: 1px solid var(--border);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--meta);
+  font-size: 12px;
 }
 
 .trk-mov {
@@ -755,6 +764,8 @@ a:hover {
   display: flex;
   gap: 8px;
 }
+
+
 
 .medium-row + .work-row .work-cell {
   padding-top: 16px;

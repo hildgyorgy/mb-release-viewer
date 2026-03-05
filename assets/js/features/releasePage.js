@@ -13,6 +13,7 @@ import { renderHeader, renderTracksView, renderRecordingsViewShell } from "../ui
 import { bindTabsOnce, setActiveView } from "../ui/tabs.js";
 import { buildRecordingsView } from "./recordings.js";
 import { bindTrackToggles } from "./tracks.js";
+import { bindComposerHeadersOnce } from "../ui/composerHeaders.js";
 
 function hydrateUI(out, flatTracks) {
   // Theme is applied in App.init(); here we only bind UI behaviour.
@@ -31,6 +32,9 @@ function hydrateUI(out, flatTracks) {
 
   // tracks table toggles (lazy load details)
   bindTrackToggles(out, flatTracks);
+
+ 
+  bindComposerHeadersOnce(out);
 
   // cover interactions + sizing
   bindCoverGalleryOnce(out);
