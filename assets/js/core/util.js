@@ -70,24 +70,46 @@ export function mediumLabel(m, totalMediaCount) {
   const fmtRaw = String(m?.format || "").trim();
   const fmt = fmtRaw.toLowerCase();
   const title = String(m?.title || "").trim();
+  const disamb = String(m?.disambiguation || "").trim();
 
-  const isDigital = fmt.includes("digital");
-  const isVinyl = fmt.includes("vinyl");
-  const isCD = fmt.includes("cd");
+  const isDigital = /\bdigital\b/.test(fmt);
+  const isVinyl = /\bvinyl\b/.test(fmt);
+
+  // catches "SACD", "Hybrid SACD", etc.
+  const isSACD = /\bsacd\b/.test(fmt);
+
+  // "CD" as format, but NOT "(CD layer)" and NOT SACD
+  const isCD = !isSACD && /\bcd\b(?!\s*layer\b)/i.test(fmtRaw);
+
+  // Prefer position if present, fallback to index
+  const n = m?.position ?? m?.index ?? "";
 
   const extra = [];
+  // disamb csak akkor kell extra-ként, ha nincs már benne a fmtRaw-ban
+  if (disamb && !fmtRaw.toLowerCase().includes(disamb.toLowerCase())) extra.push(disamb);
   if (title) extra.push(title);
 
   const joinExtra = (base) => (extra.length ? `${base} · ${extra.join(" · ")}` : base);
 
   if (isDigital) return joinExtra(fmtRaw || "Digital media");
+
+  if (isSACD) {
+    // Ha a format már tartalmazza a layer-t (MB így adja: "Hybrid SACD (CD layer)"),
+    // akkor NE számozzuk. (Ha nincs disamb a formatban és több medium van, akkor jöhet a sorszám.)
+    const hasLayerInFormat = /\(.*\)/.test(fmtRaw) || !!disamb;
+    if (hasLayerInFormat) return joinExtra(fmtRaw || "SACD");
+    if (totalMediaCount > 1) return joinExtra(`${fmtRaw || "SACD"} ${n}`.trim());
+    return joinExtra(fmtRaw || "SACD");
+  }
+
   if (isVinyl) {
-    if (totalMediaCount > 1) return joinExtra(`Disc ${m.index} · ${fmtRaw || "Vinyl"}`);
+    if (totalMediaCount > 1) return joinExtra(`Disc ${n} · ${fmtRaw || "Vinyl"}`.trim());
     return joinExtra(fmtRaw || "Vinyl");
   }
-  if (isCD) return joinExtra(`CD ${m.index}`);
 
-  if (totalMediaCount > 1) return joinExtra(`Disc ${m.index}${fmtRaw ? ` · ${fmtRaw}` : ""}`.trim());
+  if (isCD) return joinExtra(`CD ${n}`.trim());
+
+  if (totalMediaCount > 1) return joinExtra(`Disc ${n}${fmtRaw ? ` · ${fmtRaw}` : ""}`.trim());
   return joinExtra(fmtRaw || "Disc");
 }
 

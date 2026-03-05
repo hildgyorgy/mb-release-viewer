@@ -354,7 +354,7 @@ a:hover {
   gap: 35px;
 }
 
-/* alapból (mobil): egymás alatt */
+/* alaphelyzet (mobil): egymás alatt */
 .header-hero {
   grid-template-columns: 1fr;
   grid-template-areas:
@@ -362,6 +362,16 @@ a:hover {
     "main"
     "tabs";
 }
+
+/* desktop: 2 oszlop, tabs a cover alatt, main jobbra */
+@media (min-width: 641px) {
+  .header-hero {
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      "cover main"
+      "tabs  main";
+    align-items: start;
+  }
 
 .header-cover {
   grid-area: cover;
@@ -387,16 +397,6 @@ a:hover {
   object-fit: cover;
   display: block;
 }
-
-/* desktop: 2 oszlop, tabs a cover alatt, main jobbra */
-@media (min-width: 641px) {
-  .header-hero {
-    grid-template-columns: auto 1fr;
-    grid-template-areas:
-      "cover main"
-      "tabs  main";
-    align-items: start;
-  }
 
   .header-main h1{
     transform: translateY(-4px);
@@ -620,12 +620,6 @@ a:hover {
   white-space: nowrap;
 }
 
-@media (min-width: 641px) {
-  .theme-fab {
-    margin-left: 18px;
-  }
-}
-
 .theme-fab svg {
   width: 16px;
   height: 16px;
@@ -730,7 +724,6 @@ a:hover {
    Track title: 2-line classical layout (work / movement)
 ------------------------------------------------------------ */
 .t-work {
-  /* maradjon olyan, mint eddig, csak explicit block */
   display: block;
 }
 
@@ -866,7 +859,7 @@ tr.details.is-open .details-wrap {
 .detail-cols {
   display: grid;
   grid-template-columns: 0.85fr 2.45fr;
-  /* perf | (creators+work) */
+  /* perf | (creators+work) arány*/
   column-gap: 12px;
   align-items: start;
   padding-bottom: 14px;
@@ -874,8 +867,8 @@ tr.details.is-open .details-wrap {
 
 .detail-col--meta {
   display: grid;
-  grid-template-columns: 0.85fr 1.55fr;
-  /* creators | work */
+  grid-template-columns: 0.85fr 2.2fr;
+  /* creators | work arány*/
   column-gap: 12px;
   align-items: start;
 }
@@ -1140,8 +1133,8 @@ tr.track.is-open+tr.details .perf {
   .detail-col--meta {
     display: grid;
     grid-template-columns: 1fr;
-    row-gap: 28px;
-    /* EZ a creators–work távolság */
+    row-gap: 20px;
+    /* creators–work mezők távolsága */
   }
 
   .perf {
@@ -1181,7 +1174,7 @@ tr.track.is-open+tr.details .perf {
 
   /* ------------------------------------------------------------
    13) Mobile: collapsible topbar (Music-app-ish)
------------------------------------------------------------- */
+  ------------------------------------------------------------ */
 
   :root[data-hdr="closed"] {
     --top-h: 20px;
