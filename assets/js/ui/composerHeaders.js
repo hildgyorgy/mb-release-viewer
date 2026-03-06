@@ -1,21 +1,8 @@
-// assets/js/ui/composerHeaders.js
 import { escHtml } from "../core/util.js";
 import { loadWork, loadRecording } from "../services/api.js";
 
-// === Feature flag: easy kill switch ===
+// === Kill switch ===
 export const ENABLE_COMPOSER_HEADERS = true;
-
-/**
- * Insert composer headers above each classical work header row.
- * We only touch rows that already exist: <tr.work-row data-rec="...">
- *
- * Policy:
- * - Within the same medium: only insert when composer changes vs previous work.
- * - When a new medium starts: reset, so first work can show composer again.
- *
- * Idempotent: won't insert twice.
- */
-// assets/js/ui/composerHeaders.js
 
 export function bindComposerHeadersOnce(root = document) {
   if (!ENABLE_COMPOSER_HEADERS) return;
@@ -44,15 +31,6 @@ function normName(s) {
   return String(s || "").trim().toLowerCase();
 }
 
-/**
- * Detect if this work-row is the first work under a medium-row.
- * We scan upward until we hit either:
- * - a previous work-row  -> same medium (return false)
- * - a medium-row         -> new medium (return true)
- * - start of tbody       -> treat as new medium (return true)
- *
- * We skip rows that are "noise" for this purpose (composer-row, track, details).
- */
 function isFirstWorkInMedium(workRow) {
   let p = workRow?.previousElementSibling || null;
 
@@ -111,14 +89,19 @@ async function hydrateComposerHeaders(root) {
       continue;
     }
 
-    // Insert composer header row above work-row
-    const tr = document.createElement("tr");
-    tr.className = "composer-row";
-    tr.innerHTML = `
-      <td colspan="3" class="composer-cell">${escHtml(composerName)}</td>
-    `.trim();
+// Insert composer header row above work-row
+const tr = document.createElement("tr");
+tr.className = "composer-row";
+tr.innerHTML = `
+  <td colspan="3" class="composer-cell">${escHtml(composerName)}</td>
+`.trim();
 
-    wr.parentNode.insertBefore(tr, wr);
+wr.parentNode.insertBefore(tr, wr);
+
+// trigger opacity animation
+requestAnimationFrame(() => {
+  tr.classList.add("is-in");
+});
 
     lastComposerNorm = composerNorm;
   }

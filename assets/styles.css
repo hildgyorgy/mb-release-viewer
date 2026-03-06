@@ -756,6 +756,15 @@ a:hover {
   font-size: 12px;
 }
 
+.composer-cell{
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+
+.composer-row.is-in .composer-cell{
+  opacity: 1;
+}
+
 .trk-mov {
   padding-left: 2rem;
   opacity: 0.75;
@@ -846,10 +855,10 @@ tr.details td {
   padding-top: 10px;
   padding-bottom: 10px;
   border-top: 0;
-  font-size: 12px;
-  letter-spacing: 0.08em;
+  font-size: 16px;
+  letter-spacing: 0.05em;
   color: var(--meta);
-  font-weight: 600;
+  font-weight: 400;
 }
 
 /* ------------------------------------------------------------
