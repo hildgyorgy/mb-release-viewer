@@ -33,7 +33,7 @@ function hydrateUI(out, flatTracks) {
   // tracks table toggles (lazy load details)
   bindTrackToggles(out, flatTracks);
 
- 
+
   bindComposerHeadersOnce(out);
 
   // cover interactions + sizing
@@ -46,62 +46,64 @@ function hydrateUI(out, flatTracks) {
  *
  * @param {{rel:Object, cover:string|null, covers:Array}} param0
  */
-export function renderReleasePage(out, { rel, cover, covers }) {
-  function pickStreamingLinksFromRelease(rel) {
-    const rels = Array.isArray(rel?.relations) ? rel.relations : [];
+function pickStreamingLinksFromRelease(rel) {
+  const rels = Array.isArray(rel?.relations) ? rel.relations : [];
 
-    // Qobuz normalize to play.qobuz.com if possible (purchase pages are common, but we want the streaming page)
-    function normalizeQobuzToPlay(url) {
-      const s = String(url || "").trim();
-      if (!s) return "";
+  // Qobuz normalize to play.qobuz.com if possible (purchase pages are common, but we want the streaming page)
+  function normalizeQobuzToPlay(url) {
+    const s = String(url || "").trim();
+    if (!s) return "";
 
-      let u;
-      try { u = new URL(s); } catch { return s; }
+    let u;
+    try { u = new URL(s); } catch { return s; }
 
-      const host = u.hostname.toLowerCase();
+    const host = u.hostname.toLowerCase();
 
-      // Already streaming page
-      if (host === "play.qobuz.com") return u.toString();
+    // Already streaming page
+    if (host === "play.qobuz.com") return u.toString();
 
-      // Convert purchase page -> play page (extract album id from the end)
-      if (host.endsWith("qobuz.com")) {
-        const m = u.pathname.match(/\/album\/[^/]+\/([a-z0-9]+)$/i);
-        if (m && m[1]) return `https://play.qobuz.com/album/${m[1]}`;
-      }
-
-      return s;
+    // Convert purchase page -> play page (extract album id from the end)
+    if (host.endsWith("qobuz.com")) {
+      const m = u.pathname.match(/\/album\/[^/]+\/([a-z0-9]+)$/i);
+      if (m && m[1]) return `https://play.qobuz.com/album/${m[1]}`;
     }
 
-    let spotifyUrl = "";
-    let appleMusicUrl = "";
-    let tidalUrl = "";
-    let qobuzUrl = "";
-
-
-    for (const r of rels) {
-      const tt = r.target_type ?? r["target-type"];
-      if (tt !== "url") continue;
-
-      const u = r.url?.resource || r.target?.resource || "";
-      const url = String(u || "").trim();
-      if (!url) continue;
-
-      const low = url.toLowerCase();
-
-      if (!spotifyUrl && low.includes("spotify.com")) spotifyUrl = url;
-      if (!appleMusicUrl && low.includes("music.apple.com")) appleMusicUrl = url;
-      if (!tidalUrl && low.includes("tidal.com")) tidalUrl = url;
-      if (low.includes("qobuz.com")) {
-        if (low.includes("play.qobuz.com")) qobuzUrl = url;
-        else if (!qobuzUrl) qobuzUrl = url;
-      }
-
-      if (spotifyUrl && appleMusicUrl && tidalUrl && qobuzUrl) break;
-    }
-
-    qobuzUrl = normalizeQobuzToPlay(qobuzUrl);
-    return { spotifyUrl, appleMusicUrl, tidalUrl, qobuzUrl };
+    return s;
   }
+
+  let spotifyUrl = "";
+  let appleMusicUrl = "";
+  let tidalUrl = "";
+  let qobuzUrl = "";
+
+
+  for (const r of rels) {
+    const tt = r.target_type ?? r["target-type"];
+    if (tt !== "url") continue;
+
+    const u = r.url?.resource || r.target?.resource || "";
+    const url = String(u || "").trim();
+    if (!url) continue;
+
+    const low = url.toLowerCase();
+
+    if (!spotifyUrl && low.includes("spotify.com")) spotifyUrl = url;
+    if (!appleMusicUrl && low.includes("music.apple.com")) appleMusicUrl = url;
+    if (!tidalUrl && low.includes("tidal.com")) tidalUrl = url;
+    if (low.includes("qobuz.com")) {
+      if (low.includes("play.qobuz.com")) qobuzUrl = url;
+      else if (!qobuzUrl) qobuzUrl = url;
+    }
+
+    if (spotifyUrl && appleMusicUrl && tidalUrl && qobuzUrl) break;
+  }
+
+  qobuzUrl = normalizeQobuzToPlay(qobuzUrl);
+  return { spotifyUrl, appleMusicUrl, tidalUrl, qobuzUrl };
+}
+
+export function renderReleasePage(out, { rel, cover, covers }) {
+
   const title = rel.title || "(untitled)";
   const artist = artistCreditToText(rel["artist-credit"]);
   const date = rel.date || rel["release-events"]?.[0]?.date || "";

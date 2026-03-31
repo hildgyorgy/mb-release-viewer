@@ -16,7 +16,7 @@ export const STATE = {
   },
 };
 
-// Kapcsold fel, ha kell
+// Set to true to log state changes to the console
 export const DEBUG_STATE = false;
 
 function log(tag) {

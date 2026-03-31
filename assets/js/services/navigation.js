@@ -54,7 +54,6 @@ export function createReleaseNavigator({ getOut, loadRelease, renderReleasePage 
     try {
       const data = await loadRelease(mbid);
 
-      // NOTE: a te renderReleasePage-ed most maga keresi a #out-ot (OK).
 renderReleasePage(out, data);
 
       setOmniLoadedValue(mbid);
