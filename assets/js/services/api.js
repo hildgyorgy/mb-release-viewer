@@ -213,3 +213,81 @@ export async function searchReleases(q, limit) {
     .filter((x) => x.mbid && x.title)
     .slice(0, limit);
 }
+
+// ------------------------------------------------------------
+// Artist
+// ------------------------------------------------------------
+
+const artistCache = new Map();
+export async function loadArtist(artistId) {
+  if (!artistId) return null;
+  if (artistCache.has(artistId)) return artistCache.get(artistId);
+
+  const artist = await fetchJSON(
+    `https://musicbrainz.org/ws/2/artist/${artistId}?fmt=json&inc=url-rels`
+  );
+  artistCache.set(artistId, artist);
+  return artist;
+}
+
+const releaseGroupCache = new Map();
+export async function loadArtistReleaseGroups(artistId) {
+  if (!artistId) return [];
+  if (releaseGroupCache.has(artistId)) return releaseGroupCache.get(artistId);
+
+  let allGroups = [];
+  let offset = 0;
+  const pageSize = 100;
+
+  while (true) {
+    const data = await fetchJSON(
+      `https://musicbrainz.org/ws/2/release-group?artist=${artistId}` +
+      `&fmt=json&limit=${pageSize}&offset=${offset}`
+    );
+
+    const page = data?.["release-groups"] || [];
+    allGroups = allGroups.concat(page);
+
+    if (page.length < pageSize) break;
+    offset += pageSize;
+  }
+
+  releaseGroupCache.set(artistId, allGroups);
+  return allGroups;
+}
+
+// ------------------------------------------------------------
+// Wikipedia (via Wikidata)
+// ------------------------------------------------------------
+
+const wikiCache = new Map();
+export async function fetchWikipediaSummary(wikidataUrl) {
+  if (!wikidataUrl) return null;
+  if (wikiCache.has(wikidataUrl)) return wikiCache.get(wikidataUrl);
+
+  // Step 1: Wikidata entity → English Wikipedia title
+  const qid = String(wikidataUrl).split("/").pop();
+  if (!qid) return null;
+
+  const wdData = await fetchJSON(
+    `https://www.wikidata.org/wiki/Special:EntityData/${qid}.json`
+  );
+
+  const title = wdData?.entities?.[qid]?.sitelinks?.enwiki?.title;
+  if (!title) return null;
+
+  // Step 2: Wikipedia summary API
+  const encoded = encodeURIComponent(title.replaceAll(" ", "_"));
+  const summary = await fetchJSON(
+    `https://en.wikipedia.org/api/rest_v1/page/summary/${encoded}`
+  );
+
+  const result = {
+    title,
+    extract: summary?.extract || "",
+    url: `https://en.wikipedia.org/wiki/${encoded}`,
+  };
+
+  wikiCache.set(wikidataUrl, result);
+  return result;
+}
