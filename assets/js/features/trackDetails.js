@@ -1,6 +1,6 @@
 import { escHtml, stripParentPrefix } from "../core/util.js";
 import { loadWork } from "../services/api.js";
-import { mbArtistLink, artistCreditToLinks, mbWorkUrl } from "../core/mbLinks.js";
+import { mbArtistLink, artistPanelLink, artistCreditToLinks, mbWorkUrl } from "../core/mbLinks.js";
 
 /* ============================================================
    Track details (Performers / Creators / Work hierarchy)
@@ -86,7 +86,7 @@ function renderRoleList(items) {
         (it) => `
           <div>
             <div class="inst">${escHtml(it.role)}</div>
-            <div class="artists">${it.artists.map(a => `<div class="artist-line">${mbArtistLink(a)}</div>`).join("")}</div>
+            <div class="artists">${it.artists.map(a => `<div class="artist-line">${artistPanelLink(a)}</div>`).join("")}</div>
           </div>
         `
       )

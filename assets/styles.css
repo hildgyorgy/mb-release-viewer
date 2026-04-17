@@ -1283,3 +1283,202 @@ tr.track.is-open+tr.details .perf {
   text-align: right;
   opacity: 0.85;
 }
+/* ------------------------------------------------------------
+   Artist panel (inline, opens above track credits)
+------------------------------------------------------------ */
+
+.artist-panel {
+  margin: 8px 25px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel-2);
+  overflow: hidden;
+
+  /* Slide in from above */
+  animation: ap-in 220ms ease forwards;
+}
+
+@keyframes ap-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Header row: name + close button */
+.ap-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.ap-name {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--meta);
+  flex: 1;
+  min-width: 0;
+}
+
+.ap-name-text {
+  color: var(--meta);
+}
+
+.ap-close {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.ap-close:hover {
+  background: var(--border);
+  color: var(--text);
+}
+
+/* Body */
+.ap-body {
+  padding: 10px 14px 14px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+/* MB link button */
+.ap-mb-link {
+  margin-bottom: 10px;
+}
+
+.ap-mb-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--muted);
+  text-decoration: none;
+  padding: 3px 8px 3px 6px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: transparent;
+  transition: color 120ms ease, border-color 120ms ease, background 120ms ease;
+}
+
+.ap-mb-btn:hover {
+  color: var(--link);
+  border-color: var(--link);
+  background: var(--panel);
+  text-decoration: none;
+}
+
+.ap-mb-icon {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
+
+/* Meta line: "Person · HU · 1935–2002" */
+.ap-meta {
+  font-size: 12px;
+  margin-bottom: 10px;
+  opacity: 0.75;
+}
+
+/* Section label (WIKIPEDIA, DISCOGRAPHY) */
+.ap-section {
+  margin-top: 12px;
+}
+
+.ap-section-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--meta);
+  opacity: 0.8;
+  margin-bottom: 6px;
+}
+
+/* Wikipedia text */
+.ap-wiki-text {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.ap-wiki-link {
+  color: var(--link);
+  white-space: nowrap;
+}
+
+/* Discography rows */
+.ap-disco-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 100ms ease;
+  border-radius: 4px;
+}
+
+.ap-disco-row:last-child {
+  border-bottom: none;
+}
+
+.ap-disco-row:hover {
+  background: var(--tr-hover);
+}
+
+.ap-disco-year {
+  font-size: 12px;
+  width: 36px;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.ap-disco-title {
+  flex: 1;
+  font-size: 13px;
+  color: var(--link);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ap-disco-type {
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+/* Loading state */
+.ap-loading {
+  padding: 8px 0;
+}
+
+/* Mobile adjustments */
+@media (max-width: 640px) {
+  .artist-panel {
+    margin: 8px 0 12px;
+    border-radius: 8px;
+  }
+}

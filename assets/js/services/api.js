@@ -291,3 +291,11 @@ export async function fetchWikipediaSummary(wikidataUrl) {
   wikiCache.set(wikidataUrl, result);
   return result;
 }
+
+export async function loadFirstReleaseOfGroup(rgId) {
+  if (!rgId) return null;
+  const data = await fetchJSON(
+    `https://musicbrainz.org/ws/2/release?release-group=${rgId}&fmt=json&limit=1`
+  );
+  return data?.releases?.[0] || null;
+}

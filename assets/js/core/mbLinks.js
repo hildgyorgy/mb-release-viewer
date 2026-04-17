@@ -42,3 +42,10 @@ export function mbWorkUrl(work) {
   if (!work?.id) return "";
   return `https://musicbrainz.org/work/${work.id}`;
 }
+
+export function artistPanelLink(artist) {
+  if (!artist?.id) return escHtml(artist?.name || "(unknown)");
+  const name = escHtml(artist.name || "(unknown)");
+  return `<a href="#" class="artist-panel-link" data-artist-id="${artist.id}"
+             aria-label="Show ${name} details">${name}</a>`;
+}

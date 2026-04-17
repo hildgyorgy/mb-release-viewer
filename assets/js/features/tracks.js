@@ -1,6 +1,7 @@
 import { $, $$, escHtml } from "../core/util.js";
 import { loadRecording, loadWork } from "../services/api.js";
 import { renderTrackDetails, getPrimaryWorkIdFromRecording } from "./trackDetails.js";
+import { openArtistPanel, closeArtistPanel } from "./artistPanel.js";
 
 /* ============================================================
    Tracks: open/close + lazy-load details
@@ -10,7 +11,6 @@ function closeDetails(detailsRow, trackRow) {
   const wrap = $(".details-wrap", detailsRow);
   if (!wrap) return;
 
-  // set current height, then animate to 0
   wrap.style.maxHeight = wrap.scrollHeight + "px";
   requestAnimationFrame(() => {
     wrap.style.maxHeight = "0px";
@@ -41,7 +41,7 @@ function closeAllOtherDetails(outEl, keepDetailsRow) {
   });
 }
 
-// “release payload” recording sometimes lacks full rels; decide whether to refetch
+// "release payload" recording sometimes lacks full rels; decide whether to refetch
 async function ensureFullRecording(fromRelease, recId) {
   let recording = fromRelease;
 
@@ -60,20 +60,70 @@ async function ensureFullRecording(fromRelease, recId) {
   return recording;
 }
 
+// Re-measure the details-wrap after content changes (panel open/close)
+function remeasureWrap(detailsRow) {
+  const wrap = $(".details-wrap", detailsRow);
+  if (wrap) wrap.style.maxHeight = wrap.scrollHeight + "px";
+}
+
 /**
  * Bind click-to-toggle behaviour for the track table.
  *
- * @param {HTMLElement} outEl - root container (the #out element)
- * @param {Array} flatTracks - the flat track list you already build in renderAll
+ * @param {HTMLElement} outEl       - root container (the #out element)
+ * @param {Array}       flatTracks  - flat track list built in renderReleasePage
+ * @param {Function}    onLoadRelease - called with rgId when artist panel discography is clicked
  */
-export function bindTrackToggles(outEl, flatTracks) {
+export function bindTrackToggles(outEl, flatTracks, onLoadRelease) {
   const trackTable = $(".tracks table", outEl);
   if (!trackTable) return;
 
-  // guard
+  // Guard — only bind once
   if (trackTable.dataset.boundTracks === "1") return;
   trackTable.dataset.boundTracks = "1";
 
+  // ----------------------------------------------------------
+  // Artist panel — must be bound FIRST so stopPropagation
+  // prevents the track toggle handler from also firing
+  // ----------------------------------------------------------
+  trackTable.addEventListener("click", async (e) => {
+    const link = e.target.closest(".artist-panel-link");
+    if (!link) return;
+
+    // Stop the click reaching the track row toggle handler
+    e.stopPropagation();
+    e.preventDefault();
+
+    const artistId = link.dataset.artistId;
+    if (!artistId) return;
+
+    // Find the .details-inner that contains this link
+    const detailsRow = link.closest("tr.details");
+    if (!detailsRow) return;
+    const inner = $(".details-inner", detailsRow);
+    if (!inner) return;
+
+    // Open the panel — passing onLoadRelease so discography items can navigate
+    await openArtistPanel(artistId, inner, async (rgId) => {
+      if (typeof onLoadRelease === "function") {
+        closeArtistPanel();
+        await onLoadRelease(rgId);
+      }
+    });
+
+    // Re-measure after panel opens
+    remeasureWrap(detailsRow);
+
+    // Watch for panel removal (✕ or click-outside) and re-measure
+    const obs = new MutationObserver(() => {
+      remeasureWrap(detailsRow);
+      if (!inner.querySelector(".artist-panel")) obs.disconnect();
+    });
+    obs.observe(inner, { childList: true, subtree: false });
+  });
+
+  // ----------------------------------------------------------
+  // Track row toggle — open/close details on track click
+  // ----------------------------------------------------------
   trackTable.addEventListener("click", async (e) => {
     const tr = e.target.closest("tr.track");
     if (!tr) return;
@@ -86,22 +136,25 @@ export function bindTrackToggles(outEl, flatTracks) {
     const inner = $(".details-inner", details);
     if (!wrap || !inner) return;
 
-    // toggle close
+    // Toggle close
     const isOpen = details.classList.contains("is-open");
     if (isOpen) {
+      closeArtistPanel();
       closeDetails(details, tr);
       return;
     }
 
-    // close others
+    // Close other open rows (and their artist panels)
+    closeArtistPanel();
     closeAllOtherDetails(outEl, details);
 
-    // open and load
+    // Open and load credits
     inner.innerHTML = `<div class="muted">Loading…</div>`;
     openDetails(details, tr);
 
     const fromRelease = flatTracks[Number(i)]?.rec || null;
     const recId = tr.dataset.rec || fromRelease?.id || "";
+
     if (!recId && !fromRelease) {
       inner.innerHTML = `<div class="muted">No recording id.</div>`;
       requestAnimationFrame(() => (wrap.style.maxHeight = wrap.scrollHeight + "px"));
@@ -129,7 +182,6 @@ export function bindTrackToggles(outEl, flatTracks) {
       inner.innerHTML = `<div class="muted">Details render error: ${escHtml(err?.message || String(err))}</div>`;
     }
 
-    // re-measure after async content injection
     requestAnimationFrame(() => (wrap.style.maxHeight = wrap.scrollHeight + "px"));
   });
 }

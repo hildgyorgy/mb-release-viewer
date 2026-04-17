@@ -7,7 +7,7 @@ import { createReleaseNavigator } from "./services/navigation.js";
 import { applyTheme, getPreferredTheme } from "./ui/theme.js";
 import { createSearchController } from "./ui/searchController.js";
 
-import { loadRelease } from "./services/api.js";
+import { loadRelease, loadFirstReleaseOfGroup } from "./services/api.js";
 import { renderReleasePage } from "./features/releasePage.js";
 
 import { createMobileHeaderController } from "./ui/mobileHeader.js";
@@ -17,7 +17,6 @@ import { createMobileHeaderController } from "./ui/mobileHeader.js";
 // ------------------------------
 
 async function goFallback() {
-  // korábbi “go()” fallback – most no-op
   return;
 }
 
@@ -28,27 +27,38 @@ export const App = Object.freeze({
   init() {
     applyTheme(getPreferredTheme());
 
-const Nav = createReleaseNavigator({
-  getOut: () => document.getElementById("out"),
-  loadRelease,
-  renderReleasePage,
-});
+    const Nav = createReleaseNavigator({
+      getOut: () => document.getElementById("out"),
+      loadRelease,
 
-const MobileHdr = createMobileHeaderController();
-MobileHdr.bind();
+      // Wrap renderReleasePage to inject the onLoadRelease callback
+      // so the artist panel discography can navigate to a release
+      renderReleasePage: (out, data) =>
+        renderReleasePage(out, data, async (rgId) => {
+          try {
+            const release = await loadFirstReleaseOfGroup(rgId);
+            if (release?.id) await goByMbidWrapped(release.id);
+          } catch (err) {
+            console.warn("Could not navigate to release group:", err);
+          }
+        }),
+    });
 
-const goByMbidWrapped = async (mbid) => {
-  await Nav.goByMbid(mbid);
-  MobileHdr.onReleaseLoaded();
-};
+    const MobileHdr = createMobileHeaderController();
+    MobileHdr.bind();
 
-const Search = createSearchController({
-  onGoByMbid: goByMbidWrapped,
-  onGoFallback: goFallback,
-});
-Search.init();
+    const goByMbidWrapped = async (mbid) => {
+      await Nav.goByMbid(mbid);
+      MobileHdr.onReleaseLoaded();
+    };
 
-bootFromUrl({ onGoByMbid: goByMbidWrapped });
+    const Search = createSearchController({
+      onGoByMbid: goByMbidWrapped,
+      onGoFallback: goFallback,
+    });
+    Search.init();
+
+    bootFromUrl({ onGoByMbid: goByMbidWrapped });
   },
 });
 
