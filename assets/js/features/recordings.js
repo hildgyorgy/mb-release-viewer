@@ -5,8 +5,14 @@
 
 import { STATE } from "../core/state.js";
 import { escHtml, relDateLabel, uniq, mediumLabel } from "../core/util.js";
-import { mbArtistLink, mbPlaceLink, mbRecordingLink } from "../core/mbLinks.js";
-import { loadRecording } from "../services/api.js";
+import { mbArtistLink, mbPlaceLink, mbRecordingLink, artistPanelLink, mbWorkUrl } from "../core/mbLinks.js";
+import { loadRecording, loadWork } from "../services/api.js";
+import {
+  parsePerformersFromRecording,
+  parseCreatorsFromWork,
+  getWorkHierarchyLines,
+  getPrimaryWorkIdFromRecording,
+} from "./trackDetails.js";
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -467,4 +473,257 @@ export async function buildRecordingsView() {
 
   const loadLine = view.querySelector("#recLoadLine");
   if (loadLine) loadLine.remove();
+}
+// ============================================================
+// Full Credits view — all credit types per track
+// creators → work → performers → tech credits
+// Common credits summarised on top (same logic as above)
+// ============================================================
+
+// Render a simple role/value block in the shared perf style
+function renderFullCreditsSection(items) {
+  if (!items.length) return "";
+  return items.map((it) => {
+    const isNotes = String(it.role || "").toLowerCase() === "notes";
+    const valuesHtml = isNotes
+      ? `<span class="muted">${(it.values || []).map((v) => escHtml(String(v))).join("<br>")}</span>`
+      : (it.values || []).map((v) => `<div class="fc-value-line">${v}</div>`).join("");
+    return `
+      <div class="fc-row">
+        <div class="fc-role">${escHtml(it.role)}</div>
+        <div class="fc-values">${valuesHtml}</div>
+      </div>`;
+  }).join("");
+}
+
+// Performers: convert parsePerformersFromRecording output → {role, values[]} shape
+function performerItemsToRows(items) {
+  return items.map((it) => ({
+    role: it.role,
+    values: it.artists.map((a) => artistPanelLink(a)),
+  }));
+}
+
+// Creators: convert parseCreatorsFromWork output → {role, values[]} shape
+function creatorItemsToRows(items) {
+  return items.map((it) => ({
+    role: it.role,
+    values: it.artists.map((a) => artistPanelLink(a)),
+  }));
+}
+
+// Work hierarchy block: returns simple {role, values[]} rows
+async function workRows(work) {
+  if (!work?.id) return [];
+  const [l1, l2, l3] = await getWorkHierarchyLines(work);
+  const a = String(l1 || "").trim();
+  const b = String(l2 || "").trim();
+  const c = String(l3 || "").trim();
+  const leaf = (c || b || a).trim();
+  if (!leaf) return [];
+
+  const link = mbWorkUrl(work);
+  const leafLink = `<a href="${link}" target="_blank" rel="noreferrer">${escHtml(leaf)}</a>`;
+
+  const rows = [];
+  if (a && a !== leaf) rows.push({ role: "work", values: [escHtml(a)] });
+  if (b && b !== leaf) rows.push({ role: "", values: [escHtml(b)] });
+  rows.push({ role: rows.length ? "" : "work", values: [leafLink] });
+  return rows;
+}
+
+// Render one track's complete credit block
+// Collect all creditable items for one track (excludes work titles)
+// Returns {role, values[]} array ready for itemsToRoleMap
+async function collectAllCreditRows(recording, work) {
+  const rows = [];
+
+  if (work) {
+    const creatorItems = parseCreatorsFromWork(work);
+    rows.push(...creatorItemsToRows(creatorItems));
+  }
+
+  const perfItems = parsePerformersFromRecording(recording);
+  rows.push(...performerItemsToRows(perfItems));
+
+  const techItems = parseRecordingTechCredits(recording);
+  rows.push(...techItems);
+
+  return rows;
+}
+
+// Subtract commonMap from a rows array — same logic as subtractCommon
+function subtractCommonFromRows(rows, commonMap) {
+  return rows
+    .map((it) => {
+      const commonSet = commonMap.get(String(it.role || "").trim());
+      if (!commonSet) return it;
+      const diffVals = (it.values || []).filter((v) => !commonSet.has(String(v)));
+      return diffVals.length ? { role: it.role, values: diffVals } : null;
+    })
+    .filter(Boolean);
+}
+
+async function renderTrackFullCredits(recording, work, commonMap = new Map()) {
+  const sections = [];
+
+  // 1. Creators (minus common)
+  if (work) {
+    const creatorItems = parseCreatorsFromWork(work);
+    const rows = subtractCommonFromRows(creatorItemsToRows(creatorItems), commonMap);
+    if (rows.length) sections.push(renderFullCreditsSection(rows));
+  }
+
+  // 2. Work hierarchy — never subtracted, always per-track
+  if (work) {
+    const wRows = await workRows(work);
+    if (wRows.length) sections.push(renderFullCreditsSection(wRows));
+  }
+
+  // 3. Performers (minus common)
+  const perfItems = parsePerformersFromRecording(recording);
+  const perfRows = subtractCommonFromRows(performerItemsToRows(perfItems), commonMap);
+  if (perfRows.length) sections.push(renderFullCreditsSection(perfRows));
+
+  // 4. Tech credits (minus common)
+  const techItems = parseRecordingTechCredits(recording);
+  const techRows = subtractCommonFromRows(techItems, commonMap);
+  if (techRows.length) sections.push(renderFullCreditsSection(techRows));
+
+  if (!sections.length) return `<div class="fc-empty muted">—</div>`;
+  return `<div class="fc-track-credits">${sections.join('<div class="fc-section-gap"></div>')}</div>`;
+}
+
+export async function buildFullCreditsView() {
+  const view = document.querySelector('section.view[data-view="recordings"]');
+  if (!view) return;
+
+  const media = Array.isArray(STATE.views.recordingsMedia) ? STATE.views.recordingsMedia : [];
+  const mediaCount = media.length;
+  const albumRecIds = collectAlbumRecordingIds(media);
+  const total = albumRecIds.length;
+
+  // Render skeleton immediately — same track list structure
+  let html = `
+    <div class="tracks">
+      <table><tbody>
+        <tr>
+          <td class="num"></td>
+          <td class="title">${escHtml("Common credits")}</td>
+          <td class="len"></td>
+        </tr>
+        <tr>
+          <td class="num"></td>
+          <td colspan="3" id="recCommonCell">
+            <div class="rec-empty muted">
+              Computing <span id="recCommonProg">(0/${total})</span>
+              <span class="rec-spin">|</span>
+            </div>
+          </td>
+        </tr>`;
+
+  for (const m of media) {
+    html += `
+      <tr class="medium-row">
+        <td class="medium-cell" colspan="3">${escHtml(mediumLabel(m, mediaCount))}</td>
+      </tr>`;
+
+    const orderedRecIds = collectMediumRecordingIds(m);
+    for (let idx = 0; idx < orderedRecIds.length; idx++) {
+      const recId = orderedRecIds[idx];
+      const track = m?.tracks?.[idx];
+      const pos = track?.pos ?? (idx + 1);
+      const title = track?.title || track?.rec?.title || "(recording)";
+
+      html += `
+        <tr>
+          <td class="num">${pos}</td>
+          <td class="title">${escHtml(title)}</td>
+          <td class="len">${escHtml(track?.len || "")}</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td colspan="2" data-rec-id="${escHtml(recId)}">${renderInlineSpinner()}</td>
+        </tr>`;
+    }
+  }
+
+  html += `</tbody></table></div>`;
+  view.innerHTML = html;
+
+  // Start spinners
+  view.querySelectorAll('[data-rec-id] .rec-spin').forEach((el) => {
+    startAsciiSpinner((ch) => (el.textContent = ch));
+  });
+  const commonCell = view.querySelector("#recCommonCell");
+  const stopCommonSpin = commonCell ? startSpinnerInside(commonCell) : () => {};
+
+  // Load recordings one by one — collect all credit rows for common computation
+  const recData = new Map();           // recId → { rec, work }
+  const allCreditRowsByRec = new Map(); // recId → rows (for common subtraction)
+  const allRoleMaps = [];              // one roleMap per track (for intersection)
+  let loaded = 0;
+  const commonProgEl = view.querySelector("#recCommonProg");
+
+  for (let k = 0; k < albumRecIds.length; k++) {
+    const recId = albumRecIds[k];
+
+    let rec = null;
+    let work = null;
+    try {
+      rec = await loadRecording(recId);
+      if (rec) {
+        const workId = getPrimaryWorkIdFromRecording(rec);
+        if (workId) work = await loadWork(workId);
+      }
+    } catch {
+      rec = null;
+    }
+
+    recData.set(recId, { rec, work });
+
+    if (!rec) {
+      setAllRecCellsHtml(view, recId, `<div class="fc-empty muted">(could not load)</div>`);
+    } else {
+      // Show full credits immediately (common not yet subtracted — updated below)
+      const htmlFull = await renderTrackFullCredits(rec, work);
+      setAllRecCellsHtml(view, recId, htmlFull);
+
+      // Collect all credit rows for this track (excluding work titles)
+      const rows = await collectAllCreditRows(rec, work);
+      allCreditRowsByRec.set(recId, rows);
+      allRoleMaps.push(itemsToRoleMap(rows));
+    }
+
+    loaded++;
+    if (commonProgEl) commonProgEl.textContent = `(${loaded}/${total})`;
+
+    if (k < albumRecIds.length - 1) await sleep(REQUEST_GAP_MS);
+  }
+
+  // Compute common across ALL credit types (creators + performers + tech)
+  const commonMap = intersectRoleMaps(allRoleMaps);
+  const commonItems = Array.from(commonMap.entries())
+    .map(([role, set]) => ({
+      role,
+      values: Array.from(set).sort((a, b) => String(a).localeCompare(String(b))),
+    }))
+    .sort((a, b) => String(a.role).localeCompare(String(b.role)));
+
+  // Show common section
+  stopCommonSpin();
+  setCommonCellHtml(
+    view,
+    commonItems.length
+      ? `<div class="fc-track-credits">${renderFullCreditsSection(commonItems)}</div>`
+      : `<div class="fc-empty muted">—</div>`
+  );
+
+  // Re-render every track with common credits subtracted
+  for (const recId of albumRecIds) {
+    const { rec, work } = recData.get(recId) || {};
+    if (!rec) continue;
+    const htmlDiff = await renderTrackFullCredits(rec, work, commonMap);
+    setAllRecCellsHtml(view, recId, htmlDiff);
+  }
 }

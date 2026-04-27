@@ -1481,3 +1481,53 @@ tr.track.is-open+tr.details .perf {
     border-radius: 8px;
   }
 }
+/* ============================================================
+   Full Credits view — fc-* classes
+   ============================================================ */
+
+.fc-track-credits {
+  padding: 8px 0 12px 0;
+}
+
+.fc-row {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  column-gap: 12px;
+  row-gap: 0;
+  padding: 2px 0;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.fc-role {
+  opacity: 0.55;
+  font-size: 12px;
+  padding-top: 1px;
+  text-align: right;
+}
+
+.fc-values {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.fc-value-line a {
+  opacity: 0.85;
+}
+
+.fc-section-gap {
+  height: 8px;
+}
+
+.fc-empty {
+  padding: 6px 0 10px;
+  font-size: 13px;
+}
+
+@media (max-width: 640px) {
+  .fc-row {
+    grid-template-columns: 110px 1fr;
+    column-gap: 8px;
+  }
+}

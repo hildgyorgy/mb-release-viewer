@@ -11,7 +11,7 @@ import { bindCoverGalleryOnce } from "../ui/coverGallery.js";
 import { renderHeader, renderTracksView, renderRecordingsViewShell } from "../ui/render.js";
 
 import { bindTabsOnce, setActiveView } from "../ui/tabs.js";
-import { buildRecordingsView } from "./recordings.js";
+import { buildFullCreditsView } from "./recordings.js";
 import { bindTrackToggles } from "./tracks.js";
 import { bindComposerHeadersOnce } from "../ui/composerHeaders.js";
 
@@ -73,7 +73,7 @@ function hydrateUI(out, flatTracks, onLoadRelease) {
     onViewActivated: async (view) => {
       if (view === "recordings" && !STATE.views.recordingsBuilt) {
         setViewsState({ recordingsBuilt: true });
-        await buildRecordingsView();
+        await buildFullCreditsView();
       }
     },
   });

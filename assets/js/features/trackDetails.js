@@ -19,7 +19,7 @@ const EXTRA_PERFORMER_REL_TYPES = new Set([
   "performing orchestra",
 ]);
 
-function parsePerformersFromRecording(recording) {
+export function parsePerformersFromRecording(recording) {
   const rels = recording?.relations || [];
   const perf = rels.filter((r) => (r.target_type ?? r["target-type"]) === "artist");
   const byRole = new Map();
@@ -138,7 +138,7 @@ export function getPrimaryWorkIdFromRecording(recording) {
   return typeof w === "string" ? w : w.id || null;
 }
 
-function parseCreatorsFromWork(work) {
+export function parseCreatorsFromWork(work) {
   const rels = work?.relations || [];
   const creatorTypes = new Set(["composer", "lyricist", "librettist", "arranger", "writer"]);
   const byRole = new Map();
@@ -232,7 +232,7 @@ function getParentWorkIdFromWork(work) {
   return typeof w === "string" ? w : w.id || null;
 }
 
-async function getWorkHierarchyLines(leafWork) {
+export async function getWorkHierarchyLines(leafWork) {
   if (!leafWork?.id && !leafWork?.title) return ["", "", ""];
 
   const chain = [];
