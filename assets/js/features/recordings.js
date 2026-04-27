@@ -78,7 +78,7 @@ function prettyRelRole(typeRaw, attrs) {
   return { role: type, rest: a };
 }
 
-function parseRecordingTechCredits(recording) {
+export function parseRecordingTechCredits(recording) {
   const rels = Array.isArray(recording?.relations) ? recording.relations : [];
   const rows = [];
   const dis = String(recording?.disambiguation || "").trim();
@@ -145,7 +145,7 @@ function parseRecordingTechCredits(recording) {
   return roles.map((role) => ({ role, values: uniq(grouped.get(role)) }));
 }
 
-function renderRecordingTechGrid(items) {
+export function renderRecordingTechGrid(items) {
   if (!items.length) return `<div class="muted">N/A</div>`;
 
   const rows = items

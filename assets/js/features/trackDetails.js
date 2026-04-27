@@ -1,6 +1,7 @@
 import { escHtml, stripParentPrefix } from "../core/util.js";
 import { loadWork } from "../services/api.js";
 import { mbArtistLink, artistPanelLink, artistCreditToLinks, mbWorkUrl } from "../core/mbLinks.js";
+import { parseRecordingTechCredits } from "./recordings.js";
 
 /* ============================================================
    Track details (Performers / Creators / Work hierarchy)
@@ -320,19 +321,58 @@ async function renderWorkHierarchyBlock(work) {
   `;
 }
 
+function renderTechCredits(recording) {
+  const items = parseRecordingTechCredits(recording);
+  if (!items.length) {
+    return `
+      <div class="perf">
+        <div class="grid">
+          <div>
+            <div class="inst">tech credits</div>
+            <div class="artists"><span class="muted">N/A</span></div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="perf">
+      <div class="grid">
+        ${items.map((it) => {
+          const isNotes = String(it.role || "").toLowerCase() === "notes";
+          const valuesHtml = isNotes
+            ? `<span class="muted">${it.values.map((v) => escHtml(String(v))).join("<br>")}</span>`
+            : it.values.map((v) => `<div class="artist-line">${v}</div>`).join("");
+          return `
+            <div>
+              <div class="inst">${escHtml(it.role)}</div>
+              <div class="artists">${valuesHtml}</div>
+            </div>
+          `;
+        }).join("")}
+      </div>
+    </div>
+  `;
+}
+
 export async function renderTrackDetails(recording, work) {
-  const left = renderPerformers(recording);
-  const mid = renderCreators(work);
-  const right = await renderWorkHierarchyBlock(work);
+  const performers = renderPerformers(recording);
+  const creators = renderCreators(work);
+  const workBlock = await renderWorkHierarchyBlock(work);
+
+  const techHtml = renderTechCredits(recording);
 
   return `
   <div class="detail-cols">
-    <div class="detail-col detail-col--perf">${left}</div>
+    <div class="detail-col detail-col--perf">${performers}</div>
 
-    <div class="detail-col detail-col--meta">
-      <div class="detail-col detail-col--creators">${mid}</div>
-      <div class="detail-col detail-col--work">${right}</div>
+    <div class="detail-col detail-col--creators-work">
+      ${creators}
+      ${workBlock}
     </div>
+
+    <div class="detail-col detail-col--tech">${techHtml}</div>
   </div>
 `;
 }

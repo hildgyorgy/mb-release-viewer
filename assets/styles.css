@@ -875,20 +875,19 @@ tr.details.is-open .details-wrap {
 
 .detail-cols {
   display: grid;
-  grid-template-columns: 0.85fr 2.45fr;
-  /* perf | (creators+work) arány*/
+  grid-template-columns: 1fr 1fr 1.4fr;
+  /* performers | creators+work | tech credits */
   column-gap: 12px;
   align-items: start;
   padding-bottom: 14px;
 }
 
-.detail-col--meta {
-  display: grid;
-  grid-template-columns: 1.3fr 2.2fr;
-  /* creators | work arány */
-  column-gap: 0px;
-  align-items: start;
+.detail-col--creators-work {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 }
+
 
 /* ------------------------------------------------------------
    8) Performer/Creator blocks
@@ -1144,13 +1143,16 @@ tr.track.is-open+tr.details .perf {
     grid-template-columns: 1fr 1fr;
     column-gap: 14px;
     align-items: start;
+    row-gap: 0;
   }
 
-  .detail-col--meta {
-    display: grid;
-    grid-template-columns: 1fr;
-    row-gap: 20px;
-    /* creators–work mezők távolsága */
+  /* On mobile: performers top-left, creators+work top-right, tech credits spans full width below */
+  .detail-col--tech {
+    grid-column: 1 / -1;
+  }
+
+  .detail-col--creators-work {
+    flex-direction: column;
   }
 
   .perf {
@@ -1158,9 +1160,6 @@ tr.track.is-open+tr.details .perf {
     padding: 10px 0px 15px;
   }
 
-  .detail-col--meta .perf {
-    padding: 10px 0 0;
-  }
 
   .recording-grid {
     margin-left: 0;
