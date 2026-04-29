@@ -888,6 +888,19 @@ tr.details.is-open .details-wrap {
   gap: 0;
 }
 
+/* creators+work flow as one continuous list — gap matches internal grid gap (6px) */
+.detail-col--creators-work .perf {
+  padding-bottom: 0;
+}
+
+.detail-col--creators-work .perf + .perf {
+  padding-top: 6px;
+}
+
+.detail-col--creators-work .perf + .perf .grid {
+  margin-top: 0;
+}
+
 
 /* ------------------------------------------------------------
    8) Performer/Creator blocks
