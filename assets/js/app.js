@@ -34,14 +34,25 @@ export const App = Object.freeze({
       // Wrap renderReleasePage to inject the onLoadRelease callback
       // so the artist panel discography can navigate to a release
       renderReleasePage: (out, data) =>
-        renderReleasePage(out, data, async (rgId) => {
-          try {
-            const release = await loadFirstReleaseOfGroup(rgId);
-            if (release?.id) await goByMbidWrapped(release.id);
-          } catch (err) {
-            console.warn("Could not navigate to release group:", err);
+        renderReleasePage(out, data,
+          // onLoadRelease: artist panel passes a release GROUP id
+          async (rgId) => {
+            try {
+              const release = await loadFirstReleaseOfGroup(rgId);
+              if (release?.id) await goByMbidWrapped(release.id);
+            } catch (err) {
+              console.warn("Could not navigate to release group:", err);
+            }
+          },
+          // onNavigateToRelease: versions tab passes a release id directly
+          async (releaseId) => {
+            try {
+              await goByMbidWrapped(releaseId);
+            } catch (err) {
+              console.warn("Could not navigate to release:", err);
+            }
           }
-        }),
+        ),
     });
 
     const MobileHdr = createMobileHeaderController();

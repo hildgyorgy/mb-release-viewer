@@ -8,10 +8,11 @@ import { artistCreditToText, fmtMs } from "../core/util.js";
 import { bindThemeToggleOnce } from "../ui/theme.js";
 import { bindCoverSizerOnce, layoutSync } from "../ui/layout.js";
 import { bindCoverGalleryOnce } from "../ui/coverGallery.js";
-import { renderHeader, renderTracksView, renderRecordingsViewShell } from "../ui/render.js";
+import { renderHeader, renderTracksView, renderVersionsViewShell } from "../ui/render.js";
 
 import { bindTabsOnce, setActiveView } from "../ui/tabs.js";
 import { buildFullCreditsView } from "./recordings.js";
+import { buildVersionsView } from "./versions.js";
 import { bindTrackToggles } from "./tracks.js";
 import { bindComposerHeadersOnce } from "../ui/composerHeaders.js";
 
@@ -66,11 +67,15 @@ function pickStreamingLinksFromRelease(rel) {
 // UI hydration
 // ------------------------------------------------------------
 
-function hydrateUI(out, flatTracks, onLoadRelease) {
+function hydrateUI(out, flatTracks, onLoadRelease, onNavigateToRelease) {
   bindThemeToggleOnce(document);
 
   bindTabsOnce({
     onViewActivated: async (view) => {
+      if (view === "versions" && !STATE.views.versionsBuilt) {
+        setViewsState({ versionsBuilt: true });
+        await buildVersionsView(onNavigateToRelease);
+      }
       if (view === "recordings" && !STATE.views.recordingsBuilt) {
         setViewsState({ recordingsBuilt: true });
         await buildFullCreditsView();
@@ -100,7 +105,7 @@ function hydrateUI(out, flatTracks, onLoadRelease) {
  * @param {{rel:Object, cover:string|null, covers:Array}} data
  * @param {(rgId:string)=>Promise<void>} [onLoadRelease] - called when artist panel discography item is clicked
  */
-export function renderReleasePage(out, { rel, cover, covers }, onLoadRelease) {
+export function renderReleasePage(out, { rel, cover, covers }, onLoadRelease, onNavigateToRelease) {
   const title = rel.title || "(untitled)";
   const artist = artistCreditToText(rel["artist-credit"]);
   const date = rel.date || rel["release-events"]?.[0]?.date || "";
@@ -148,21 +153,25 @@ export function renderReleasePage(out, { rel, cover, covers }, onLoadRelease) {
     };
   });
 
-  // Recordings tab data source
+  // Recordings + Versions tab data source
+  const releaseGroupId = rel["release-group"]?.id || "";
   setViewsState({
     recordingsBuilt: false,
     recordingsMedia: mediaWithTracks,
+    versionsBuilt: false,
+    releaseGroupId,
+    currentReleaseId: rel.id || "",
   });
 
   out.innerHTML = `
     ${renderHeader({ title, cover, mbLink, artist, date, country, label, catno, barcode, releaseNotes, streaming })}
     <div class="views">
       ${renderTracksView(mediaWithTracks, annotation)}
-      ${renderRecordingsViewShell()}
+      ${renderVersionsViewShell()}
     </div>
   `;
 
-  hydrateUI(out, flatTracks, onLoadRelease);
+  hydrateUI(out, flatTracks, onLoadRelease, onNavigateToRelease);
 
   layoutSync(out);
 

@@ -58,7 +58,7 @@ export function renderHeader({
 
       <div class="header-tabs tabs" id="tabs">
         <button class="tab is-active" data-view="tracks">Tracklist</button>
-        <button class="tab" data-view="recordings">Recordings</button>
+        <button class="tab" data-view="versions">Versions</button>
         <a class="tab mb-link" href="${mbLink}" target="_blank" rel="noreferrer">MusicBrainz</a>
       </div>
     </section>
@@ -124,6 +124,14 @@ function renderRow(row) {
         </div>
       </td>
     </tr>
+  `;
+}
+
+export function renderVersionsViewShell() {
+  return `
+    <section class="view" data-view="versions" hidden>
+      <div class="muted">Loading…</div>
+    </section>
   `;
 }
 
