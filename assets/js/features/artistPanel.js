@@ -4,9 +4,6 @@
 import { loadArtist, loadArtistReleaseGroups, fetchWikipediaSummary } from "../services/api.js";
 import { escHtml, escAttr } from "../core/util.js";
 
-// The panel is always inserted into a specific anchor element inside the track detail.
-// Only one panel exists at a time across the whole page.
-
 let currentArtistId = null;
 let currentAnchorEl = null;
 let outsideClickHandler = null;
@@ -16,8 +13,6 @@ let outsideClickHandler = null;
 // ------------------------------------------------------------
 
 /**
- * Open (or replace) the artist panel for a given artist.
- *
  * @param {string} artistId  - MusicBrainz artist MBID
  * @param {HTMLElement} anchorEl - the .details-inner element to inject into
  * @param {(mbid: string) => void} onLoadRelease - callback when user picks a release
@@ -25,36 +20,29 @@ let outsideClickHandler = null;
 export async function openArtistPanel(artistId, anchorEl, onLoadRelease) {
   if (!artistId || !anchorEl) return;
 
-  // Same artist already showing — do nothing
   if (currentArtistId === artistId && currentAnchorEl === anchorEl) return;
 
-  // Clean up any existing panel
   closeArtistPanel();
 
   currentArtistId = artistId;
   currentAnchorEl = anchorEl;
 
-  // Insert loading state immediately
   const panel = createPanelShell();
   anchorEl.insertBefore(panel, anchorEl.firstChild);
 
-  // Bind close on click outside (deferred so this click doesn't immediately close)
   setTimeout(() => bindOutsideClick(panel), 0);
 
-  // Load data
   try {
     const [artist, releaseGroups] = await Promise.all([
       loadArtist(artistId),
       loadArtistReleaseGroups(artistId),
     ]);
 
-    // Wikipedia requires artist url-rels to find wikidata link
     const wikidataUrl = findWikidataUrl(artist);
     const wiki = wikidataUrl
       ? await fetchWikipediaSummary(wikidataUrl).catch(() => null)
       : null;
 
-    // Re-check panel is still current (user may have closed it while loading)
     if (currentArtistId !== artistId) return;
 
     renderPanelContent(panel, artist, wiki, releaseGroups, onLoadRelease);
@@ -117,11 +105,9 @@ function renderPanelContent(panel, artist, wiki, releaseGroups, onLoadRelease) {
   const wikiHtml = buildWikiHtml(wiki);
   const discoHtml = buildDiscographyHtml(releaseGroups, onLoadRelease);
 
-  // Update header name
   panel.querySelector(".ap-name").innerHTML =
     `<span class="ap-name-text">${name}${years ? ` <span class="ap-years">(${years})</span>` : ""}</span>`;
 
-  // Build body
   panel.querySelector(".ap-body").innerHTML = `
     <div class="ap-mb-link">
       <a href="${mbUrl}" target="_blank" rel="noreferrer noopener" class="ap-mb-btn">
@@ -190,7 +176,6 @@ function buildWikiHtml(wiki) {
 function buildDiscographyHtml(releaseGroups, onLoadRelease) {
   if (!releaseGroups?.length) return "";
 
-  // Show Albums and EPs, sorted by date
   const filtered = releaseGroups
     .filter((rg) => {
       const t = (rg["primary-type"] || "").toLowerCase();
@@ -218,11 +203,8 @@ function buildDiscographyHtml(releaseGroups, onLoadRelease) {
     `;
   }).join("");
 
-  // Bind clicks after HTML is injected via event delegation on the section
-  // We use a data attribute and handle in the returned HTML's container
   const sectionId = `ap-disco-${Date.now()}`;
 
-  // We need to bind after insertion — use a microtask
   setTimeout(() => {
     const section = document.getElementById(sectionId);
     if (!section || typeof onLoadRelease !== "function") return;
@@ -233,7 +215,6 @@ function buildDiscographyHtml(releaseGroups, onLoadRelease) {
       const rgId = row.dataset.rgId;
       if (!rgId) return;
 
-      // Load the first release of this release group
       await onLoadRelease(rgId);
     });
   }, 0);

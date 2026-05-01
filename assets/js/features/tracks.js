@@ -41,7 +41,6 @@ function closeAllOtherDetails(outEl, keepDetailsRow) {
   });
 }
 
-// "release payload" recording sometimes lacks full rels; decide whether to refetch
 async function ensureFullRecording(fromRelease, recId) {
   let recording = fromRelease;
 
@@ -60,7 +59,6 @@ async function ensureFullRecording(fromRelease, recId) {
   return recording;
 }
 
-// Re-measure the details-wrap after content changes (panel open/close)
 function remeasureWrap(detailsRow) {
   const wrap = $(".details-wrap", detailsRow);
   if (wrap) wrap.style.maxHeight = wrap.scrollHeight + "px";
@@ -82,27 +80,23 @@ export function bindTrackToggles(outEl, flatTracks, onLoadRelease) {
   trackTable.dataset.boundTracks = "1";
 
   // ----------------------------------------------------------
-  // Artist panel — must be bound FIRST so stopPropagation
-  // prevents the track toggle handler from also firing
+  // Artist panel
   // ----------------------------------------------------------
   trackTable.addEventListener("click", async (e) => {
     const link = e.target.closest(".artist-panel-link");
     if (!link) return;
 
-    // Stop the click reaching the track row toggle handler
     e.stopPropagation();
     e.preventDefault();
 
     const artistId = link.dataset.artistId;
     if (!artistId) return;
 
-    // Find the .details-inner that contains this link
     const detailsRow = link.closest("tr.details");
     if (!detailsRow) return;
     const inner = $(".details-inner", detailsRow);
     if (!inner) return;
 
-    // Open the panel — passing onLoadRelease so discography items can navigate
     await openArtistPanel(artistId, inner, async (rgId) => {
       if (typeof onLoadRelease === "function") {
         closeArtistPanel();
@@ -110,10 +104,8 @@ export function bindTrackToggles(outEl, flatTracks, onLoadRelease) {
       }
     });
 
-    // Re-measure after panel opens
     remeasureWrap(detailsRow);
 
-    // Watch for panel removal (✕ or click-outside) and re-measure
     const obs = new MutationObserver(() => {
       remeasureWrap(detailsRow);
       if (!inner.querySelector(".artist-panel")) obs.disconnect();
@@ -136,7 +128,6 @@ export function bindTrackToggles(outEl, flatTracks, onLoadRelease) {
     const inner = $(".details-inner", details);
     if (!wrap || !inner) return;
 
-    // Toggle close
     const isOpen = details.classList.contains("is-open");
     if (isOpen) {
       closeArtistPanel();
@@ -144,11 +135,9 @@ export function bindTrackToggles(outEl, flatTracks, onLoadRelease) {
       return;
     }
 
-    // Close other open rows (and their artist panels)
     closeArtistPanel();
     closeAllOtherDetails(outEl, details);
 
-    // Open and load credits
     inner.innerHTML = `<div class="muted">Loading…</div>`;
     openDetails(details, tr);
 

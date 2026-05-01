@@ -7,22 +7,15 @@ import { closeSearch } from "../ui/searchController.js";
 
 const $ = (id) => document.getElementById(id);
 
-/**
- * Update ?mbid=... in the URL (bookmarkable), without reload.
- */
 export function setUrlMbid(mbid) {
   try {
     const u = new URL(window.location.href);
     u.searchParams.set("mbid", mbid);
     history.replaceState({}, "", u.toString());
   } catch {
-    // ignore
   }
 }
 
-/**
- * Reflect loaded MBID in the omnibox UI.
- */
 export function setOmniLoadedValue(mbid) {
   const omni = $("omni");
   if (!omni) return;
@@ -30,14 +23,6 @@ export function setOmniLoadedValue(mbid) {
   omni.classList.add("is-loaded");
 }
 
-/**
- * Create a navigator that:
- * - closes search dropdown
- * - shows Loading…
- * - loads release via loadRelease
- * - calls renderReleasePage({rel, cover, covers})
- * - updates omnibox + URL param
- */
 export function createReleaseNavigator({ getOut, loadRelease, renderReleasePage }) {
   if (typeof loadRelease !== "function") throw new Error("createReleaseNavigator: loadRelease missing");
   if (typeof renderReleasePage !== "function")
@@ -46,7 +31,7 @@ export function createReleaseNavigator({ getOut, loadRelease, renderReleasePage 
   const resolveOut =
     typeof getOut === "function" ? getOut : () => document.getElementById("out");
 
-    async function goByMbid(mbid) {
+  async function goByMbid(mbid) {
     if (!mbid) return;
 
     closeSearch();

@@ -106,17 +106,15 @@ function summarizeSearchHit(hit) {
   const ac = hit?.["artist-credit"];
   const artist = artistCreditToText(ac);
 
-  const date = firstReleaseDateLike(hit);          // lehet YYYY vagy YYYY-MM-DD
-  const year = date ? String(date).slice(0, 4) : ""; // ebből mindig csak YYYY kell
+  const date = firstReleaseDateLike(hit);
+  const year = date ? String(date).slice(0, 4) : "";
 
   const format = String(hit?.media?.[0]?.format || hit?.packaging || "").trim();
   const country = String(hit?.country || "").trim();
   const label = String(hit?.["label-info"]?.[0]?.label?.name || "").trim();
 
-  // 1) TITLE: ne tartalmazzon évszámot
   const head = `${artist || "Various Artists"} — ${titleRaw}`.trim();
 
-  // 2) SUB: mindig csak évvel kezdjen (nem teljes dátummal)
   const parts = [];
   if (year) parts.push(year);
   if (country) parts.push(country);
