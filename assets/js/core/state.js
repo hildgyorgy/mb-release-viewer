@@ -11,6 +11,7 @@ export const STATE = {
     lightboxBound: false,
   },
   views: {
+    versionsBuilt: false,
     recordingsBuilt: false,
     recordingsMedia: [],
   },

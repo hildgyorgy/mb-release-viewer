@@ -17,7 +17,7 @@ import { createMobileHeaderController } from "./ui/mobileHeader.js";
 // ------------------------------
 
 async function goFallback() {
-  return;
+  // Reserved fallback hook for empty searches.
 }
 
 // ------------------------------

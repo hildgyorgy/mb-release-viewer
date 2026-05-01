@@ -1,6 +1,6 @@
 import { CONFIG } from "../core/config.js";
 import { STATE, setSearchState } from "../core/state.js";
-import { extractMBID, debounce } from "../core/util.js";
+import { extractMBID, debounce, escAttr, escHtml } from "../core/util.js";
 import { searchReleases } from "../services/api.js";
 
 export function openSearch() {
@@ -32,18 +32,18 @@ export function renderSearchResults(items) {
   res.innerHTML = STATE.search.items
     .map(
       (it, i) => `
-      <div class="result ${i === 0 ? "is-active" : ""}" data-i="${i}">
+      <div class="result ${i === 0 ? "is-active" : ""}" data-i="${escAttr(i)}">
 <img
   class="res-thumb"
-  src="https://coverartarchive.org/release/${it.mbid}/front-250"
+  src="${escAttr(`https://coverartarchive.org/release/${it.mbid}/front-250`)}"
   alt=""
   loading="lazy"
   decoding="async"
   onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'res-thumb is-empty',ariaHidden:'true'}));"
 />
   <div class="res-text">
-    <div class="res-title">${it.title}</div>
-    <div class="sub">${it.sub || ""}</div>
+    <div class="res-title">${escHtml(it.title)}</div>
+    <div class="sub">${escHtml(it.sub || "")}</div>
   </div>
 </div>
     `
@@ -76,10 +76,12 @@ export function createSearchController({ onGoByMbid, onGoFallback }) {
   let goBtn = null;
   let resEl = null;
 
+  const getInputValue = () => String(omni?.value || "").trim();
+
   const runSearch = debounce(async () => {
     if (!omni || !resEl) return;
 
-    const val = String(omni.value || "").trim();
+    const val = getInputValue();
     const mbid = extractMBID(val);
 
     if (mbid) {
@@ -111,7 +113,7 @@ export function createSearchController({ onGoByMbid, onGoFallback }) {
 
   async function goByInput() {
     if (!omni) return;
-    const val = String(omni.value || "").trim();
+    const val = getInputValue();
     const mbid = extractMBID(val);
 
     if (mbid) {
@@ -144,12 +146,11 @@ export function createSearchController({ onGoByMbid, onGoFallback }) {
 
     omni.addEventListener("focus", () => {
       setTimeout(() => omni.select(), 0);
-    });
 
-    omni.addEventListener("focus", () => {
-      const val = String(omni.value || "").trim();
+      const val = getInputValue();
       const mbid = extractMBID(val);
       if (mbid) return;
+
       openSearch();
       if (val.length >= CONFIG.SEARCH_MIN_CHARS) runSearch();
       else renderSearchResults([]);
@@ -162,7 +163,7 @@ export function createSearchController({ onGoByMbid, onGoFallback }) {
 
     omni.addEventListener("paste", () => {
       setTimeout(async () => {
-        const val = String(omni.value || "").trim();
+        const val = getInputValue();
         const mbid = extractMBID(val);
         if (mbid) await onGoByMbid(mbid);
         else runSearch();
