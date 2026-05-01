@@ -1260,19 +1260,18 @@ tr.track.is-open+tr.details .perf {
   border-radius: 10px;
   background: var(--panel-2);
   overflow: hidden;
-
-  /* Slide in from above */
-  animation: ap-in 220ms ease forwards;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  animation: ap-in 220ms ease forwards; /* Slide in from above */
 }
 
 @keyframes ap-in {
   from {
     opacity: 0;
-    transform: translateY(-6px);
+    transform: translateY(-10px) scale(0.985);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
@@ -1327,6 +1326,23 @@ tr.track.is-open+tr.details .perf {
   padding: 10px 14px 14px;
   font-size: 13px;
   line-height: 1.45;
+}
+
+.ap-years {
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  opacity: 0.75;
+}
+
+.ap-section--wiki {
+  margin-top: 0;
+}
+
+.ap-disco-scroll {
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 14px;
 }
 
 /* MB link button */
@@ -1519,12 +1535,14 @@ tr.track.is-open+tr.details .perf {
 .ver-card {
   display: flex;
   flex-direction: row;
-  gap: 32px;
+  gap: 28px;
   align-items: flex-start;
-  padding: 16px 0;
+
+  padding: 18px 0 20px;
   border-bottom: 1px solid var(--border);
+
   cursor: pointer;
-  transition: opacity 160ms ease;
+  transition: opacity 160ms ease, transform 160ms ease;
 }
 
 .ver-card:last-child {
@@ -1532,7 +1550,8 @@ tr.track.is-open+tr.details .perf {
 }
 
 .ver-card:hover {
-  opacity: 0.75;
+  opacity: 0.82;
+  transform: translateX(3px);
 }
 
 .ver-card--current {
@@ -1541,6 +1560,7 @@ tr.track.is-open+tr.details .perf {
 
 .ver-card--current:hover {
   opacity: 1;
+  transform: none;
 }
 
 .ver-art {

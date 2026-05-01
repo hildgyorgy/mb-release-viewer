@@ -2,7 +2,7 @@
 // Inline artist panel — opens between track row and credits when an artist name is clicked.
 
 import { loadArtist, loadArtistReleaseGroups, fetchWikipediaSummary } from "../services/api.js";
-import { escHtml } from "../core/util.js";
+import { escHtml, escAttr } from "../core/util.js";
 
 // The panel is always inserted into a specific anchor element inside the track detail.
 // Only one panel exists at a time across the whole page.
@@ -112,14 +112,14 @@ function createPanelShell() {
 
 function renderPanelContent(panel, artist, wiki, releaseGroups, onLoadRelease) {
   const name = escHtml(artist?.name || "(unknown)");
+  const years = buildLifeSpanYears(artist);
   const mbUrl = `https://musicbrainz.org/artist/${artist.id}`;
-  const meta = buildMetaLine(artist);
   const wikiHtml = buildWikiHtml(wiki);
   const discoHtml = buildDiscographyHtml(releaseGroups, onLoadRelease);
 
   // Update header name
   panel.querySelector(".ap-name").innerHTML =
-    `<span class="ap-name-text">${name}</span>`;
+    `<span class="ap-name-text">${name}${years ? ` <span class="ap-years">(${years})</span>` : ""}</span>`;
 
   // Build body
   panel.querySelector(".ap-body").innerHTML = `
@@ -136,34 +136,25 @@ function renderPanelContent(panel, artist, wiki, releaseGroups, onLoadRelease) {
         Edit on MusicBrainz
       </a>
     </div>
-    ${meta ? `<div class="ap-meta muted">${meta}</div>` : ""}
     ${wikiHtml}
     ${discoHtml}
   `;
 }
 
 // ------------------------------------------------------------
-// Meta line: "Person · HU · 1935–2002"
+// Life span years: "1935–2002"
 // ------------------------------------------------------------
 
-function buildMetaLine(artist) {
-  const parts = [];
-
-  if (artist?.type) parts.push(escHtml(artist.type));
-  if (artist?.country) parts.push(escHtml(artist.country));
-
+function buildLifeSpanYears(artist) {
   const begin = artist?.["life-span"]?.begin || "";
   const end = artist?.["life-span"]?.end || "";
-  const ended = artist?.["life-span"]?.ended;
 
-  if (begin || end) {
-    const b = begin ? begin.slice(0, 4) : "";
-    const e = end ? end.slice(0, 4) : (ended ? "" : "");
-    if (b && e) parts.push(`${b}–${e}`);
-    else if (b) parts.push(b);
-  }
+  const b = begin ? begin.slice(0, 4) : "";
+  const e = end ? end.slice(0, 4) : "";
 
-  return parts.join(" · ");
+  if (b && e) return `${b}–${e}`;
+  if (b) return b;
+  return "";
 }
 
 // ------------------------------------------------------------
@@ -182,15 +173,14 @@ function buildWikiHtml(wiki) {
   const wikiUrl = wiki.url || `https://en.wikipedia.org/wiki/${encodeURIComponent(wiki.title || "")}`;
 
   return `
-    <div class="ap-section">
-      <div class="ap-section-label">WIKIPEDIA</div>
-      <div class="ap-wiki-text">
-        ${escHtml(shortened)}
-        <a href="${wikiUrl}" target="_blank" rel="noreferrer noopener"
-           class="ap-wiki-link"> Continue reading</a>
-      </div>
+  <div class="ap-section ap-section--wiki">
+    <div class="ap-wiki-text">
+      ${escHtml(shortened)}
+      <a href="${escAttr(wikiUrl)}" target="_blank" rel="noreferrer noopener"
+         class="ap-wiki-link"> Read more on Wikipedia</a>
     </div>
-  `;
+  </div>
+`;
 }
 
 // ------------------------------------------------------------
@@ -200,7 +190,7 @@ function buildWikiHtml(wiki) {
 function buildDiscographyHtml(releaseGroups, onLoadRelease) {
   if (!releaseGroups?.length) return "";
 
-  // Show only Albums and EPs, sorted by date, max 10
+  // Show Albums and EPs, sorted by date
   const filtered = releaseGroups
     .filter((rg) => {
       const t = (rg["primary-type"] || "").toLowerCase();
@@ -210,8 +200,7 @@ function buildDiscographyHtml(releaseGroups, onLoadRelease) {
       const da = a["first-release-date"] || "9999";
       const db = b["first-release-date"] || "9999";
       return da.localeCompare(db);
-    })
-    .slice(0, 10);
+    });
 
   if (!filtered.length) return "";
 
@@ -251,9 +240,11 @@ function buildDiscographyHtml(releaseGroups, onLoadRelease) {
 
   return `
     <div class="ap-section" id="${sectionId}">
-      <div class="ap-section-label">DISCOGRAPHY</div>
-      ${rows}
-    </div>
+  <div class="ap-section-label">DISCOGRAPHY</div>
+  <div class="ap-disco-scroll">
+    ${rows}
+  </div>
+</div>
   `;
 }
 
