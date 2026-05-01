@@ -1647,4 +1647,8 @@ tr.track.is-open+tr.details .perf {
     width: 130px;
     height: 130px;
   }
+
+  .ver-list {
+    margin-left: 16px;
+  }
 }
