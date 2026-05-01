@@ -1615,6 +1615,7 @@ tr.track.is-open+tr.details .perf {
   flex-direction: column;
   gap: 3px;
   padding-top: 0px;
+  opacity: 0.8;
 }
 
 .ver-row {
@@ -1623,11 +1624,12 @@ tr.track.is-open+tr.details .perf {
 }
 
 .ver-k {
-  opacity: 0.55;
+  font-weight: 500;
+  color: var(--meta);
 }
 
 .ver-v {
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .ver-loading,
