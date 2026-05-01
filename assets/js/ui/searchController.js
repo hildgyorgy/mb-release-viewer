@@ -3,20 +3,42 @@ import { STATE, setSearchState } from "../core/state.js";
 import { extractMBID, debounce, escAttr, escHtml } from "../core/util.js";
 import { searchReleases } from "../services/api.js";
 
+const $ = (id) => document.getElementById(id);
+let searchClickOutsideBound = false;
+
+function renderResultItem(it, i, isActive) {
+  return `
+    <div class="result ${isActive ? "is-active" : ""}" data-i="${escAttr(i)}">
+      <img
+        class="res-thumb"
+        src="${escAttr(`https://coverartarchive.org/release/${it.mbid}/front-250`)}"
+        alt=""
+        loading="lazy"
+        decoding="async"
+        onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'res-thumb is-empty',ariaHidden:'true'}));"
+      />
+      <div class="res-text">
+        <div class="res-title">${escHtml(it.title)}</div>
+        <div class="sub">${escHtml(it.sub || "")}</div>
+      </div>
+    </div>
+  `;
+}
+
 export function openSearch() {
   setSearchState({ open: true });
-  const res = document.getElementById("results");
+  const res = $("results");
   if (res) res.hidden = false;
 }
 
 export function closeSearch() {
   setSearchState({ open: false });
-  const res = document.getElementById("results");
+  const res = $("results");
   if (res) res.hidden = true;
 }
 
 export function renderSearchResults(items) {
-  const res = document.getElementById("results");
+  const res = $("results");
   if (!res) return;
 
   setSearchState({
@@ -30,29 +52,12 @@ export function renderSearchResults(items) {
   }
 
   res.innerHTML = STATE.search.items
-    .map(
-      (it, i) => `
-      <div class="result ${i === 0 ? "is-active" : ""}" data-i="${escAttr(i)}">
-<img
-  class="res-thumb"
-  src="${escAttr(`https://coverartarchive.org/release/${it.mbid}/front-250`)}"
-  alt=""
-  loading="lazy"
-  decoding="async"
-  onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'res-thumb is-empty',ariaHidden:'true'}));"
-/>
-  <div class="res-text">
-    <div class="res-title">${escHtml(it.title)}</div>
-    <div class="sub">${escHtml(it.sub || "")}</div>
-  </div>
-</div>
-    `
-    )
+    .map((it, i) => renderResultItem(it, i, i === 0))
     .join("");
 }
 
 export function setActiveResult(i) {
-  const res = document.getElementById("results");
+  const res = $("results");
   if (!res) return;
   const n = STATE.search.items.length;
   if (!n) return;
@@ -67,8 +72,7 @@ export function setActiveResult(i) {
   if (activeEl) activeEl.scrollIntoView({ block: "nearest" });
 }
 
-/**
- * SearchController: csak UI + keresés + választás.
+/* SearchController: csak UI + keresés + választás.
  * A tényleges “load MBID” műveletet kívülről injektáljuk: onGoByMbid(mbid)
  */
 export function createSearchController({ onGoByMbid, onGoFallback }) {
@@ -218,8 +222,8 @@ export function createSearchController({ onGoByMbid, onGoFallback }) {
     });
 
     // click-outside closes (guarded once)
-    if (!window.__bound_search_click_outside) {
-      window.__bound_search_click_outside = true;
+    if (!searchClickOutsideBound) {
+      searchClickOutsideBound = true;
 
       document.addEventListener("click", (e) => {
         if (!STATE.search.open) return;

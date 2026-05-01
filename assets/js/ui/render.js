@@ -38,10 +38,10 @@ export function renderHeader({
           if (!sp && !am && !td && !qb) return "";
           return `
             <div class="streaming">
-              ${sp ? `<a class="stream-btn" href="${sp}" target="_blank" rel="noreferrer noopener" aria-label="Spotify">${ICON_SPOTIFY}</a>` : ""}
-              ${am ? `<a class="stream-btn" href="${am}" target="_blank" rel="noreferrer noopener" aria-label="Apple Music">${ICON_APPLE_MUSIC}</a>` : ""}
-              ${td ? `<a class="stream-btn" href="${td}" target="_blank" rel="noreferrer noopener" aria-label="Tidal">${ICON_TIDAL}</a>` : ""}
-              ${qb ? `<a class="stream-btn" href="${qb}" target="_blank" rel="noreferrer noopener" aria-label="Qobuz">${ICON_QOBUZ}</a>` : ""}
+              ${sp ? `<a class="stream-btn pill" href="${sp}" target="_blank" rel="noreferrer noopener" aria-label="Spotify">${ICON_SPOTIFY}</a>` : ""}
+              ${am ? `<a class="stream-btn pill" href="${am}" target="_blank" rel="noreferrer noopener" aria-label="Apple Music">${ICON_APPLE_MUSIC}</a>` : ""}
+              ${td ? `<a class="stream-btn pill" href="${td}" target="_blank" rel="noreferrer noopener" aria-label="Tidal">${ICON_TIDAL}</a>` : ""}
+              ${qb ? `<a class="stream-btn pill" href="${qb}" target="_blank" rel="noreferrer noopener" aria-label="Qobuz">${ICON_QOBUZ}</a>` : ""}
             </div>
           `;
         })()}
@@ -57,9 +57,9 @@ export function renderHeader({
       </div>
 
       <div class="header-tabs tabs" id="tabs">
-        <button class="tab is-active" data-view="tracks">Tracklist</button>
-        <button class="tab" data-view="versions">Versions</button>
-        <a class="tab mb-link" href="${mbLink}" target="_blank" rel="noreferrer">MusicBrainz</a>
+        <button class="tab pill is-active" data-view="tracks">Tracklist</button>
+        <button class="tab pill" data-view="versions">Versions</button>
+        <a class="tab pill mb-link" href="${mbLink}" target="_blank" rel="noreferrer">MusicBrainz</a>
       </div>
     </section>
   `;

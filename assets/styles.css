@@ -75,11 +75,6 @@ html {
   outline-color: rgba(120, 170, 255, 0.22);
 }
 
-html {
-  width: 100%;
-  overflow-x: hidden;
-}
-
 *,
 *::before,
 *::after {
@@ -124,7 +119,7 @@ a:hover {
 }
 
 /* ------------------------------------------------------------
-   1) Header (sticky omni search)
+   HEADER / OMNIBOX
 ------------------------------------------------------------ */
 .top {
   position: fixed;
@@ -146,7 +141,6 @@ a:hover {
 
 .top-inner {
   padding-block: 3px;
-  /* csak függőleges */
   display: flex;
   align-items: center;
   gap: 22px;
@@ -181,22 +175,19 @@ a:hover {
   flex: 1;
   min-width: 0;
   position: relative;
-  /* a dropdownnak is jó */
 }
 
 #omni {
   width: 100%;
   padding: 10px 10px;
   border-radius: 12px;
-  border: 0px solid var(--border);
+  border: 0 solid var(--border);
   background: transparent;
 
   font-size: inherit;
   font-weight: 400;
   line-height: 1.4;
   font-family: inherit;
-  /* letter-spacing: var(--hdr-track); */
-  /* text-transform: uppercase; */
 
   color: var(--meta);
   caret-color: var(--meta);
@@ -286,6 +277,11 @@ a:hover {
 }
 
 .result {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 12px;
+  align-items: center;
+
   padding: 10px 12px;
   cursor: pointer;
   border-top: 1px solid var(--border);
@@ -306,13 +302,6 @@ a:hover {
   background: var(--tr-hover);
   outline: 2px solid rgba(0, 0, 0, .10);
   outline-offset: -2px;
-}
-
-.result {
-  display: grid;
-  grid-template-columns: 44px 1fr;
-  gap: 12px;
-  align-items: center;
 }
 
 .res-thumb {
@@ -346,7 +335,7 @@ a:hover {
 }
 
 /* ------------------------------------------------------------
-   Header hero: 3-block grid (cover / main / tabs)
+   RELEASE HEADER
 ------------------------------------------------------------ */
 
 .header-hero {
@@ -414,7 +403,7 @@ a:hover {
 }
 
 /* ------------------------------------------------------------
-   2) Layout blocks
+   RELEASE TITLE
 ------------------------------------------------------------ */
 
 .header-main h1 {
@@ -424,7 +413,7 @@ a:hover {
 }
 
 /* ------------------------------------------------------------
-   3) Cover + cover navigation
+   COVER
 ------------------------------------------------------------ */
 
 .cover-box {
@@ -433,7 +422,7 @@ a:hover {
   min-width: 0;
   border-radius: 12px;
   background: transparent;
-  border: 0px solid var(--border);
+  border: 0 solid var(--border);
   position: relative;
   overflow: hidden;
   touch-action: pan-y;
@@ -499,7 +488,7 @@ a:hover {
 }
 
 /* ------------------------------------------------------------
-   Cover lightbox
+   COVER LIGHTBOX
 ------------------------------------------------------------ */
 .lb {
   position: fixed;
@@ -545,8 +534,31 @@ a:hover {
 }
 
 /* ------------------------------------------------------------
-   4) Tabs
+   PILLS / TABS
 ------------------------------------------------------------ */
+
+.pill {
+  border-radius: 999px;
+  border: 0 solid var(--border-2);
+  background: var(--panel-2);
+  color: var(--text);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+  transition: transform 80ms ease, filter 120ms ease;
+}
+
+.pill:hover {
+  filter: brightness(1.08);
+}
+
+.pill:active {
+  transform: scale(0.98);
+}
+
 .tabs {
   display: flex;
   gap: var(--tabs-gap);
@@ -555,11 +567,6 @@ a:hover {
 
 .tab {
   padding: var(--tab-pad-y) var(--tab-pad-x);
-  border-radius: 999px;
-  border: 0px solid var(--border-2);
-  background: var(--panel-2);
-  color: var(--text);
-  cursor: pointer;
   font-size: 13px;
   line-height: 1;
 }
@@ -575,49 +582,24 @@ a:hover {
 
 .mb-link {
   flex: 0 0 auto;
-  width: auto;
-
-  padding: var(--tab-pad-y) var(--tab-pad-x);
-  line-height: 1;
-  border-radius: 999px;
-  border: 0px solid var(--border-2);
-  background: var(--panel-2);
-  color: var(--text);
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
   font-size: 13px;
   text-decoration: none;
   white-space: nowrap;
 }
 
-.mb-link:hover {
-  filter: brightness(1.08);
-}
-
 /* ------------------------------------------------------------
-   4.5) Theme toggle button
+   THEME TOGGLE
 ------------------------------------------------------------ */
+
 .theme-fab {
   width: 34px;
   height: 34px;
   padding: 0;
-  border-radius: 999px;
-
-  border: 0px solid var(--border-2);
-  background: var(--panel-2);
-  color: var(--text);
 
   display: grid;
   place-items: center;
 
-  cursor: pointer;
-  transition: transform 80ms ease, filter 120ms ease;
-
   flex: 0 0 auto;
-  white-space: nowrap;
 }
 
 .theme-fab svg {
@@ -627,21 +609,13 @@ a:hover {
   transition: transform 120ms ease, filter 120ms ease;
 }
 
-.theme-fab:hover {
-  filter: brightness(1.12);
-}
-
 .theme-fab:hover svg {
   transform: scale(1.06);
   filter: brightness(1.08);
 }
 
-.theme-fab:active {
-  transform: scale(0.98);
-}
-
 /* ------------------------------------------------------------
-   4.6) Streaming buttons (Spotify / Apple Music)
+   STREAMING LINKS
 ------------------------------------------------------------ */
 
 .streaming {
@@ -655,31 +629,18 @@ a:hover {
   width: 34px;
   height: 34px;
   padding: 0;
-  border-radius: 999px;
-
-  border: 0px solid var(--border-2);
-  background: var(--panel-2);
-  color: var(--muted);
 
   display: grid;
   place-items: center;
 
-  cursor: pointer;
+  color: var(--muted);
   text-decoration: none;
 
   flex: 0 0 auto;
-  white-space: nowrap;
-
-  transition: transform 80ms ease, filter 120ms ease;
 }
 
 .stream-btn:hover {
   color: var(--text);
-  filter: brightness(1.08);
-}
-
-.stream-btn:active {
-  transform: scale(0.98);
 }
 
 .stream-btn svg {
@@ -689,7 +650,7 @@ a:hover {
 }
 
 /* ------------------------------------------------------------
-   5) Meta block
+   RELEASE META
 ------------------------------------------------------------ */
 
 .artist {
@@ -717,9 +678,9 @@ a:hover {
 }
 
 /* ------------------------------------------------------------
-   6) Track table: 1-line general,  2-line classical
-   layout (work / movement)
+   TRACKLIST
 ------------------------------------------------------------ */
+
 .t-work {
   display: block;
 }
@@ -859,8 +820,9 @@ tr.details td {
 }
 
 /* ------------------------------------------------------------
-   7) Track details (smooth open/close)
+   TRACK DETAILS
 ------------------------------------------------------------ */
+
 .details-wrap {
   overflow: hidden;
   max-height: 0;
@@ -876,7 +838,6 @@ tr.details.is-open .details-wrap {
 .detail-cols {
   display: grid;
   grid-template-columns: 1fr 1fr 1.4fr;
-  /* performers | creators+work | tech credits */
   column-gap: 12px;
   align-items: start;
   padding-bottom: 14px;
@@ -888,7 +849,6 @@ tr.details.is-open .details-wrap {
   gap: 0;
 }
 
-/* creators+work flow as one continuous list — gap matches internal grid gap (6px) */
 .detail-col--creators-work .perf {
   padding-bottom: 0;
 }
@@ -903,8 +863,9 @@ tr.details.is-open .details-wrap {
 
 
 /* ------------------------------------------------------------
-   8) Performer/Creator blocks
+   PERFORMER / CREATOR CREDITS
 ------------------------------------------------------------ */
+
 .perf {
   margin-left: 25px;
   padding: 10px 10px 15px;
@@ -938,7 +899,7 @@ tr.track.is-open+tr.details .perf {
 }
 
 /* ------------------------------------------------------------
-   8) Recording-grid blocks
+   RECORDING CREDITS
 ------------------------------------------------------------ */
 
 .recording-grid {
@@ -954,7 +915,6 @@ tr.track.is-open+tr.details .perf {
 
 .recording-grid .rec-row {
   display: contents;
-  /* ugyanaz, mint korábban inline */
 }
 
 .recording-grid .rec-role,
@@ -962,11 +922,10 @@ tr.track.is-open+tr.details .perf {
   padding: 2px 0;
 }
 
-/* Personok desktop inline */
 .recording-grid .rec-value {
   display: flex;
   flex-wrap: wrap;
-  gap: 0px;
+  gap: 0;
   /* távolság a nevek között */
 }
 
@@ -1000,12 +959,13 @@ tr.track.is-open+tr.details .perf {
 /* Fallback box ("--" / could not load) */
 .rec-empty {
   margin-left: 20px;
-  padding: 0px 15px 0px;
+  padding: 0 15px 0;
 }
 
 /* ------------------------------------------------------------
-   10) Annotation
+   ANNOTATION
 ------------------------------------------------------------ */
+
 .annotation {
   margin-top: 0;
   padding-top: 20px;
@@ -1023,8 +983,9 @@ tr.track.is-open+tr.details .perf {
 }
 
 /* ------------------------------------------------------------
-   11) Responsive
+   RESPONSIVE
 ------------------------------------------------------------ */
+
 @media (max-width: 640px) {
 
   :root {
@@ -1032,10 +993,6 @@ tr.track.is-open+tr.details .perf {
     --tabs-gap: 12px;
     --tab-pad-y: 9px;
     --tab-pad-x: 14px;
-    /* --topbar: rgba(10, 20, 40, 0.88);
-    --border: rgba(255,255,255,0.14);
-    --text: rgba(255,255,255,0.92);
-    --muted: rgba(255,255,255,0.60); */
   }
 
   #omni {
@@ -1044,7 +1001,7 @@ tr.track.is-open+tr.details .perf {
 
   .top .brand {
     display: none;
-    margin-bottom: 0px;
+    margin-bottom: 0;
     font-size: 25px;
     text-align: center;
   }
@@ -1052,7 +1009,6 @@ tr.track.is-open+tr.details .perf {
   .header-hero {
     padding-inline: 16px;
     gap: 15px;
-    /* ez lesz a közös "hasáb" */
   }
 
   .header-main {
@@ -1159,7 +1115,6 @@ tr.track.is-open+tr.details .perf {
     row-gap: 0;
   }
 
-  /* On mobile: performers top-left, creators+work top-right, tech credits spans full width below */
   .detail-col--tech {
     grid-column: 1 / -1;
   }
@@ -1169,14 +1124,13 @@ tr.track.is-open+tr.details .perf {
   }
 
   .perf {
-    margin-left: 0px;
-    padding: 10px 0px 15px;
+    margin-left: 0;
+    padding: 10px 0 15px;
   }
-
 
   .recording-grid {
     margin-left: 0;
-    padding: 8px 0px 10px;
+    padding: 8px 0 10px;
     column-gap: 8px;
     grid-template-columns: 108px 1fr;
   }
@@ -1196,13 +1150,13 @@ tr.track.is-open+tr.details .perf {
   }
 
   .rec-empty {
-    margin-left: 0px;
-    padding: 0px 0px 0px;
+    margin-left: 0;
+    padding: 0 0 0;
   }
 
-  /* ------------------------------------------------------------
-   13) Mobile: collapsible topbar (Music-app-ish)
-  ------------------------------------------------------------ */
+ /* ------------------------------------------------------------
+   MOBILE COLLAPSIBLE HEADER
+------------------------------------------------------------ */
 
   :root[data-hdr="closed"] {
     --top-h: 20px;
@@ -1275,13 +1229,14 @@ tr.track.is-open+tr.details .perf {
 }
 
 /* ------------------------------------------------------------
-   12) Footer
+   FOOTER
 ------------------------------------------------------------ */
+
 .footer {
   width: 100%;
   font-size: 12px;
   line-height: 1.25;
-  border-top: 0px solid var(--border);
+  border-top: 0 solid var(--border);
   background: var(--bg);
 }
 
@@ -1296,7 +1251,7 @@ tr.track.is-open+tr.details .perf {
   opacity: 0.85;
 }
 /* ------------------------------------------------------------
-   Artist panel (inline, opens above track credits)
+   ARTIST PANEL
 ------------------------------------------------------------ */
 
 .artist-panel {
@@ -1494,9 +1449,9 @@ tr.track.is-open+tr.details .perf {
     border-radius: 8px;
   }
 }
-/* ============================================================
-   Full Credits view — fc-* classes
-   ============================================================ */
+/* ------------------------------------------------------------
+   FULL CREDITS VIEW
+------------------------------------------------------------ */
 
 .fc-track-credits {
   padding: 8px 0 12px 0;
@@ -1544,10 +1499,9 @@ tr.track.is-open+tr.details .perf {
     column-gap: 8px;
   }
 }
-
-/* ============================================================
-   Versions view — ver-* classes
-   ============================================================ */
+/* ------------------------------------------------------------
+   VERSIONS VIEW
+------------------------------------------------------------ */
 
 .ver-list {
   display: flex;
@@ -1614,7 +1568,7 @@ tr.track.is-open+tr.details .perf {
   display: flex;
   flex-direction: column;
   gap: 3px;
-  padding-top: 0px;
+  padding-top: 0;
   opacity: 0.8;
 }
 

@@ -2,7 +2,10 @@
    Navigation / loading helpers
    ============================================================ */
 
+import { escHtml } from "../core/util.js";
 import { closeSearch } from "../ui/searchController.js";
+
+const $ = (id) => document.getElementById(id);
 
 /**
  * Update ?mbid=... in the URL (bookmarkable), without reload.
@@ -21,7 +24,7 @@ export function setUrlMbid(mbid) {
  * Reflect loaded MBID in the omnibox UI.
  */
 export function setOmniLoadedValue(mbid) {
-  const omni = document.getElementById("omni");
+  const omni = $("omni");
   if (!omni) return;
   omni.value = mbid;
   omni.classList.add("is-loaded");
@@ -43,7 +46,7 @@ export function createReleaseNavigator({ getOut, loadRelease, renderReleasePage 
   const resolveOut =
     typeof getOut === "function" ? getOut : () => document.getElementById("out");
 
-  async function goByMbid(mbid) {
+    async function goByMbid(mbid) {
     if (!mbid) return;
 
     closeSearch();
@@ -54,12 +57,14 @@ export function createReleaseNavigator({ getOut, loadRelease, renderReleasePage 
     try {
       const data = await loadRelease(mbid);
 
-renderReleasePage(out, data);
+      renderReleasePage(out, data);
 
       setOmniLoadedValue(mbid);
       setUrlMbid(mbid);
     } catch (e) {
-      if (out) out.innerHTML = `<div class="err">Hiba: ${String(e?.message || e)}</div>`;
+      if (out) {
+        out.innerHTML = `<div class="err">Hiba: ${escHtml(e?.message || e)}</div>`;
+      }
     }
   }
 

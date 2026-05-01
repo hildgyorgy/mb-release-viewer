@@ -1,34 +1,45 @@
-import { uniq, escHtml, artistCreditToText } from "../core/util.js";
+import { artistCreditToText } from "../core/util.js";
+
+const MB_API = "https://musicbrainz.org/ws/2";
+const COVER_API = "https://coverartarchive.org";
+
 
 export async function fetchJSON(url) {
-  const r = await fetch(url, { headers: { Accept: "application/json" } });
-  if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
-  return await r.json();
+  const res = await fetch(url, {
+    headers: { Accept: "application/json" },
+  });
+
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status} ${res.statusText}`);
+  }
+
+  return res.json();
+}
+
+async function withCache(map, key, loader) {
+  if (!key) return null;
+  if (map.has(key)) return map.get(key);
+
+  const val = await loader();
+  map.set(key, val);
+  return val;
 }
 
 const recordingCache = new Map();
 export async function loadRecording(recId) {
-  if (!recId) return null;
-  if (recordingCache.has(recId)) return recordingCache.get(recId);
-
-  const rec = await fetchJSON(
-    `https://musicbrainz.org/ws/2/recording/${recId}?fmt=json&inc=` +
-    `artist-credits+artist-rels+work-rels+place-rels+recording-rels+url-rels`
+  return withCache(recordingCache, recId, async () =>
+    fetchJSON(
+      `${MB_API}/recording/${recId}?fmt=json&inc=` +
+      `artist-credits+artist-rels+work-rels+place-rels+recording-rels+url-rels`
+    )
   );
-  recordingCache.set(recId, rec);
-  return rec;
 }
 
 const workCache = new Map();
 export async function loadWork(workId) {
-  if (!workId) return null;
-  if (workCache.has(workId)) return workCache.get(workId);
-
-  const w = await fetchJSON(
-    `https://musicbrainz.org/ws/2/work/${workId}?fmt=json&inc=artist-rels+work-rels`
+  return withCache(workCache, workId, async () =>
+    fetchJSON(`${MB_API}/work/${workId}?fmt=json&inc=artist-rels+work-rels`)
   );
-  workCache.set(workId, w);
-  return w;
 }
 
 function forceHttps(url) {
@@ -40,7 +51,7 @@ function forceHttps(url) {
 
 export async function loadRelease(mbid) {
   const relUrl =
-    `https://musicbrainz.org/ws/2/release/${mbid}` +
+    `${MB_API}/release/${mbid}` +
     `?fmt=json&inc=recordings+artists+labels+release-groups+artist-credits+recording-rels+work-rels+annotation+release-rels+artist-rels+label-rels+url-rels`;
 
   const rel = await fetchJSON(relUrl);
@@ -48,7 +59,7 @@ export async function loadRelease(mbid) {
   // Cover Art Archive: collect ALL images
   let covers = [];
   try {
-    const ca = await fetchJSON(`https://coverartarchive.org/release/${mbid}`);
+    const ca = await fetchJSON(`${COVER_API}/release/${mbid}`);
     covers = (ca?.images || [])
       .map((img, i) => {
         const full = forceHttps(img.image || "");
@@ -201,7 +212,7 @@ export async function searchReleases(q, limit) {
   if (!query) return [];
 
   const url =
-    `https://musicbrainz.org/ws/2/release/?fmt=json&limit=${encodeURIComponent(
+    `${MB_API}/release/?fmt=json&limit=${encodeURIComponent(
       String(limit)
     )}&query=${encodeURIComponent(query)}`;
 
@@ -220,14 +231,9 @@ export async function searchReleases(q, limit) {
 
 const artistCache = new Map();
 export async function loadArtist(artistId) {
-  if (!artistId) return null;
-  if (artistCache.has(artistId)) return artistCache.get(artistId);
-
-  const artist = await fetchJSON(
-    `https://musicbrainz.org/ws/2/artist/${artistId}?fmt=json&inc=url-rels`
+  return withCache(artistCache, artistId, async () =>
+    fetchJSON(`${MB_API}/artist/${artistId}?fmt=json&inc=url-rels`)
   );
-  artistCache.set(artistId, artist);
-  return artist;
 }
 
 const releaseGroupCache = new Map();
@@ -241,7 +247,7 @@ export async function loadArtistReleaseGroups(artistId) {
 
   while (true) {
     const data = await fetchJSON(
-      `https://musicbrainz.org/ws/2/release-group?artist=${artistId}` +
+      `${MB_API}/release-group?artist=${artistId}` +
       `&fmt=json&limit=${pageSize}&offset=${offset}`
     );
 
@@ -253,7 +259,7 @@ export async function loadArtistReleaseGroups(artistId) {
   }
 
   releaseGroupCache.set(artistId, allGroups);
-  return allGroups;
+  return releaseGroupCache.get(artistId);
 }
 
 // ------------------------------------------------------------
@@ -295,7 +301,7 @@ export async function fetchWikipediaSummary(wikidataUrl) {
 export async function loadFirstReleaseOfGroup(rgId) {
   if (!rgId) return null;
   const data = await fetchJSON(
-    `https://musicbrainz.org/ws/2/release?release-group=${rgId}&fmt=json&limit=1`
+    `${MB_API}/release?release-group=${rgId}&fmt=json&limit=1`
   );
   return data?.releases?.[0] || null;
 }
