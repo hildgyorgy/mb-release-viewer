@@ -105,15 +105,20 @@ function renderPanelContent(panel, artist, wiki, releaseGroups, onLoadRelease) {
   const wikiHtml = buildWikiHtml(wiki);
   const discoHtml = buildDiscographyHtml(releaseGroups, onLoadRelease);
 
-  panel.querySelector(".ap-name").innerHTML =
-    `<span class="ap-name-text">${name}${years ? ` <span class="ap-years">(${years})</span>` : ""}</span>`;
-
+panel.querySelector(".ap-header").innerHTML = `
+  <span class="ap-name">
+    <span class="ap-name-text">${name}${years ? ` <span class="ap-years">(${years})</span>` : ""}</span>
+  </span>
+  <a href="${escAttr(mbUrl)}" target="_blank" rel="noreferrer noopener" class="ap-mb-btn pill">
+    MusicBrainz
+  </a>
+  <button class="ap-close" type="button" aria-label="Close artist panel">✕</button>
+`;
+panel.querySelector(".ap-close").addEventListener("click", (e) => {
+  e.stopPropagation();
+  closeArtistPanel();
+});
   panel.querySelector(".ap-body").innerHTML = `
-    <div class="ap-mb-link">
-      <a href="${escAttr(mbUrl)}" target="_blank" rel="noreferrer noopener" class="ap-mb-btn pill">
-        MusicBrainz
-      </a>
-    </div>
     ${wikiHtml}
     ${discoHtml}
   `;

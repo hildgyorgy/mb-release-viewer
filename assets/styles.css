@@ -1266,7 +1266,7 @@ tr.track.is-open+tr.details .perf {
 
 .artist-panel .pill {
   border: 1px solid currentColor;
-  border-color: rgba(0,0,0,0.25);
+  opacity: 0.45;
 }
 
 @keyframes ap-in {
@@ -1283,7 +1283,7 @@ tr.track.is-open+tr.details .perf {
 /* Header row: name + close button */
 .ap-header {
   display: flex;
-  align-items: baseline;
+align-items: center;
   justify-content: space-between;
   gap: 12px;
   padding: 12px 14px 8px;
@@ -1350,14 +1350,9 @@ tr.track.is-open+tr.details .perf {
   padding-right: 14px;
 }
 
-/* MB link button */
-.ap-mb-link {
-  margin-bottom: 10px;
-}
-
 .ap-mb-btn {
-  padding: var(--tab-pad-y) var(--tab-pad-x);
-  font-size: 13px;
+  padding: 5px 10px;
+  font-size: 12px;
   line-height: 1;
   text-decoration: none;
   white-space: nowrap;
