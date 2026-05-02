@@ -1255,13 +1255,18 @@ tr.track.is-open+tr.details .perf {
 ------------------------------------------------------------ */
 
 .artist-panel {
-  margin: 8px 25px 12px;
+  margin: 8px 50px 12px 25px;
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--panel-2);
   overflow: hidden;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
-  animation: ap-in 220ms ease forwards; /* Slide in from above */
+  animation: ap-in 500ms ease forwards; /* Slide in from above */
+}
+
+.artist-panel .pill {
+  border: 1px solid currentColor;
+  border-color: rgba(0,0,0,0.25);
 }
 
 @keyframes ap-in {
@@ -1299,6 +1304,13 @@ tr.track.is-open+tr.details .perf {
   color: var(--meta);
 }
 
+.ap-years {
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  opacity: 0.75;
+}
+
 .ap-close {
   width: 22px;
   height: 22px;
@@ -1328,13 +1340,6 @@ tr.track.is-open+tr.details .perf {
   line-height: 1.45;
 }
 
-.ap-years {
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  text-transform: none;
-  opacity: 0.75;
-}
-
 .ap-section--wiki {
   margin-top: 0;
 }
@@ -1351,37 +1356,11 @@ tr.track.is-open+tr.details .perf {
 }
 
 .ap-mb-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 12px;
-  color: var(--muted);
+  padding: var(--tab-pad-y) var(--tab-pad-x);
+  font-size: 13px;
+  line-height: 1;
   text-decoration: none;
-  padding: 3px 8px 3px 6px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: transparent;
-  transition: color 120ms ease, border-color 120ms ease, background 120ms ease;
-}
-
-.ap-mb-btn:hover {
-  color: var(--link);
-  border-color: var(--link);
-  background: var(--panel);
-  text-decoration: none;
-}
-
-.ap-mb-icon {
-  width: 13px;
-  height: 13px;
-  flex-shrink: 0;
-}
-
-/* Meta line: "Person · HU · 1935–2002" */
-.ap-meta {
-  font-size: 12px;
-  margin-bottom: 10px;
-  opacity: 0.75;
+  white-space: nowrap;
 }
 
 /* Section label (WIKIPEDIA, DISCOGRAPHY) */

@@ -110,16 +110,8 @@ function renderPanelContent(panel, artist, wiki, releaseGroups, onLoadRelease) {
 
   panel.querySelector(".ap-body").innerHTML = `
     <div class="ap-mb-link">
-      <a href="${mbUrl}" target="_blank" rel="noreferrer noopener" class="ap-mb-btn">
-        <svg class="ap-mb-icon" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="1.5"
-             stroke-linecap="round" stroke-linejoin="round"
-             aria-hidden="true">
-          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-          <polyline points="15 3 21 3 21 9"/>
-          <line x1="10" y1="14" x2="21" y2="3"/>
-        </svg>
-        Edit on MusicBrainz
+      <a href="${escAttr(mbUrl)}" target="_blank" rel="noreferrer noopener" class="ap-mb-btn pill">
+        MusicBrainz
       </a>
     </div>
     ${wikiHtml}
@@ -138,8 +130,7 @@ function buildLifeSpanYears(artist) {
   const b = begin ? begin.slice(0, 4) : "";
   const e = end ? end.slice(0, 4) : "";
 
-  if (b && e) return `${b}–${e}`;
-  if (b) return b;
+  if (b || e) return `${b}–${e}`;
   return "";
 }
 
