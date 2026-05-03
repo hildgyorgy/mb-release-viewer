@@ -806,6 +806,7 @@ tr.details td {
   padding-top: 0;
   padding-bottom: 0;
   border-top: none;
+  max-width: 0;
 }
 
 /* Medium header */
@@ -1344,12 +1345,6 @@ align-items: center;
   margin-top: 0;
 }
 
-.ap-disco-scroll {
-  max-height: 320px;
-  overflow-y: auto;
-  padding-right: 14px;
-}
-
 .ap-mb-btn {
   padding: 5px 10px;
   font-size: 12px;
@@ -1385,7 +1380,15 @@ align-items: center;
   white-space: nowrap;
 }
 
-/* Discography rows */
+/* Discography section */
+.ap-disco-scroll {
+  max-height: 320px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-right: 14px;
+  min-width: 0;
+}
+
 .ap-disco-row {
   display: flex;
   align-items: baseline;
@@ -1395,6 +1398,7 @@ align-items: center;
   cursor: pointer;
   transition: background 100ms ease;
   border-radius: 4px;
+  min-width: 0;
 }
 
 .ap-disco-row:last-child {
@@ -1414,9 +1418,9 @@ align-items: center;
 
 .ap-disco-title {
   flex: 1;
+  min-width: 0;
   font-size: 13px;
   color: var(--link);
-  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1435,7 +1439,7 @@ align-items: center;
 /* Mobile adjustments */
 @media (max-width: 640px) {
   .artist-panel {
-    margin: 8px 0 12px;
+    margin: 8px 28px 12px 0;
     border-radius: 8px;
   }
 }
