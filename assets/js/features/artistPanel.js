@@ -13,9 +13,9 @@ let outsideClickHandler = null;
 // ------------------------------------------------------------
 
 /**
- * @param {string} artistId  - MusicBrainz artist MBID
+ * @param {string} artistId - MusicBrainz artist MBID
  * @param {HTMLElement} anchorEl - the .details-inner element to inject into
- * @param {(mbid: string) => void} onLoadRelease - callback when user picks a release
+ * @param {(mbid: string) => void} onLoadRelease - callback when user picks a release group
  */
 export async function openArtistPanel(artistId, anchorEl, onLoadRelease) {
   if (!artistId || !anchorEl) return;
@@ -46,8 +46,7 @@ export async function openArtistPanel(artistId, anchorEl, onLoadRelease) {
     if (currentArtistId !== artistId) return;
 
     renderPanelContent(panel, artist, wiki, releaseGroups, onLoadRelease);
-
-  } catch (err) {
+  } catch {
     if (currentArtistId !== artistId) return;
     panel.querySelector(".ap-body").innerHTML =
       `<div class="muted">Could not load artist details.</div>`;
@@ -70,7 +69,7 @@ export function closeArtistPanel() {
 }
 
 // ------------------------------------------------------------
-// Panel shell (loading state)
+// Panel shell
 // ------------------------------------------------------------
 
 function createPanelShell() {
@@ -86,11 +85,7 @@ function createPanelShell() {
     </div>
   `;
 
-  panel.querySelector(".ap-close").addEventListener("click", (e) => {
-    e.stopPropagation();
-    closeArtistPanel();
-  });
-
+  bindCloseButton(panel);
   return panel;
 }
 
@@ -101,23 +96,22 @@ function createPanelShell() {
 function renderPanelContent(panel, artist, wiki, releaseGroups, onLoadRelease) {
   const name = escHtml(artist?.name || "(unknown)");
   const years = buildLifeSpanYears(artist);
-  const mbUrl = `https://musicbrainz.org/artist/${artist.id}`;
+  const mbUrl = `https://musicbrainz.org/artist/${artist?.id || ""}`;
   const wikiHtml = buildWikiHtml(wiki);
   const discoHtml = buildDiscographyHtml(releaseGroups, onLoadRelease);
 
-panel.querySelector(".ap-header").innerHTML = `
-  <span class="ap-name">
-    <span class="ap-name-text">${name}${years ? ` <span class="ap-years">(${years})</span>` : ""}</span>
-  </span>
-  <a href="${escAttr(mbUrl)}" target="_blank" rel="noreferrer noopener" class="ap-mb-btn pill">
-    MusicBrainz
-  </a>
-  <button class="ap-close" type="button" aria-label="Close artist panel">✕</button>
-`;
-panel.querySelector(".ap-close").addEventListener("click", (e) => {
-  e.stopPropagation();
-  closeArtistPanel();
-});
+  panel.querySelector(".ap-header").innerHTML = `
+    <span class="ap-name">
+      <span class="ap-name-text">${name}${years ? ` <span class="ap-years">(${years})</span>` : ""}</span>
+    </span>
+    <a href="${escAttr(mbUrl)}" target="_blank" rel="noreferrer noopener" class="ap-mb-btn pill">
+      MusicBrainz
+    </a>
+    <button class="ap-close" type="button" aria-label="Close artist panel">✕</button>
+  `;
+
+  bindCloseButton(panel);
+
   panel.querySelector(".ap-body").innerHTML = `
     ${wikiHtml}
     ${discoHtml}
@@ -125,7 +119,7 @@ panel.querySelector(".ap-close").addEventListener("click", (e) => {
 }
 
 // ------------------------------------------------------------
-// Life span years: "1935–2002"
+// Life span years: "1935–2002", "1943–", "–2030"
 // ------------------------------------------------------------
 
 function buildLifeSpanYears(artist) {
@@ -152,17 +146,18 @@ function buildWikiHtml(wiki) {
     ? text.slice(0, MAX).trim() + "…"
     : text;
 
-  const wikiUrl = wiki.url || `https://en.wikipedia.org/wiki/${encodeURIComponent(wiki.title || "")}`;
+  const wikiUrl =
+    wiki.url || `https://en.wikipedia.org/wiki/${encodeURIComponent(wiki.title || "")}`;
 
   return `
-  <div class="ap-section ap-section--wiki">
-    <div class="ap-wiki-text">
-      ${escHtml(shortened)}
-      <a href="${escAttr(wikiUrl)}" target="_blank" rel="noreferrer noopener"
-         class="ap-wiki-link"> Read more on Wikipedia</a>
+    <div class="ap-section ap-section--wiki">
+      <div class="ap-wiki-text">
+        ${escHtml(shortened)}
+        <a href="${escAttr(wikiUrl)}" target="_blank" rel="noreferrer noopener"
+           class="ap-wiki-link"> Read more on Wikipedia</a>
+      </div>
     </div>
-  </div>
-`;
+  `;
 }
 
 // ------------------------------------------------------------
@@ -172,32 +167,14 @@ function buildWikiHtml(wiki) {
 function buildDiscographyHtml(releaseGroups, onLoadRelease) {
   if (!releaseGroups?.length) return "";
 
-  const filtered = releaseGroups
-    .filter((rg) => {
-      const t = (rg["primary-type"] || "").toLowerCase();
-      return t === "album" || t === "ep";
-    })
-    .sort((a, b) => {
-      const da = a["first-release-date"] || "9999";
-      const db = b["first-release-date"] || "9999";
-      return da.localeCompare(db);
-    });
+  const groups = groupReleaseGroups(releaseGroups);
+  const content =
+    renderDiscographySection("Albums", groups.album) +
+    renderDiscographySection("Live", groups.live) +
+    renderDiscographySection("EPs", groups.ep) +
+    renderDiscographySection("Other", groups.other);
 
-  if (!filtered.length) return "";
-
-  const rows = filtered.map((rg) => {
-    const year = (rg["first-release-date"] || "").slice(0, 4);
-    const title = escHtml(rg.title || "(untitled)");
-    const type = rg["primary-type"] || "";
-
-    return `
-      <div class="ap-disco-row" data-rg-id="${escHtml(rg.id)}">
-        <span class="ap-disco-year muted">${year}</span>
-        <span class="ap-disco-title">${title}</span>
-        ${type === "EP" ? `<span class="ap-disco-type muted">EP</span>` : ""}
-      </div>
-    `;
-  }).join("");
+  if (!content) return "";
 
   const sectionId = `ap-disco-${Date.now()}`;
 
@@ -208,6 +185,7 @@ function buildDiscographyHtml(releaseGroups, onLoadRelease) {
     section.addEventListener("click", async (e) => {
       const row = e.target.closest(".ap-disco-row");
       if (!row) return;
+
       const rgId = row.dataset.rgId;
       if (!rgId) return;
 
@@ -217,17 +195,85 @@ function buildDiscographyHtml(releaseGroups, onLoadRelease) {
 
   return `
     <div class="ap-section" id="${sectionId}">
-  <div class="ap-section-label">DISCOGRAPHY</div>
-  <div class="ap-disco-scroll">
-    ${rows}
-  </div>
-</div>
+      <div class="ap-section-label">DISCOGRAPHY</div>
+      <div class="ap-disco-scroll">
+        ${content}
+      </div>
+    </div>
+  `;
+}
+
+function groupReleaseGroups(releaseGroups) {
+  const groups = {
+    album: [],
+    live: [],
+    ep: [],
+    other: [],
+  };
+
+  releaseGroups.forEach((rg) => {
+    const type = String(rg["primary-type"] || "").toLowerCase();
+    const secondary = Array.isArray(rg["secondary-types"])
+      ? rg["secondary-types"].map((t) => String(t).toLowerCase())
+      : [];
+
+    if (secondary.includes("live")) {
+      groups.live.push(rg);
+    } else if (type === "album") {
+      groups.album.push(rg);
+    } else if (type === "ep") {
+      groups.ep.push(rg);
+    } else {
+      groups.other.push(rg);
+    }
+  });
+
+  Object.values(groups).forEach((items) => items.sort(sortReleaseGroupsByDate));
+  return groups;
+}
+
+function sortReleaseGroupsByDate(a, b) {
+  const da = a?.["first-release-date"] || "9999";
+  const db = b?.["first-release-date"] || "9999";
+  return da.localeCompare(db);
+}
+
+function renderDiscographySection(label, items) {
+  if (!items?.length) return "";
+
+  const rows = items.map(renderDiscographyRow).join("");
+
+  return `
+    <div class="ap-disco-subsection">
+      <div class="ap-disco-subhead">${escHtml(label)}</div>
+      ${rows}
+    </div>
+  `;
+}
+
+function renderDiscographyRow(rg) {
+  const year = String(rg?.["first-release-date"] || "").slice(0, 4);
+  const title = escHtml(rg?.title || "(untitled)");
+  const rgId = escAttr(rg?.id || "");
+
+  return `
+    <div class="ap-disco-row" data-rg-id="${rgId}">
+      <span class="ap-disco-year muted">${escHtml(year)}</span>
+      <span class="ap-disco-title">${title}</span>
+    </div>
   `;
 }
 
 // ------------------------------------------------------------
 // Helpers
 // ------------------------------------------------------------
+
+function bindCloseButton(panel) {
+  panel.querySelector(".ap-close")?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    closeArtistPanel();
+  });
+}
 
 function findWikidataUrl(artist) {
   const rels = Array.isArray(artist?.relations) ? artist.relations : [];
@@ -240,5 +286,6 @@ function bindOutsideClick(panel) {
       closeArtistPanel();
     }
   };
+
   document.addEventListener("pointerdown", outsideClickHandler);
 }
