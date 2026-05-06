@@ -742,6 +742,10 @@ a:hover {
   margin-top: 16px;
 }
 
+.tracks table {
+  border-bottom: 1px solid var(--border);
+}
+
 .mov-num {
   width: 2ch;
   text-align: right;
@@ -964,23 +968,84 @@ tr.track.is-open+tr.details .perf {
 }
 
 /* ------------------------------------------------------------
+   RELEASE-LEVEL CREDITS
+------------------------------------------------------------ */
+
+.release-level-credits {
+  margin-top: 20px;
+  padding-top: 20px;
+  padding-left: calc(var(--col-num) + var(--cell-pad-x));
+  padding-right: calc(var(--col-len) + var(--cell-pad-x));
+  border-top: none;
+
+  font-size: 13px;
+  line-height: 1.45;
+  opacity: 0.65;
+}
+
+.release-level-credits .section-label {
+  margin-bottom: 12px;
+
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--meta);
+  opacity: 0.9;
+}
+
+.rlc-grid {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  column-gap: 16px;
+  row-gap: 6px;
+}
+
+.rlc-role {
+  color: var(--meta);
+  font-weight: 500;
+}
+
+.rlc-values {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.rlc-value {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* ------------------------------------------------------------
    ANNOTATION
 ------------------------------------------------------------ */
 
 .annotation {
-  margin-top: 0;
-  padding-top: 20px;
+  margin-top: 24px;
   padding-left: calc(var(--col-num) + var(--cell-pad-x));
   padding-right: calc(var(--col-len) + var(--cell-pad-x));
-  border-top: 1px solid var(--border);
+
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.annotation .section-label {
+  margin-bottom: 12px;
+
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--meta);
+  opacity: 0.65;
 }
 
 .annotation .body {
   white-space: pre-wrap;
-  font-size: 13px;
-  line-height: 1.45;
-  opacity: .65;
-  padding-top: 20px;
+  color: var(--meta);
+  opacity: 0.65;
 }
 
 /* ------------------------------------------------------------

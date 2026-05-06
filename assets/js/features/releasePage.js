@@ -8,7 +8,13 @@ import { artistCreditToText, fmtMs } from "../core/util.js";
 import { bindThemeToggleOnce } from "../ui/theme.js";
 import { bindCoverSizerOnce, layoutSync } from "../ui/layout.js";
 import { bindCoverGalleryOnce } from "../ui/coverGallery.js";
-import { renderHeader, renderTracksView, renderVersionsViewShell } from "../ui/render.js";
+import {
+  renderHeader,
+  renderTracksView,
+  renderAnnotation,
+  renderReleaseLevelCredits,
+  renderVersionsViewShell,
+} from "../ui/render.js";
 
 import { bindTabsOnce, setActiveView } from "../ui/tabs.js";
 import { buildFullCreditsView } from "./recordings.js";
@@ -166,7 +172,11 @@ export function renderReleasePage(out, { rel, cover, covers }, onLoadRelease, on
   out.innerHTML = `
     ${renderHeader({ title, cover, mbLink, artist, date, country, label, catno, barcode, releaseNotes, streaming })}
     <div class="views">
-      ${renderTracksView(mediaWithTracks, annotation)}
+  ${renderTracksView(
+    mediaWithTracks,
+    renderReleaseLevelCredits(rel),
+    renderAnnotation(annotation)
+  )}
       ${renderVersionsViewShell()}
     </div>
   `;

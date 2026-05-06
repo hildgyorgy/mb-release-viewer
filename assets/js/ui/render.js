@@ -1,4 +1,4 @@
-import { escHtml, artistCreditToText, fmtMs, mediumLabel } from "../core/util.js";
+import { escHtml, escAttr, artistCreditToText, fmtMs, mediumLabel } from "../core/util.js";
 import { ICON_SPOTIFY, ICON_APPLE_MUSIC, ICON_TIDAL, ICON_QOBUZ } from "./icons.js";
 import { buildTrackRows } from "../core/classicalTitle.js";
 
@@ -65,7 +65,7 @@ export function renderHeader({
   `;
 }
 
-export function renderTracksView(mediaWithTracks, annotation) {
+export function renderTracksView(mediaWithTracks, releaseLevelCreditsHtml = "", annotationHtml = "") {
   const mediaCount = mediaWithTracks.length;
 
   return `
@@ -77,9 +77,133 @@ export function renderTracksView(mediaWithTracks, annotation) {
           </tbody>
         </table>
       </div>
-      ${annotation ? `<div class="annotation"><div class="body">${escHtml(annotation)}</div></div>` : ""}
+      ${releaseLevelCreditsHtml}
+      ${annotationHtml}
     </section>
   `;
+}
+
+export function renderAnnotation(annotation) {
+  const text = String(annotation || "").trim();
+  if (!text) return "";
+
+  return `
+    <div class="annotation">
+    <div class="section-label">ANNOTATION</div>
+      <div class="body">${escHtml(text)}</div>
+    </div>
+  `;
+}
+
+export function renderReleaseLevelCredits(rel) {
+  const relations = Array.isArray(rel?.relations) ? rel.relations : [];
+  const grouped = groupReleaseRelations(relations);
+
+  if (!grouped.length) return "";
+
+  return `
+    <section class="release-level-credits">
+      <div class="section-label">RELEASE-LEVEL CREDITS</div>
+      <div class="rlc-grid">
+        ${grouped.map(renderReleaseRelationGroup).join("")}
+      </div>
+    </section>
+  `;
+}
+
+function groupReleaseRelations(relations) {
+  const map = new Map();
+
+  relations.forEach((rel) => {
+  const type = String(rel.type || "").trim();
+  if (!type) return;
+
+  const targetType = rel.target_type ?? rel["target-type"] ?? "";
+
+  // Skip release external links from the regular Edit release page.
+  // We only want real release-level relationships from the Edit relationships page.
+  if (targetType === "url") return;
+
+  const target = getReleaseRelationTarget(rel);
+  if (!target.label) return;
+
+  if (!map.has(type)) map.set(type, []);
+  map.get(type).push(target);
+});
+
+  return Array.from(map.entries())
+    .map(([type, targets]) => ({
+      type,
+      targets: dedupeTargets(targets),
+    }))
+    .filter((group) => group.targets.length)
+    .sort((a, b) => a.type.localeCompare(b.type));
+}
+
+function getReleaseRelationTarget(rel) {
+  const targetType = rel.target_type ?? rel["target-type"] ?? "";
+
+  const target =
+    rel.artist ||
+    rel.label ||
+    rel.place ||
+    rel.area ||
+    rel.work ||
+    rel.recording ||
+    rel.release ||
+    rel["release-group"] ||
+    rel.target ||
+    null;
+
+  const label = target?.name || target?.title || target?.id || "";
+  const mbid = target?.id || "";
+  const url = mbid && targetType
+    ? `https://musicbrainz.org/${targetType}/${mbid}`
+    : "";
+
+  return { label, url };
+}
+
+function dedupeTargets(targets) {
+  const seen = new Set();
+
+  return targets.filter((target) => {
+    const key = `${target.label}|||${target.url}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function renderReleaseRelationGroup(group) {
+  return `
+    <div class="rlc-role">${escHtml(formatRelationType(group.type))}</div>
+    <div class="rlc-values">
+      ${group.targets.map(renderReleaseRelationTarget).join("")}
+    </div>
+  `;
+}
+
+function renderReleaseRelationTarget(target) {
+  const label = escHtml(target.label);
+  const url = String(target.url || "").trim();
+
+  if (!url) {
+    return `<span class="rlc-value">${label}</span>`;
+  }
+
+  return `
+    <a class="rlc-value" href="${escAttr(url)}" target="_blank" rel="noreferrer noopener">
+      ${label}
+    </a>
+  `;
+}
+
+function formatRelationType(type) {
+  return String(type || "")
+    .replace(/-/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function renderMedium(m, mediaCount) {
