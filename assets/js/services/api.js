@@ -131,7 +131,7 @@ export function buildReleaseSearchQuery(input) {
   const esc = (s) => String(s).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
   const tok = (t) => `"${esc(t)}"`;
 
-  // comma syntax: "artist, release"
+    // comma syntax: "artist, release"
   const commaIdx = q0.indexOf(",");
   if (commaIdx !== -1) {
     const leftRaw = q0.slice(0, commaIdx).trim();
