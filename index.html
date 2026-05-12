@@ -4,7 +4,18 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MusicBrainz Release Viewer</title>
+  <meta name="description" content="MusicBrainz Release Viewer is a fast and elegant metadata explorer for music releases, recordings, credits, discographies and annotations.">
+  <meta name="keywords" content="MusicBrainz, music metadata, release viewer, discography, album credits, recording database, classical music metadata">
+
+  <meta name="author" content="György Hild">
+
+  <meta property="og:title" content="MusicBrainz Release Viewer">
+  <meta property="og:description" content="Elegant MusicBrainz release and discography explorer for collectors, editors and music lovers.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://hildgyorgy.github.io/mb-release-viewer/">
+  <meta property="og:image" content="https://hildgyorgy.github.io/mb-release-viewer/apple-touch-icon.png">
+
+  <title>MusicBrainz Release Viewer - Browse Releases, Credits & Discographies</title>
   <link rel="icon" href="favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16x16.png">
@@ -17,7 +28,9 @@
   <header class="top">
     <div class="container">
       <div class="top-inner">
-        <div class="brand">MusicBrainz Release Viewer</div>
+        <button class="brand brand-home" id="homeLink" type="button">
+          MusicBrainz Release Viewer
+        </button>
 
         <div class="search">
           <div class="search-field">
@@ -35,7 +48,31 @@
 
   <main class="wrap">
     <div class="container">
-      <div id="out"></div>
+      <div id="out">
+        <section id="emptyState" class="empty-state seo-copy">
+          <h1>MusicBrainz Release Viewer</h1>
+          <h2>MusicBrainz metadata explorer</h2>
+          <p class="muted">
+            Type artist name to search for artist<br>
+            <code>miles davis</code>
+            <br>
+            <br>
+
+            Type comma + release/track title for releases<br>
+            <code>, kind of blue</code>
+            <br>
+            <br>
+
+            Type artist, release/track for combined search<br>
+            <code>miles davis, so what</code>
+            <br>
+            <br>
+
+            Paste a MusicBrainz release MBID<br>
+            <code>353021d1-3d84-4f17-9fe4-66788d785a9d</code>
+          </p>
+        </section>
+      </div>
     </div>
   </main>
 

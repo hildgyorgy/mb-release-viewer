@@ -27,6 +27,8 @@ export const App = Object.freeze({
   init() {
     applyTheme(getPreferredTheme());
 
+    const emptyStateHtml = document.getElementById("emptyState")?.outerHTML || "";
+
     const Nav = createReleaseNavigator({
       getOut: () => document.getElementById("out"),
       loadRelease,
@@ -68,6 +70,23 @@ export const App = Object.freeze({
       onGoFallback: goFallback,
     });
     Search.init();
+
+    const homeLink = document.getElementById("homeLink");
+homeLink?.addEventListener("click", () => {
+  const out = document.getElementById("out");
+  const omni = document.getElementById("omni");
+
+  if (out) {
+    out.innerHTML = emptyStateHtml;
+  }
+
+  if (omni) {
+    omni.value = "";
+    omni.classList.remove("is-loaded");
+  }
+
+  history.replaceState({}, "", window.location.pathname);
+});
 
     bootFromUrl({ onGoByMbid: goByMbidWrapped });
   },
