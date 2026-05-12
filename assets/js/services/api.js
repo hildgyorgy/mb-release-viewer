@@ -243,7 +243,7 @@ export async function loadArtistReleaseGroups(artistId) {
   let offset = 0;
   const pageSize = 100;
 
-  while (true) {
+  while (allGroups.length < 500) {
     const data = await fetchJSON(
       `${MB_API}/release-group?artist=${artistId}` +
       `&fmt=json&limit=${pageSize}&offset=${offset}`

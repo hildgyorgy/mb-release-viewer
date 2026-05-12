@@ -12,8 +12,6 @@ export const STATE = {
   },
   views: {
     versionsBuilt: false,
-    recordingsBuilt: false,
-    recordingsMedia: [],
   },
 };
 

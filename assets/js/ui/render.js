@@ -258,11 +258,3 @@ export function renderVersionsViewShell() {
     </section>
   `;
 }
-
-export function renderRecordingsViewShell() {
-  return `
-    <section class="view" data-view="recordings" hidden>
-      <div class="muted">Loading…</div>
-    </section>
-  `;
-}

@@ -48,7 +48,7 @@ export function createReleaseNavigator({ getOut, loadRelease, renderReleasePage 
       setUrlMbid(mbid);
     } catch (e) {
       if (out) {
-        out.innerHTML = `<div class="err">Hiba: ${escHtml(e?.message || e)}</div>`;
+        out.innerHTML = `<div class="err">Error: ${escHtml(e?.message || e)}</div>`;
       }
     }
   }

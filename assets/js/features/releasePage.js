@@ -17,7 +17,6 @@ import {
 } from "../ui/render.js";
 
 import { bindTabsOnce, setActiveView } from "../ui/tabs.js";
-import { buildFullCreditsView } from "./recordings.js";
 import { buildVersionsView } from "./versions.js";
 import { bindTrackToggles } from "./tracks.js";
 import { bindComposerHeadersOnce } from "../ui/composerHeaders.js";
@@ -81,10 +80,6 @@ function hydrateUI(out, flatTracks, onLoadRelease, onNavigateToRelease) {
       if (view === "versions" && !STATE.views.versionsBuilt) {
         setViewsState({ versionsBuilt: true });
         await buildVersionsView(onNavigateToRelease);
-      }
-      if (view === "recordings" && !STATE.views.recordingsBuilt) {
-        setViewsState({ recordingsBuilt: true });
-        await buildFullCreditsView();
       }
     },
   });
@@ -162,8 +157,6 @@ export function renderReleasePage(out, { rel, cover, covers }, onLoadRelease, on
   // Recordings + Versions tab data source
   const releaseGroupId = rel["release-group"]?.id || "";
   setViewsState({
-    recordingsBuilt: false,
-    recordingsMedia: mediaWithTracks,
     versionsBuilt: false,
     releaseGroupId,
     currentReleaseId: rel.id || "",

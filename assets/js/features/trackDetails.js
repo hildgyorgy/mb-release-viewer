@@ -1,7 +1,6 @@
-import { escHtml, stripParentPrefix } from "../core/util.js";
+import { escHtml, stripParentPrefix, relDateLabel, uniq } from "../core/util.js";
 import { loadWork } from "../services/api.js";
-import { mbArtistLink, artistPanelLink, artistCreditToLinks, mbWorkUrl } from "../core/mbLinks.js";
-import { parseRecordingTechCredits } from "./recordings.js";
+import { mbArtistLink, mbPlaceLink, mbRecordingLink, artistPanelLink, artistCreditToLinks, mbWorkUrl } from "../core/mbLinks.js";
 
 /* ============================================================
    Track details (Performers / Creators / Work hierarchy)
@@ -375,4 +374,114 @@ export async function renderTrackDetails(recording, work) {
     <div class="detail-col detail-col--tech">${techHtml}</div>
   </div>
 `;
+}
+
+// ------------------------------------------------------------
+// Tech credits
+// ------------------------------------------------------------
+
+const EXCLUDE_ARTIST_REL_TYPES = new Set([
+  "instrument", "vocal", "composer", "lyricist", "librettist",
+  "arranger", "writer", "conductor", "orchestra", "ensemble",
+  "choir", "chorus", "concertmaster", "leader", "soloist",
+  "narrator", "spoken vocals", "performing orchestra",
+]);
+
+function prettyRelRole(typeRaw, attrs) {
+  const type = String(typeRaw || "").trim();
+  const typeLc = type.toLowerCase();
+  const a = Array.isArray(attrs) ? attrs.map(String) : [];
+  const aLc = a.map((x) => x.toLowerCase());
+
+  if (typeLc === "engineer") {
+    if (aLc.includes("recording")) return { role: "recording engineer", rest: a.filter((x) => x.toLowerCase() !== "recording") };
+    if (aLc.includes("mix"))       return { role: "mixing engineer",    rest: a.filter((x) => x.toLowerCase() !== "mix") };
+    if (aLc.includes("mastering")) return { role: "mastering engineer", rest: a.filter((x) => x.toLowerCase() !== "mastering") };
+  }
+  if (typeLc === "producer") {
+    if (aLc.includes("executive")) return { role: "executive producer", rest: a.filter((x) => x.toLowerCase() !== "executive") };
+    if (aLc.includes("co"))        return { role: "co-producer",        rest: a.filter((x) => x.toLowerCase() !== "co") };
+  }
+  if (a.length === 1) return { role: `${a[0]} ${type}`.trim(), rest: [] };
+  return { role: type, rest: a };
+}
+
+export function parseRecordingTechCredits(recording) {
+  const rels = Array.isArray(recording?.relations) ? recording.relations : [];
+  const rows = [];
+  const dis = String(recording?.disambiguation || "").trim();
+
+  for (const r of rels) {
+    const tt = r.target_type ?? r["target-type"];
+    const typeRaw = String(r.type || "").trim();
+    if (!typeRaw) continue;
+    if (tt === "work") continue;
+
+    const typeLc = typeRaw.toLowerCase();
+    if (tt === "artist" && EXCLUDE_ARTIST_REL_TYPES.has(typeLc)) continue;
+
+    const showDate = tt === "place";
+    const date = showDate ? relDateLabel(r) : "";
+    const dateTxt = date ? ` <span class="muted">${escHtml(date)}</span>` : "";
+
+    const attrs = Array.isArray(r.attributes) ? r.attributes : [];
+    const pr = prettyRelRole(typeRaw, attrs);
+    const roleLabel = pr.role;
+    const attrsTxt = pr.rest.length ? ` (${pr.rest.map(escHtml).join(", ")})` : "";
+
+    if (tt === "artist") {
+      const artist = r.artist || r.target || null;
+      if (!artist?.id) continue;
+      rows.push({ role: roleLabel, value: `${mbArtistLink(artist)}${attrsTxt}${dateTxt}` });
+      continue;
+    }
+    if (tt === "place") {
+      const place = r.place || r.target || null;
+      if (!place?.id) continue;
+      rows.push({ role: roleLabel, value: `${mbPlaceLink(place)}${attrsTxt}${dateTxt}` });
+      continue;
+    }
+    if (tt === "recording") {
+      const rec = r.recording || r.target || null;
+      if (!rec) continue;
+      rows.push({ role: roleLabel, value: `${mbRecordingLink(rec)}${attrsTxt}${dateTxt}` });
+      continue;
+    }
+  }
+
+  const grouped = new Map();
+  for (const row of rows) {
+    if (!grouped.has(row.role)) grouped.set(row.role, []);
+    grouped.get(row.role).push(row.value);
+  }
+  if (dis) grouped.set("notes", [dis]);
+
+  const roles = Array.from(grouped.keys()).sort((a, b) => {
+    const al = String(a || "").toLowerCase();
+    const bl = String(b || "").toLowerCase();
+    if (al === "notes") return 1;
+    if (bl === "notes") return -1;
+    return al.localeCompare(bl);
+  });
+
+  return roles.map((role) => ({ role, values: uniq(grouped.get(role)) }));
+}
+
+export function renderRecordingTechGrid(items) {
+  if (!items.length) return `<div class="muted">N/A</div>`;
+
+  const rows = items.map((it) => {
+    const role = escHtml(it.role);
+    const isNotes = String(it.role || "").toLowerCase() === "notes";
+    const value = isNotes
+      ? `<span class="muted">${it.values.map((v) => escHtml(String(v))).join("<br>")}</span>`
+      : it.values.map((v) => `<span class="rec-person">${v}</span>`).join("");
+    return `
+      <div class="rec-row">
+        <div class="rec-role muted">${role}</div>
+        <div class="rec-value">${value}</div>
+      </div>`;
+  }).join("");
+
+  return `<div class="recording-grid">${rows}</div>`;
 }
