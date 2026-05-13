@@ -212,7 +212,8 @@ a:hover {
   font-size: inherit;
   font-weight: 400;
   line-height: 1.4;
-  font-family: inherit;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.08em;
 
   color: var(--meta);
   caret-color: var(--meta);
@@ -224,7 +225,7 @@ a:hover {
 }
 
 #omni::placeholder {
-  color: var(--meta);
+  color: var(--muted);
   opacity: 1;
 }
 
@@ -236,7 +237,7 @@ a:hover {
 #omni:focus-visible {
   border-color: var(--border-2);
   color: var(--text);
-  caret-color: var(--meta);
+  caret-color: var(--muted);
   outline: none;
   box-shadow: none;
 }
@@ -382,11 +383,6 @@ a:hover {
   margin: 0 0 52px;
   /*filter: grayscale(1) brightness(0);
   opacity: 0.82;*/
-}
-
-:root[data-theme="dark"] .empty-logo {
-  filter: grayscale(1) invert(1);
-  opacity: 0.85;
 }
 
 .empty-help {
