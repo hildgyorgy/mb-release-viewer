@@ -34,12 +34,12 @@
 
         <div class="search">
           <div class="search-field">
-            <input id="omni" type="text" autocomplete="off" spellcheck="false" placeholder="Search releases or paste a MB release URL / MBID" />
+            <input id="omni" type="text" autocomplete="off" spellcheck="false" placeholder="artist, release or MBID" />
             <div class="results" id="results" hidden></div>
           </div>
-          <button id="go" class="go-btn" title="Load from MusicBrainz">
+          <!-- <button id="go" class="go-btn" title="Load from MusicBrainz">
             <img src="assets/icons/MB_go.png" alt="MusicBrainz" />
-          </button>
+          </button> -->
           <button class="theme-fab pill" id="themeToggle" type="button"></button>
         </div>
       </div>
@@ -50,27 +50,31 @@
     <div class="container">
       <div id="out">
         <section id="emptyState" class="empty-state seo-copy">
-          <h1>MusicBrainz Release Viewer</h1>
-          <h2>MusicBrainz metadata explorer</h2>
-          <p class="muted">
-            Type artist name to search for artist<br>
-            <code>miles davis</code>
-            <br>
-            <br>
+          <div class="empty-inner">
+            <img class="empty-logo" src="./assets/icons/MB_go.png" alt="" aria-hidden="true">
 
-            Type comma + release/track title for releases<br>
-            <code>, kind of blue</code>
-            <br>
-            <br>
+            <div class="empty-help">
+              <p>
+                Type artist name + comma to search for artist<br>
+                <code>miles davis,</code>
+              </p>
 
-            Type artist, release/track for combined search<br>
-            <code>miles davis, so what</code>
-            <br>
-            <br>
+              <p>
+                Type comma + release/track title for releases<br>
+                <code>, kind of blue</code>
+              </p>
 
-            Paste a MusicBrainz release MBID<br>
-            <code>353021d1-3d84-4f17-9fe4-66788d785a9d</code>
-          </p>
+              <p>
+                Type artist, release/track for combined search<br>
+                <code>miles davis, so what</code>
+              </p>
+
+              <p>
+                Paste a MusicBrainz release MBID<br>
+                <code>353021d1-3d84-4f17-9fe4-66788d785a9d</code>
+              </p>
+            </div>
+          </div>
         </section>
       </div>
     </div>

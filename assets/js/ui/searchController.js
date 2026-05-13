@@ -135,7 +135,7 @@ export function createSearchController({ onGoByMbid, onGoFallback }) {
   }
 
   function bindUIOnce() {
-    if (!omni || !goBtn || !resEl) return;
+    if (!omni || !resEl) return;
 
     if (omni.dataset.bound_searchctrl === "1") return;
     omni.dataset.bound_searchctrl = "1";
@@ -217,7 +217,7 @@ export function createSearchController({ onGoByMbid, onGoFallback }) {
 
     resEl.addEventListener("mousedown", (e) => e.preventDefault());
 
-    goBtn.addEventListener("click", async () => {
+    goBtn?.addEventListener("click", async () => {
       await goByInput();
     });
 
@@ -245,7 +245,7 @@ export function createSearchController({ onGoByMbid, onGoFallback }) {
     omni = document.getElementById("omni");
     goBtn = document.getElementById("go");
     resEl = document.getElementById("results");
-    if (!omni || !goBtn || !resEl) return;
+    if (!omni || !resEl) return;
 
     bindUIOnce();
   }
