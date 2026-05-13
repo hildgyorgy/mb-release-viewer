@@ -4,7 +4,7 @@
 
 import { bootFromUrl } from "./core/boot.js";
 import { createReleaseNavigator } from "./services/navigation.js";
-import { applyTheme, getPreferredTheme } from "./ui/theme.js";
+import { applyTheme, getPreferredTheme, bindThemeToggleOnce } from "./ui/theme.js";
 import { createSearchController } from "./ui/searchController.js";
 
 import { loadRelease, loadFirstReleaseOfGroup } from "./services/api.js";
@@ -26,6 +26,7 @@ async function goFallback() {
 export const App = Object.freeze({
   init() {
     applyTheme(getPreferredTheme());
+    bindThemeToggleOnce(document);
 
     const emptyStateHtml = document.getElementById("emptyState")?.outerHTML || "";
 
