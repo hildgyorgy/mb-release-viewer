@@ -1,150 +1,172 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TangramGlass Support</title>
-<style>
-    :root {
-        color-scheme: light dark;
-    }
 
-    body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        line-height: 1.5;
-        margin: 0;
-        background: #f5f5f7;
-        color: #111;
-    }
+    <style>
+        :root {
+            color-scheme: light dark;
+        }
 
-    .container {
-        max-width: 680px;
-        margin: 0 auto;
-        padding: 44px 22px;
-    }
-
-    .hero {
-        text-align: center;
-        margin-bottom: 42px;
-    }
-
-    .hero h1 {
-        font-size: 36px;
-        line-height: 1.1;
-        margin: 0;
-        font-weight: 700;
-    }
-
-    h2 {
-        margin-top: 32px;
-        font-size: 20px;
-    }
-
-    p {
-        margin: 8px 0;
-    }
-
-    ul {
-        padding-left: 20px;
-    }
-
-    li {
-        margin: 4px 0;
-    }
-
-    a {
-        color: #007aff;
-        text-decoration: none;
-    }
-
-    a:hover {
-        text-decoration: underline;
-    }
-
-    .footer {
-        margin-top: 44px;
-        font-size: 13px;
-        color: #888;
-        text-align: center;
-    }
-
-    @media (prefers-color-scheme: dark) {
         body {
-            background: #111;
-            color: #f5f5f7;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            line-height: 1.5;
+            margin: 0;
+            background: #f5f5f7;
+            color: #111;
+        }
+
+        .container {
+            max-width: 680px;
+            margin: 0 auto;
+            padding: 44px 22px;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 42px;
+        }
+
+        .hero h1 {
+            font-size: 36px;
+            line-height: 1.1;
+            margin: 0 0 24px;
+            font-weight: 700;
+        }
+
+        .logo {
+            width: 128px;
+            height: 128px;
+            margin: 0 auto 40px;
+        }
+
+        .logo img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            border-radius: 28px;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+        }
+
+        .subtitle {
+            font-size: 15px;
+            margin: 0;
+            text-align: center;
+        }
+
+        h2 {
+            margin-top: 32px;
+            font-size: 20px;
+        }
+
+        p {
+            margin: 8px 0;
+        }
+
+        ul {
+            padding-left: 20px;
+        }
+
+        li {
+            margin: 4px 0;
+        }
+
+        a {
+            color: #007aff;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
         }
 
         .footer {
+            margin-top: 44px;
+            font-size: 13px;
             color: #888;
+            text-align: center;
         }
-    }
-</style>
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: #111;
+                color: #f5f5f7;
+            }
+
+            .footer {
+                color: #888;
+            }
+        }
+    </style>
 </head>
+
 <body>
     <main class="container">
-    <header class="hero">
-        <h1>TangramGlass</h1>
-    <p><br></p>
-<p style="text-align:center;">
-  <img src="https://hildgyorgy.github.io/mb-release-viewer/TangramGlass.png"
-       alt="TangramGlass icon"
-       width="128"
-       style="border-radius:28px;
-              box-shadow:0 12px 32px rgba(0,0,0,0.25);">
-</p>
-    </header>
+        <header class="hero">
+            <h1>TangramGlass</h1>
+            <div class="logo" aria-hidden="true">
+                <img src="https://hildgyorgy.github.io/mb-release-viewer/TangramGlass.png" alt="TangramGlass icon">
+            </div>
+            <p class="subtitle">A Liquid Glass playground</p>
 
-    <h2>About</h2>
-    <p>
-        TangramGlass is a calm desktop playground inspired by the traditional tangram puzzle and Apple's Liquid Glass visual language.
-        Move, rotate and combine translucent shapes to create playful compositions.
-    </p>
+        </header>
 
-    <h2>How to use</h2>
-    <ul>
-        <li>Drag a piece to move it.</li>
-        <li>Scroll over a piece to rotate it (use the touchpad for very smooth rotation).</li>
-        <li>Double-click a piece to rotate it by 45°.</li>
-        <li>Option-double-click the parallelogram to flip it.</li>
-        <li>Use the Share button to export your composition as an artwork image.</li>
-    </ul>
+        <h2>About</h2>
+        <p>
+            TangramGlass is a calm desktop playground inspired by the traditional tangram puzzle and Apple's Liquid
+            Glass visual language.
+            Move, rotate and combine translucent shapes to create playful compositions.
+        </p>
 
-    <h2>Current version</h2>
-    <p>Version 1.0 includes:</p>
-    <ul>
-        <li>One, two or three tangram sets.</li>
-        <li>Customizable corner radius.</li>
-        <li>Liquid and frosted glass appearance.</li>
-        <li>Natural, tinted and rainbow color modes.</li>
-        <li>Artwork export and sharing.</li>
-    </ul>
+        <h2>How to use</h2>
+        <ul>
+            <li>Drag a piece to move it.</li>
+            <li>Scroll over a piece to rotate it (use the touchpad for very smooth rotation).</li>
+            <li>Double-click a piece to rotate it by 45°.</li>
+            <li>Option-double-click the parallelogram to flip it.</li>
+            <li>Use the Share button to export your composition as an artwork image.</li>
+        </ul>
 
-    <h2>Support</h2>
-    <p>
-        Questions, suggestions and feedback are always welcome.
-    </p>
-    <p>
-        <a href="mailto:hild.gyorgy@freemail.hu">Send message</a>
-    </p>
+        <h2>Current version</h2>
+        <p>Version 1.0 includes:</p>
+        <ul>
+            <li>One, two or three tangram sets.</li>
+            <li>Customizable corner radius.</li>
+            <li>Liquid and frosted glass appearance.</li>
+            <li>Natural, tinted and rainbow color modes.</li>
+            <li>Artwork export and sharing.</li>
+        </ul>
 
-    <h2 id="privacy">Privacy Policy</h2>
-    <p>
-        TangramGlass does not collect, store or share personal information.
-    </p>
-    <p>
-        All settings are stored locally on your device using system storage.
-    </p>
-    <p>
-        TangramGlass does not require user accounts and does not transmit personal data to external servers.
-    </p>
-    <p>
-        Artwork export is initiated only when you explicitly choose to share a composition.
-    </p>
+        <h2>Support</h2>
+        <p>
+            Questions, suggestions and feedback are always welcome.
+        </p>
+        <p>
+            <a href="mailto:hild.gyorgy@freemail.hu">Send message</a>
+        </p>
 
-    <div class="footer">
-        György Hild · 2026
-    </div>
+        <h2 id="privacy">Privacy Policy</h2>
+        <p>
+            TangramGlass does not collect, store or share personal information.
+        </p>
+        <p>
+            All settings are stored locally on your device using system storage.
+        </p>
+        <p>
+            TangramGlass does not require user accounts and does not transmit personal data to external servers.
+        </p>
+        <p>
+            Artwork export is initiated only when you explicitly choose to share a composition.
+        </p>
 
-</main>
+        <div class="footer">
+            György Hild · 2026
+        </div>
+
+    </main>
 </body>
+
 </html>
