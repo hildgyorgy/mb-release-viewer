@@ -46,6 +46,7 @@ function pickStreamingLinksFromRelease(rel) {
   let appleMusicUrl = "";
   let tidalUrl = "";
   let qobuzUrl = "";
+  let discogsUrl = "";
 
   for (const r of rels) {
     const tt = r.target_type ?? r["target-type"];
@@ -61,11 +62,14 @@ function pickStreamingLinksFromRelease(rel) {
       if (low.includes("play.qobuz.com")) qobuzUrl = url;
       else if (!qobuzUrl) qobuzUrl = url;
     }
+    if (!discogsUrl && low.includes("discogs.com")) {
+      discogsUrl = url;
+    }
     if (spotifyUrl && appleMusicUrl && tidalUrl && qobuzUrl) break;
   }
 
   qobuzUrl = normalizeQobuzToPlay(qobuzUrl);
-  return { spotifyUrl, appleMusicUrl, tidalUrl, qobuzUrl };
+  return { spotifyUrl, appleMusicUrl, tidalUrl, qobuzUrl, discogsUrl };
 }
 
 // ------------------------------------------------------------
@@ -114,6 +118,7 @@ export function renderReleasePage(out, { rel, cover, covers }, onLoadRelease, on
 
   const labelInfo = (rel["label-info"] || [])[0];
   const label = labelInfo?.label?.name || "";
+  const labelId = labelInfo?.label?.id || "";
   const catno = labelInfo?.["catalog-number"] || "";
   const barcode = rel.barcode || "";
   const releaseNotes = String(rel.disambiguation || "").trim();
@@ -121,6 +126,8 @@ export function renderReleasePage(out, { rel, cover, covers }, onLoadRelease, on
   const annotation = (rel.annotation || "").trim();
   const mbLink = `https://musicbrainz.org/release/${rel.id}`;
   const streaming = pickStreamingLinksFromRelease(rel);
+
+  console.log("Streaming links:", streaming);
 
   // Cover gallery state
   const gallery = Array.isArray(covers) ? covers : [];
@@ -163,7 +170,7 @@ export function renderReleasePage(out, { rel, cover, covers }, onLoadRelease, on
   });
 
   out.innerHTML = `
-    ${renderHeader({ title, cover, mbLink, artist, date, country, label, catno, barcode, releaseNotes, streaming })}
+    ${renderHeader({ title, cover, mbLink, artist, date, country, label, labelId,catno, barcode, releaseNotes, streaming })}
     <div class="views">
   ${renderTracksView(
     mediaWithTracks,

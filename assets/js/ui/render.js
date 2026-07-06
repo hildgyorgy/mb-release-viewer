@@ -1,5 +1,5 @@
 import { escHtml, escAttr, artistCreditToText, fmtMs, mediumLabel } from "../core/util.js";
-import { ICON_SPOTIFY, ICON_APPLE_MUSIC, ICON_TIDAL, ICON_QOBUZ } from "./icons.js";
+import { ICON_SPOTIFY, ICON_APPLE_MUSIC, ICON_TIDAL, ICON_QOBUZ, ICON_DISCOGS } from "./icons.js";
 import { buildTrackRows } from "../core/classicalTitle.js";
 
 export function renderHeader({
@@ -10,11 +10,17 @@ export function renderHeader({
   date,
   country,
   label,
+  labelId,
   catno,
   barcode,
   releaseNotes,
   streaming,
 }) {
+    const labelHtml = label
+    ? labelId
+      ? `<a href="https://musicbrainz.org/label/${escAttr(labelId)}" target="_blank" rel="noreferrer noopener">${escHtml(label)}</a>`
+      : escHtml(label)
+    : "<span class='muted'>(n/a)</span>";
   return `
     <section class="header-hero">
       <div class="header-cover">
@@ -35,13 +41,16 @@ export function renderHeader({
           const am = streaming?.appleMusicUrl || "";
           const td = streaming?.tidalUrl || "";
           const qb = streaming?.qobuzUrl || "";
-          if (!sp && !am && !td && !qb) return "";
+          const dg = streaming?.discogsUrl || "";
+
+          if (!sp && !am && !td && !qb && !dg) return "";
           return `
             <div class="streaming">
               ${sp ? `<a class="stream-btn pill" href="${sp}" target="_blank" rel="noreferrer noopener" aria-label="Spotify">${ICON_SPOTIFY}</a>` : ""}
               ${am ? `<a class="stream-btn pill" href="${am}" target="_blank" rel="noreferrer noopener" aria-label="Apple Music">${ICON_APPLE_MUSIC}</a>` : ""}
               ${td ? `<a class="stream-btn pill" href="${td}" target="_blank" rel="noreferrer noopener" aria-label="Tidal">${ICON_TIDAL}</a>` : ""}
               ${qb ? `<a class="stream-btn pill" href="${qb}" target="_blank" rel="noreferrer noopener" aria-label="Qobuz">${ICON_QOBUZ}</a>` : ""}
+              ${dg ? `<a class="stream-btn pill" href="${dg}" target="_blank" rel="noreferrer noopener" aria-label="Discogs">${ICON_DISCOGS}</a>` : ""}
             </div>
           `;
         })()}
@@ -49,7 +58,7 @@ export function renderHeader({
         <div class="meta">
           <div><span class="meta-k">Date:</span> ${date ? escHtml(date) : "<span class='muted'>(n/a)</span>"}</div>
           <div><span class="meta-k">Country:</span> ${country ? escHtml(country) : "<span class='muted'>(n/a)</span>"}</div>
-          <div><span class="meta-k">Label:</span> ${label ? escHtml(label) : "<span class='muted'>(n/a)</span>"}</div>
+          <div><span class="meta-k">Label:</span> ${labelHtml}</div>
           <div><span class="meta-k">Cat. no.:</span> ${catno ? escHtml(catno) : "<span class='muted'>(n/a)</span>"}</div>
           <div><span class="meta-k">Barcode:</span> ${barcode ? escHtml(barcode) : "<span class='muted'>(n/a)</span>"}</div>
           ${releaseNotes ? `<div><span class="meta-k">Notes:</span> <span class="muted">${escHtml(releaseNotes)}</span></div>` : ""}
