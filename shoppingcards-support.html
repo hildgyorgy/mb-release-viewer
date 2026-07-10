@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ShoppingCards support and privacy information.">
+    <title>ShoppingCards Support</title>
+
+    <style>
+        :root {
+            color-scheme: light dark;
+            --background: #f5f5f7;
+            --foreground: #111111;
+            --secondary: #6e6e73;
+            --link: #007aff;
+            --rule: rgba(60, 60, 67, 0.16);
+            --card-yellow: #ffcc00;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.5;
+            margin: 0;
+            background: var(--background);
+            color: var(--foreground);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 680px;
+            margin: 0 auto;
+            padding: 44px 22px;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 42px;
+        }
+
+        .hero h1 {
+            font-size: 36px;
+            line-height: 1.1;
+            margin: 0 0 24px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .app-icon {
+            width: 128px;
+            height: 128px;
+            margin: 0 auto 40px;
+            border-radius: 29px;
+            background: var(--card-yellow);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.22);
+            display: grid;
+            place-items: center;
+            overflow: hidden;
+        }
+
+        .mini-card {
+            width: 72px;
+            min-height: 86px;
+            padding: 12px 10px;
+            border-radius: 18px;
+            background: #ffcc00;
+            color: #111;
+            text-align: left;
+            font-weight: 750;
+            font-size: 18px;
+            line-height: 1.05;
+            box-shadow: 0 7px 18px rgba(0, 0, 0, 0.14);
+        }
+
+        .mini-card span {
+            display: block;
+        }
+
+        .mini-card .done {
+            color: rgba(17, 17, 17, 0.35);
+            text-decoration: line-through;
+            text-decoration-thickness: 2px;
+        }
+
+        .subtitle {
+            font-size: 15px;
+            margin: 0;
+            text-align: center;
+            color: var(--secondary);
+        }
+
+        h2 {
+            margin: 34px 0 8px;
+            font-size: 20px;
+            line-height: 1.25;
+        }
+
+        p {
+            margin: 8px 0;
+        }
+
+        ul {
+            padding-left: 20px;
+            margin: 10px 0;
+        }
+
+        li {
+            margin: 5px 0;
+        }
+
+        a {
+            color: var(--link);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .privacy-block {
+            scroll-margin-top: 24px;
+        }
+
+        .footer {
+            margin-top: 46px;
+            padding-top: 20px;
+            border-top: 1px solid var(--rule);
+            font-size: 13px;
+            color: var(--secondary);
+            text-align: center;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding-top: 34px;
+            }
+
+            .hero h1 {
+                font-size: 32px;
+            }
+
+            .app-icon {
+                width: 112px;
+                height: 112px;
+                border-radius: 26px;
+            }
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --background: #111111;
+                --foreground: #f5f5f7;
+                --secondary: #98989d;
+                --rule: rgba(235, 235, 245, 0.16);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="container">
+        <header class="hero">
+            <h1>ShoppingCards</h1>
+
+            <div class="app-icon" aria-label="ShoppingCards icon">
+                <div class="mini-card" aria-hidden="true">
+                    <span>bread</span>
+                    <span class="done">butter</span>
+                    <span>milk</span>
+                </div>
+            </div>
+
+            <p class="subtitle">Shopping lists, organized as cards</p>
+        </header>
+
+        <h2>About</h2>
+        <p>
+            ShoppingCards is a simple, visual way to create and manage shopping lists.
+            Lists are organized as cards, making it quick to switch between them, check off items
+            and keep frequently used entries close at hand.
+        </p>
+        <p>
+            The app is designed specifically for iPhone, iPad and Mac, with an interface adapted
+            to the way each device is used.
+        </p>
+
+        <h2>How to use</h2>
+        <ul>
+            <li>Create a card for each shop, category or shopping trip.</li>
+            <li>Add items by typing or selecting suggestions from your personal library.</li>
+            <li>Tap an item to mark it as completed.</li>
+            <li>Reorder cards and items whenever needed.</li>
+            <li>Use Private Pack for your own lists and Shared Pack for lists you manage with others.</li>
+        </ul>
+
+        <h2>Sync and sharing</h2>
+        <p>
+            ShoppingCards uses Apple iCloud and CloudKit to keep your data synchronized between
+            your devices.
+        </p>
+        <p>
+            Shared Packs use Apple's built-in CloudKit sharing system. Only people you explicitly
+            invite can access a shared pack, and you can manage participants through Apple's
+            sharing interface.
+        </p>
+
+        <h2>Support</h2>
+        <p>
+            Questions, suggestions and feedback are always welcome.
+        </p>
+        <p>
+            <a href="mailto:hild.gyorgy@freemail.hu?subject=ShoppingCards%20Support">Send a support message</a>
+        </p>
+
+        <section id="privacy" class="privacy-block">
+            <h2>Privacy Policy</h2>
+
+            <p>
+                ShoppingCards does not require a separate account and does not operate its own
+                external data server.
+            </p>
+
+            <p>
+                Your cards, items, personal item library and app settings are stored locally on
+                your device and, when iCloud is enabled, in your personal Apple iCloud account
+                using CloudKit.
+            </p>
+
+            <p>
+                Private Pack data remains private to your iCloud account. Shared Pack data is made
+                available only to participants you explicitly invite through Apple's CloudKit
+                sharing system.
+            </p>
+
+            <p>
+                ShoppingCards does not sell personal information and does not use your shopping
+                data for advertising.
+            </p>
+
+            <p>
+                Apple may process iCloud and CloudKit data as part of providing its services,
+                subject to Apple's own privacy terms and policies.
+            </p>
+
+            <p>
+                If you disable iCloud for ShoppingCards, synchronization and shared packs may no
+                longer be available, while locally stored data may remain on your device.
+            </p>
+        </section>
+
+        <div class="footer">
+            György Hild · 2026
+        </div>
+    </main>
+</body>
+
+</html>
