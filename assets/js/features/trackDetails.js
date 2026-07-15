@@ -53,7 +53,7 @@ export function parsePerformersFromRecording(recording) {
 
     const isExtra = EXTRA_PERFORMER_REL_TYPES.has(typeLc);
 
-    if (!isInstrument && !isVocal && !isExtra) continue;
+    if (!isInstrument && !isVocal && !isPerformer && !isExtra) continue;
 
     // role label
     let role = "";
