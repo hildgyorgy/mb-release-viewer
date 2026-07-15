@@ -33,6 +33,7 @@ export function parsePerformersFromRecording(recording) {
     const typeLc = String(baseType || "").toLowerCase();
 
     const isInstrument = typeLc === "instrument";
+    const isPerformer = typeLc === "performer";
     const isVocal =
       typeLc === "vocal" ||
       attrs.some((a) => {
@@ -381,7 +382,7 @@ export async function renderTrackDetails(recording, work) {
 // ------------------------------------------------------------
 
 const EXCLUDE_ARTIST_REL_TYPES = new Set([
-  "instrument", "vocal", "composer", "lyricist", "librettist",
+  "instrument", "vocal", "performer", "composer", "lyricist", "librettist",
   "arranger", "writer", "conductor", "orchestra", "ensemble",
   "choir", "chorus", "concertmaster", "leader", "soloist",
   "narrator", "spoken vocals", "performing orchestra",
