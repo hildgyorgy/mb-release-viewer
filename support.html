@@ -118,7 +118,7 @@
         <h2>About</h2>
         <p>
             MusiCards is a visual browser for MusicBrainz releases and artists.
-            It focuses on album-based exploration and provides structured display for classical music.
+            It focuses on album-based exploration, detailed track credits and structured display for classical music.
             The content is presented by a card metaphor on iOS and a liquid glass accordion metaphor on macOS.
         </p>
 
@@ -126,24 +126,29 @@
         <ul>
             <li>Search by <strong>artist</strong> name to browse artists.</li>
             <li>Type <strong>, release title</strong> or <strong>, track title</strong> with a starting comma to search
-                for releases.</li>
+                without specifying an artist.</li>
             <li>Use <strong>artist, release</strong> or <strong>artist, track</strong> for combined search.</li>
+            <li>Paste a <strong>MusicBrainz release MBID</strong> into the search field and press Return to open that
+                exact release.</li>
+            <li>On iPhone, tap the <strong>Shazam icon</strong> on the left side of the search field, allow microphone
+                access and play the music. MusiCards will use the recognized artist and track to find matching
+                releases in MusicBrainz.</li>
             <li>Scan CD barcodes using your iPhone's camera.</li>
             <li>Drag the cards up or down, or tap their top edge, to expand or collapse them.</li>
         </ul>
 
         <h2>Current version</h2>
-        <p>Version 1.2.0 includes:</p>
+        <p>Version 1.4.0 includes:</p>
         <ul>
-            <li>Release → Tracks → Artist navigation.</li>
-            <li>Shazam integration (iOS).</li>
-            <li>Barcode scanning (iOS).</li>
-            <li>Now Playing matching using Apple Music (iOS).</li>
-            <li>Classical music track structure display.</li>
-            <li>Search now works with track titles too.</li>
-            <li>Matching releases are shown for track searches.</li>
-            <li>Apple Music links on release cards (if exists in MusicBrainz database)</li>
-            <li>Apple's beautiful Liquid Glass (macOS).</li>
+            <li>Native iOS and macOS experience from a shared multiplatform app.</li>
+            <li>Release → Tracks → Artist navigation with artist information and discography.</li>
+            <li>Search by artist, release title, track title, barcode or MusicBrainz release MBID.</li>
+            <li>Shazam recognition, CD barcode scanning and Now Playing matching (iOS).</li>
+            <li>Detailed track credits grouped into creators, performers and technical roles.</li>
+            <li>Structured classical music track titles and work information.</li>
+            <li>Matching releases and versions for track searches.</li>
+            <li>Music service and Discogs links when available in MusicBrainz.</li>
+            <li>Card navigation on iOS and Apple's Liquid Glass accordion on macOS.</li>
         </ul>
 
         <h2>Support</h2>
@@ -162,11 +167,18 @@
             The app stores recent searches and selected items locally on your device using system storage.
         </p>
         <p>
+            On iOS, microphone access is used only when you start Shazam recognition. MusiCards does not record or
+            store microphone audio.
+        </p>
+        <p>
             MusiCards connects to external services to retrieve music data:
         </p>
         <ul>
             <li>MusicBrainz for music metadata.</li>
             <li>Cover Art Archive for album artwork.</li>
+            <li>Apple's Shazam service for user-initiated music recognition (iOS).</li>
+            <li>Apple Music for Now Playing matching (iOS).</li>
+            <li>Wikidata and Wikipedia for artist information when available.</li>
         </ul>
         <p>
             These services may process requests according to their own policies.
