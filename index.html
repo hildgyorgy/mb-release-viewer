@@ -2,94 +2,195 @@
 <html lang="en">
 
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="MusicBrainz Release Viewer is a fast and elegant metadata explorer for music releases, recordings, credits, discographies and annotations.">
-  <meta name="keywords" content="MusicBrainz, music metadata, release viewer, discography, album credits, recording database, classical music metadata">
-
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="MusicBrainz Release Viewer continues as MusicBrainz Explorer, with the original viewer and optional playback from your own music library.">
   <meta name="author" content="György Hild">
 
-  <meta property="og:title" content="MusicBrainz Release Viewer">
-  <meta property="og:description" content="Elegant MusicBrainz release and discography explorer for collectors, editors and music lovers.">
+  <meta property="og:title" content="MusicBrainz Release Viewer has evolved">
+  <meta property="og:description" content="Continue with MusicBrainz Explorer — explore releases and optionally play your own music library.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://hildgyorgy.github.io/mb-release-viewer/">
   <meta property="og:image" content="https://hildgyorgy.github.io/mb-release-viewer/apple-touch-icon.png">
 
-  <title>MusicBrainz Release Viewer - Browse Releases, Credits & Discographies</title>
+  <title>MusicBrainz Release Viewer has evolved</title>
+  <link rel="canonical" href="https://hildgyorgy.github.io/mb-explorer/">
   <link rel="icon" href="favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16x16.png">
   <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
-  <link rel="manifest" href="./site.webmanifest">
-  <link rel="stylesheet" href="assets/styles.css" />
+
+  <style>
+    :root {
+      color-scheme: light dark;
+      --background: #fbfcff;
+      --surface: rgba(246, 248, 255, 0.82);
+      --text: #13294b;
+      --muted: #65738a;
+      --accent: #536db8;
+      --border: rgba(77, 96, 133, 0.18);
+      --shadow: 0 20px 60px rgba(34, 52, 87, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      min-height: 100%;
+      margin: 0;
+    }
+
+    body {
+      display: grid;
+      place-items: center;
+      padding: 32px 20px;
+      background:
+        radial-gradient(circle at 50% 38%, rgba(77, 132, 255, 0.08), transparent 30rem),
+        var(--background);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      text-align: center;
+    }
+
+    main {
+      width: min(100%, 660px);
+    }
+
+    .card {
+      padding: clamp(40px, 8vw, 72px) clamp(26px, 7vw, 62px);
+      border: 1px solid var(--border);
+      border-radius: 38px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(22px) saturate(135%);
+      -webkit-backdrop-filter: blur(22px) saturate(135%);
+    }
+
+    .logo {
+      display: block;
+      width: 112px;
+      height: 112px;
+      margin: 0 auto 34px;
+      object-fit: contain;
+    }
+
+    .eyebrow {
+      margin: 0 0 18px;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 6vw, 3.25rem);
+      line-height: 1.08;
+      letter-spacing: -0.035em;
+    }
+
+    .intro {
+      max-width: 510px;
+      margin: 24px auto 34px;
+      color: var(--muted);
+      font-size: clamp(1rem, 2.5vw, 1.16rem);
+      line-height: 1.65;
+    }
+
+    .explorer-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 54px;
+      padding: 0 25px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--accent) 11%, transparent);
+      color: var(--text);
+      font-weight: 700;
+      text-decoration: none;
+      transition: transform 160ms ease, background-color 160ms ease, border-color 160ms ease;
+    }
+
+    .explorer-link:hover {
+      transform: translateY(-2px);
+      border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+      background: color-mix(in srgb, var(--accent) 18%, transparent);
+    }
+
+    .explorer-link:focus-visible {
+      outline: 3px solid color-mix(in srgb, var(--accent) 55%, transparent);
+      outline-offset: 4px;
+    }
+
+    .bookmark-note {
+      margin: 22px 0 0;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --background: #090c11;
+        --surface: rgba(18, 23, 34, 0.82);
+        --text: #eef2fb;
+        --muted: #a8b0c0;
+        --accent: #9fadd8;
+        --border: rgba(171, 186, 220, 0.2);
+        --shadow: 0 24px 70px rgba(0, 0, 0, 0.36);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .explorer-link {
+        transition: none;
+      }
+    }
+
+    @media (prefers-reduced-transparency: reduce) {
+      .card {
+        background: var(--background);
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+      }
+    }
+
+    @media (max-width: 520px) {
+      body {
+        padding: 18px;
+      }
+
+      .card {
+        border-radius: 28px;
+      }
+
+      .logo {
+        width: 92px;
+        height: 92px;
+        margin-bottom: 28px;
+      }
+    }
+  </style>
 </head>
 
 <body>
-  <header class="top">
-    <div class="container">
-      <div class="top-inner">
-        <button class="brand brand-home" id="homeLink" type="button">
-          MusicBrainz Release Viewer
-        </button>
-
-        <div class="search">
-          <div class="search-field">
-            <input id="omni" type="text" autocomplete="off" spellcheck="false" placeholder="artist, release or MBID" />
-            <div class="results" id="results" hidden></div>
-          </div>
-          <!-- <button id="go" class="go-btn" title="Load from MusicBrainz">
-            <img src="assets/icons/MB_go.png" alt="MusicBrainz" />
-          </button> -->
-          <button class="theme-fab pill" id="themeToggle" type="button"></button>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <main class="wrap">
-    <div class="container">
-      <div id="out">
-        <section id="emptyState" class="empty-state seo-copy">
-          <div class="empty-inner">
-            <img class="empty-logo" src="./assets/icons/MB_go.png" alt="" aria-hidden="true">
-
-            <div class="empty-help">
-              <p>
-                Type artist name + comma to search for artist<br>
-                <code>miles davis,</code>
-              </p>
-
-              <p>
-                Type comma + release/track title for releases<br>
-                <code>, kind of blue</code>
-              </p>
-
-              <p>
-                Type artist, release/track for combined search<br>
-                <code>miles davis, so what</code>
-              </p>
-
-              <p>
-                Paste a MusicBrainz release MBID<br>
-                <code>353021d1-3d84-4f17-9fe4-66788d785a9d</code>
-              </p>
-            </div>
-          </div>
-        </section>
-      </div>
-    </div>
+  <main>
+    <section class="card" aria-labelledby="page-title">
+      <img class="logo" src="./assets/icons/MB_go.png" alt="MusicBrainz Explorer logo">
+      <p class="eyebrow">MusicBrainz Release Viewer</p>
+      <h1 id="page-title">The Viewer has evolved.</h1>
+      <p class="intro">
+        The project continues as MusicBrainz Explorer — preserving the original release viewer and adding optional playback from your own music library.
+      </p>
+      <a class="explorer-link" href="https://hildgyorgy.github.io/mb-explorer/">
+        Open MusicBrainz Explorer&nbsp; →
+      </a>
+      <p class="bookmark-note">Please update your bookmark.</p>
+    </section>
   </main>
-
-  <footer class="footer muted">
-    <div class="container footer-inner">
-      <div class="footer-right">
-        <div>MB Release Viewer v1.3.0</div>
-        <div>Data: MusicBrainz contributors • CC BY-NC-SA 3.0</div>
-      </div>
-    </div>
-  </footer>
-
-  <script type="module" src="assets/js/app.js"></script>
 </body>
 
 </html>
