@@ -23,13 +23,10 @@
   <style>
     :root {
       color-scheme: light dark;
-      --background: #fbfcff;
-      --surface: rgba(246, 248, 255, 0.82);
+      --background: #ffffff;
       --text: #13294b;
       --muted: #65738a;
-      --accent: #536db8;
-      --border: rgba(77, 96, 133, 0.18);
-      --shadow: 0 20px 60px rgba(34, 52, 87, 0.12);
+      --link: #536db8;
     }
 
     * {
@@ -46,9 +43,7 @@
       display: grid;
       place-items: center;
       padding: 32px 20px;
-      background:
-        radial-gradient(circle at 50% 38%, rgba(77, 132, 255, 0.08), transparent 30rem),
-        var(--background);
+      background: var(--background);
       color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       text-align: center;
@@ -59,13 +54,7 @@
     }
 
     .card {
-      padding: clamp(40px, 8vw, 72px) clamp(26px, 7vw, 62px);
-      border: 1px solid var(--border);
-      border-radius: 38px;
-      background: var(--surface);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(22px) saturate(135%);
-      -webkit-backdrop-filter: blur(22px) saturate(135%);
+      padding: clamp(24px, 6vw, 48px);
     }
 
     .logo {
@@ -76,53 +65,29 @@
       object-fit: contain;
     }
 
-    .eyebrow {
-      margin: 0 0 18px;
-      color: var(--accent);
-      font-size: 0.78rem;
-      font-weight: 700;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-    }
-
     h1 {
       margin: 0;
-      font-size: clamp(2rem, 6vw, 3.25rem);
-      line-height: 1.08;
-      letter-spacing: -0.035em;
-    }
-
-    .intro {
-      max-width: 510px;
-      margin: 24px auto 34px;
-      color: var(--muted);
       font-size: clamp(1rem, 2.5vw, 1.16rem);
+      font-weight: 400;
       line-height: 1.65;
+      color: var(--muted);
     }
 
     .explorer-link {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 54px;
-      padding: 0 25px;
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      background: color-mix(in srgb, var(--accent) 11%, transparent);
-      color: var(--text);
+      display: inline-block;
+      margin-top: 28px;
+      color: var(--link);
       font-weight: 700;
       text-decoration: none;
-      transition: transform 160ms ease, background-color 160ms ease, border-color 160ms ease;
+      transition: color 160ms ease;
     }
 
     .explorer-link:hover {
-      transform: translateY(-2px);
-      border-color: color-mix(in srgb, var(--accent) 45%, transparent);
-      background: color-mix(in srgb, var(--accent) 18%, transparent);
+      color: color-mix(in srgb, var(--link) 76%, var(--text));
     }
 
     .explorer-link:focus-visible {
-      outline: 3px solid color-mix(in srgb, var(--accent) 55%, transparent);
+      outline: 2px solid var(--link);
       outline-offset: 4px;
     }
 
@@ -135,12 +100,9 @@
     @media (prefers-color-scheme: dark) {
       :root {
         --background: #090c11;
-        --surface: rgba(18, 23, 34, 0.82);
         --text: #eef2fb;
         --muted: #a8b0c0;
-        --accent: #9fadd8;
-        --border: rgba(171, 186, 220, 0.2);
-        --shadow: 0 24px 70px rgba(0, 0, 0, 0.36);
+        --link: #8da7ed;
       }
     }
 
@@ -150,21 +112,9 @@
       }
     }
 
-    @media (prefers-reduced-transparency: reduce) {
-      .card {
-        background: var(--background);
-        backdrop-filter: none;
-        -webkit-backdrop-filter: none;
-      }
-    }
-
     @media (max-width: 520px) {
       body {
         padding: 18px;
-      }
-
-      .card {
-        border-radius: 28px;
       }
 
       .logo {
@@ -180,11 +130,9 @@
   <main>
     <section class="card" aria-labelledby="page-title">
       <img class="logo" src="./assets/icons/MB_go.png" alt="MusicBrainz Explorer logo">
-      <p class="eyebrow">MusicBrainz Release Viewer</p>
-      <h1 id="page-title">The Viewer has evolved.</h1>
-      <p class="intro">
-        The project continues as MusicBrainz Explorer — preserving the original release viewer and adding optional playback from your own music library.
-      </p>
+      <h1 id="page-title">
+        The Viewer has evolved. The project continues as MusicBrainz Explorer — preserving the original release viewer and adding optional playback from your own music library.
+      </h1>
       <a class="explorer-link" href="https://hildgyorgy.github.io/mb-explorer/">
         Open MusicBrainz Explorer&nbsp; →
       </a>
