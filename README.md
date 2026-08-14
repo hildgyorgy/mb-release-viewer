@@ -1,41 +1,24 @@
-![MusicBrainz Release Viewer screenshot](assets/hero.png)
-# MusicBrainz Release Viewer
-_version 1.3.0_
+![MusicBrainz Explorer](assets/icons/MB_go.png)
 
-A small, framework-free web app for reading MusicBrainz releases  
-the way credits deserve to be read.
+# MusicBrainz Release Viewer has evolved
 
-▶ Open the viewer:  
-[MusicBrainz Release Viewer](https://hildgyorgy.github.io/mb-release-viewer/)
+MusicBrainz Release Viewer now continues as **MusicBrainz Explorer**.
 
-Built on the MusicBrainz API and Cover Art Archive.  
-Designed for clarity, structured credit overview and calm navigation — on desktop and mobile alike.
+The Explorer preserves the original release-focused interface and detailed
+MusicBrainz credit presentation, while adding optional playback from a locally
+connected, Picard-tagged music library.
 
-### What it focuses on
+▶ [Open MusicBrainz Explorer](https://hildgyorgy.github.io/mb-explorer/)
 
-- Clean release overview
-- Unfolding track details with all the contributors 
-- Versions tab for all the releases of the same release group
-- artist's info & discography popup
-- Cover navigation
-- Minimal, mobile-friendly layout
-- album links to streaming platforms
+❔ [How to, support and privacy](https://hildgyorgy.github.io/mb-explorer/support.html)
 
-This project is an independent viewer and is not affiliated with or endorsed by MusicBrainz or MetaBrainz.
+The former Viewer website remains available as a manual transition page so
+existing bookmarks do not lead to a broken destination.
 
-### How to use
-
-- Paste a MusicBrainz release URL or MBID, or
-- Search directly
-- Optional comma separated search: Artist, Album
-
-### Architecture
-
-Plain HTML, CSS and vanilla ES modules.  
-No frameworks. No build step.
+This is an independent project and is not affiliated with or endorsed by
+MusicBrainz or MetaBrainz.
 
 ---
 
 © 2026 György Hild  
-Data: MusicBrainz contributors — CC BY-NC-SA 3.0  
-Made with respect for structured music data.
+Data: MusicBrainz contributors — CC BY-NC-SA 3.0
